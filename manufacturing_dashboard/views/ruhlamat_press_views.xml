@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ruhlamat_press_tree" model="ir.ui.view">
+        <field name="name">ruhlamat.press.list</field>
+        <field name="model">manufacturing.ruhlamat.press</field>
+        <field name="arch" type="xml">
+            <list decoration-success="result=='pass'" decoration-danger="result=='reject'">
+                <field name="serial_number"/>
+                <field name="machine_id"/>
+                <field name="test_date"/>
+                <field name="press_force"/>
+                <field name="press_distance"/>
+                <field name="press_duration"/>
+                <field name="press_within_tolerance" widget="boolean_toggle"/>
+                <field name="crack_test_result" widget="boolean_toggle"/>
+                <field name="mpi_test_result" widget="boolean_toggle"/>
+                <field name="result" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ruhlamat_press_form" model="ir.ui.view">
+        <field name="name">ruhlamat.press.form</field>
+        <field name="model">manufacturing.ruhlamat.press</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="result" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="serial_number"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="machine_id"/>
+                            <field name="test_date"/>
+                        </group>
+                        <group>
+                            <field name="press_within_tolerance"/>
+                            <field name="overall_test_ok"/>
+                        </group>
+                    </group>
+                    <group string="Press Measurements">
+                        <group>
+                            <field name="press_force"/>
+                            <field name="press_distance"/>
+                            <field name="press_duration"/>
+                        </group>
+                        <group>
+                            <field name="force_min"/>
+                            <field name="force_max"/>
+                            <field name="distance_min"/>
+                            <field name="distance_max"/>
+                        </group>
+                    </group>
+                    <group string="Test Results">
+                        <group>
+                            <field name="press_test_ok"/>
+                            <field name="crack_test_result"/>
+                            <field name="mpi_test_result"/>
+                        </group>
+                    </group>
+                    <group string="Additional Information">
+                        <field name="rejection_reason" modifiers="{'invisible': [('result', '=', 'pass')]}"/>
+                        <field name="raw_data" widget="text"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ruhlamat_press" model="ir.actions.act_window">
+        <field name="name">Ruhlamat Press System</field>
+        <field name="res_model">manufacturing.ruhlamat.press</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

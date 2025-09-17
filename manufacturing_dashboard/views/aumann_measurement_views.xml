@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_aumann_measurement_tree" model="ir.ui.view">
+        <field name="name">aumann.measurement.list</field>
+        <field name="model">manufacturing.aumann.measurement</field>
+        <field name="arch" type="xml">
+            <list decoration-success="result=='pass'" decoration-danger="result=='reject'">
+                <field name="serial_number"/>
+                <field name="machine_id"/>
+                <field name="test_date"/>
+                <field name="part_form"/>
+                <field name="total_measurements"/>
+                <field name="measurements_passed"/>
+                <field name="pass_rate" widget="percentage"/>
+                <field name="dimensional_accuracy" widget="badge"/>
+                <field name="critical_measurements_ok" widget="boolean_toggle"/>
+                <field name="result" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_aumann_measurement_form" model="ir.ui.view">
+        <field name="name">aumann.measurement.form</field>
+        <field name="model">manufacturing.aumann.measurement</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="result" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="serial_number"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="machine_id"/>
+                            <field name="test_date"/>
+                            <field name="part_form"/>
+                            <field name="product_id"/>
+                            <field name="assembly"/>
+                        </group>
+                        <group>
+                            <field name="total_measurements"/>
+                            <field name="measurements_passed"/>
+                            <field name="measurements_failed"/>
+                            <field name="pass_rate" widget="percentage"/>
+                            <field name="dimensional_accuracy"/>
+                            <field name="critical_measurements_ok"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Journal Measurements">
+                            <group>
+                                <group string="Journal A Diameters">
+                                    <field name="diameter_journal_a1"/>
+                                    <field name="diameter_journal_a2"/>
+                                    <field name="diameter_journal_a3"/>
+                                </group>
+                                <group string="Journal B Diameters">
+                                    <field name="diameter_journal_b1"/>
+                                    <field name="diameter_journal_b2"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Roundness">
+                                    <field name="roundness_journal_a1"/>
+                                    <field name="roundness_journal_a2"/>
+                                    <field name="roundness_journal_a3"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Cam Measurements">
+                            <group>
+                                <group string="Base Circle Radius">
+                                    <field name="base_circle_radius_e11"/>
+                                    <field name="base_circle_radius_e12"/>
+                                    <field name="base_circle_radius_e21"/>
+                                </group>
+                                <group string="Lobe Width">
+                                    <field name="lobe_width_e11"/>
+                                    <field name="lobe_width_e12"/>
+                                    <field name="lobe_width_e21"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Angles">
+                                    <field name="angle_lobe_e11"/>
+                                    <field name="angle_lobe_e12"/>
+                                    <field name="angle_lobe_e21"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Other Measurements">
+                            <group>
+                                <group string="Trigger Wheel">
+                                    <field name="trigger_wheel_diameter"/>
+                                    <field name="trigger_wheel_width"/>
+                                </group>
+                                <group string="Two Flat">
+                                    <field name="two_flat_size"/>
+                                    <field name="two_flat_symmetry"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Raw Data">
+                            <group>
+                                <field name="rejection_reason" nolabel="1"/>
+                                <field name="raw_data" widget="text" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_aumann_measurement" model="ir.actions.act_window">
+        <field name="name">Aumann Measurements</field>
+        <field name="res_model">manufacturing.aumann.measurement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

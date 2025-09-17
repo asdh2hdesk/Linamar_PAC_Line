@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vici_vision_tree" model="ir.ui.view">
+        <field name="name">vici.vision.list</field>
+        <field name="model">manufacturing.vici.vision</field>
+        <field name="arch" type="xml">
+            <list decoration-success="result=='pass'" decoration-danger="result=='reject'">
+                <field name="serial_number"/>
+                <field name="machine_id"/>
+                <field name="log_date"/>
+                <field name="log_time"/>
+                <field name="operator_name"/>
+                <field name="measure_number"/>
+                <field name="within_tolerance" widget="boolean_toggle"/>
+                <field name="result" widget="badge"/>
+                <field name="l_64_8" widget="float" options="{'precision': 4}"/>
+                <field name="l_35_4" widget="float" options="{'precision': 4}"/>
+                <field name="l_46_6" widget="float" options="{'precision': 4}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vici_vision_form" model="ir.ui.view">
+        <field name="name">vici.vision.form</field>
+        <field name="model">manufacturing.vici.vision</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="result" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="serial_number"/></h1>
+                    </div>
+                    <group>
+                        <group string="General">
+                            <field name="machine_id"/>
+                            <field name="log_date"/>
+                            <field name="log_time"/>
+                            <field name="operator_name"/>
+                            <field name="batch_serial_number"/>
+                            <field name="measure_number"/>
+                            <field name="measure_state"/>
+                            <field name="within_tolerance"/>
+                            <field name="result"/>
+                        </group>
+                        <group string="Key Dimensions">
+                            <field name="l_64_8"/>
+                            <field name="l_35_4"/>
+                            <field name="l_46_6"/>
+                            <field name="l_82"/>
+                            <field name="l_128_6"/>
+                            <field name="l_164"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Runout">
+                            <group>
+                                <field name="runout_e31_e22"/>
+                                <field name="runout_e21_e12"/>
+                                <field name="runout_e11_tube_end"/>
+                            </group>
+                        </page>
+                        <page string="Angular Differences">
+                            <group>
+                                <field name="ang_diff_e32_e12_pos_tool"/>
+                                <field name="ang_diff_e31_e12_pos_tool"/>
+                                <field name="ang_diff_e22_e12_pos_tool"/>
+                                <field name="ang_diff_e21_e12_pos_tool"/>
+                                <field name="ang_diff_e11_e12_pos_tool"/>
+                            </group>
+                        </page>
+                        <page string="Tolerances">
+                            <group string="L 64.8">
+                                <field name="l_64_8_nominal"/>
+                                <field name="l_64_8_tol_low"/>
+                                <field name="l_64_8_tol_high"/>
+                            </group>
+                            <group string="L 35.4">
+                                <field name="l_35_4_nominal"/>
+                                <field name="l_35_4_tol_low"/>
+                                <field name="l_35_4_tol_high"/>
+                            </group>
+                            <group string="L 46.6">
+                                <field name="l_46_6_nominal"/>
+                                <field name="l_46_6_tol_low"/>
+                                <field name="l_46_6_tol_high"/>
+                            </group>
+                            <group string="L 82">
+                                <field name="l_82_nominal"/>
+                                <field name="l_82_tol_low"/>
+                                <field name="l_82_tol_high"/>
+                            </group>
+                            <group string="L 128.6">
+                                <field name="l_128_6_nominal"/>
+                                <field name="l_128_6_tol_low"/>
+                                <field name="l_128_6_tol_high"/>
+                            </group>
+                            <group string="L 164">
+                                <field name="l_164_nominal"/>
+                                <field name="l_164_tol_low"/>
+                                <field name="l_164_tol_high"/>
+                            </group>
+                            <group string="Runout E31-E22">
+                                <field name="runout_e31_e22_nominal"/>
+                                <field name="runout_e31_e22_tol_low"/>
+                                <field name="runout_e31_e22_tol_high"/>
+                            </group>
+                            <group string="Runout E21-E12">
+                                <field name="runout_e21_e12_nominal"/>
+                                <field name="runout_e21_e12_tol_low"/>
+                                <field name="runout_e21_e12_tol_high"/>
+                            </group>
+                            <group string="Runout E11 tube end">
+                                <field name="runout_e11_tube_end_nominal"/>
+                                <field name="runout_e11_tube_end_tol_low"/>
+                                <field name="runout_e11_tube_end_tol_high"/>
+                            </group>
+                            <group string="Angular diffs">
+                                <field name="ang_diff_e32_e12_pos_tool_nominal"/>
+                                <field name="ang_diff_e32_e12_pos_tool_tol_low"/>
+                                <field name="ang_diff_e32_e12_pos_tool_tol_high"/>
+                                <field name="ang_diff_e31_e12_pos_tool_nominal"/>
+                                <field name="ang_diff_e31_e12_pos_tool_tol_low"/>
+                                <field name="ang_diff_e31_e12_pos_tool_tol_high"/>
+                                <field name="ang_diff_e22_e12_pos_tool_nominal"/>
+                                <field name="ang_diff_e22_e12_pos_tool_tol_low"/>
+                                <field name="ang_diff_e22_e12_pos_tool_tol_high"/>
+                                <field name="ang_diff_e21_e12_pos_tool_nominal"/>
+                                <field name="ang_diff_e21_e12_pos_tool_tol_low"/>
+                                <field name="ang_diff_e21_e12_pos_tool_tol_high"/>
+                                <field name="ang_diff_e11_e12_pos_tool_nominal"/>
+                                <field name="ang_diff_e11_e12_pos_tool_tol_low"/>
+                                <field name="ang_diff_e11_e12_pos_tool_tol_high"/>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <group>
+                                <field name="rejection_reason" invisible="1" modifiers="{'invisible': [('result', '=', 'pass')]}"/>
+                                <field name="raw_data" widget="text"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vici_vision" model="ir.actions.act_window">
+        <field name="name">VICI Vision System</field>
+        <field name="res_model">manufacturing.vici.vision</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

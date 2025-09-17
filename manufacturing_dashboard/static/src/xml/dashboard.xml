@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="manufacturing_dashboard.Dashboard" owl="1">
+        <div class="manufacturing_dashboard">
+            <div class="row">
+                <div class="col-12">
+                    <h2>Manufacturing Quality Control Dashboard</h2>
+                    <div class="realtime-indicator" title="Live Data"></div>
+                </div>
+            </div>
+
+            <!-- Statistics Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="metric-box">
+                            <div class="metric-value" t-esc="state.statistics.total_parts"/>
+                            <div class="metric-label">Total Parts Today</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="metric-box">
+                            <div class="metric-value text-success" t-esc="state.statistics.passed_parts"/>
+                            <div class="metric-label">Passed Parts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="metric-box">
+                            <div class="metric-value text-danger" t-esc="state.statistics.rejected_parts"/>
+                            <div class="metric-label">Rejected Parts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="metric-box">
+                            <div class="metric-value text-warning" t-esc="state.statistics.pending_parts"/>
+                            <div class="metric-label">Pending Parts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machine Status -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <h4>Machine Status</h4>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Machine</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Parts Today</th>
+                                        <th>Rejection Rate</th>
+                                        <th>Last Sync</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.machines" t-as="machine" t-key="machine.id">
+                                        <td>
+                                            <span class="status-indicator" t-att-class="getStatusClass(machine.status)"></span>
+                                            <t t-esc="machine.machine_name"/>
+                                        </td>
+                                        <td t-esc="machine.machine_type"/>
+                                        <td>
+                                            <span class="badge" t-att-class="'badge-' + machine.status" t-esc="machine.status"/>
+                                        </td>
+                                        <td t-esc="machine.parts_processed_today"/>
+                                        <td>
+                                            <span t-esc="machine.rejection_rate.toFixed(1)"/>%
+                                        </td>
+                                        <td t-esc="formatTime(machine.last_sync)"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

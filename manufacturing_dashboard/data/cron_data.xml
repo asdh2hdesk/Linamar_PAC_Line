@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Cron job for automatic data synchronization -->
+        <record id="cron_sync_machines" model="ir.cron">
+            <field name="name">Manufacturing: Sync Machine Data</field>
+            <field name="model_id" ref="manufacturing_dashboard.model_manufacturing_machine_config"/>
+            <field name="state">code</field>
+            <field name="code">model.sync_all_machines()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Cron job for daily statistics calculation -->
+        <record id="cron_daily_stats" model="ir.cron">
+            <field name="name">Manufacturing: Calculate Daily Statistics</field>
+            <field name="model_id" ref="manufacturing_dashboard.model_manufacturing_part_quality"/>
+            <field name="state">code</field>
+            <field name="code">model.calculate_daily_stats()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

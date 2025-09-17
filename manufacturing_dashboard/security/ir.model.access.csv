@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_machine_config_user,Manufacturing Machine Config User,model_manufacturing_machine_config,base.group_user,1,1,1,0
+access_machine_config_system,Manufacturing Machine Config System,model_manufacturing_machine_config,base.group_system,1,1,1,1
+access_part_quality_user,Manufacturing Part Quality User,model_manufacturing_part_quality,base.group_user,1,1,1,0
+access_part_quality_system,Manufacturing Part Quality System,model_manufacturing_part_quality,base.group_system,1,1,1,1
+access_vici_vision_user,Manufacturing VICI Vision User,model_manufacturing_vici_vision,base.group_user,1,0,1,0
+access_vici_vision_system,Manufacturing VICI Vision System,model_manufacturing_vici_vision,base.group_system,1,1,1,1
+access_ruhlamat_press_user,Manufacturing Ruhlamat Press User,model_manufacturing_ruhlamat_press,base.group_user,1,0,1,0
+access_ruhlamat_press_system,Manufacturing Ruhlamat Press System,model_manufacturing_ruhlamat_press,base.group_system,1,1,1,1
+access_aumann_measurement_user,Manufacturing Aumann Measurement User,model_manufacturing_aumann_measurement,base.group_user,1,0,1,0
+access_aumann_measurement_system,Manufacturing Aumann Measurement System,model_manufacturing_aumann_measurement,base.group_system,1,1,1,1

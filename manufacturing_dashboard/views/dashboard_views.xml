@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard Kanban View -->
+    <record id="view_manufacturing_dashboard_kanban" model="ir.ui.view">
+        <field name="name">manufacturing.dashboard.kanban</field>
+        <field name="model">manufacturing.machine.config</field>
+        <field name="arch" type="xml">
+            <kanban class="manufacturing_dashboard" create="false" edit="false">
+                <field name="machine_name"/>
+                <field name="machine_type"/>
+                <field name="status"/>
+                <field name="parts_processed_today"/>
+                <field name="rejection_rate"/>
+                <field name="last_sync"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_details">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <strong><field name="machine_name"/></strong>
+                                        <div class="text-muted">
+                                            <field name="machine_type"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 text-right">
+                                        <span class="badge" t-att-class="record.status.value == 'running' ? 'badge-success' : record.status.value == 'error' ? 'badge-danger' : record.status.value == 'maintenance' ? 'badge-warning' : 'badge-secondary'">
+                                            <field name="status"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Parts Today:</strong><br/>
+                                        <span class="h4"><field name="parts_processed_today"/></span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Rejection Rate:</strong><br/>
+                                        <span class="h4" t-att-class="record.rejection_rate.value > 5 ? 'text-danger' : 'text-success'">
+                                            <field name="rejection_rate" widget="float" options="{'precision': 1}"/>%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <small class="text-muted">
+                                            Last Sync: <field name="last_sync" widget="relative"/>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <button name="sync_machine_data" type="object" class="btn btn-sm btn-primary">
+                                            <i class="fa fa-refresh"/> Sync Now
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_manufacturing_dashboard" model="ir.actions.act_window">
+        <field name="name">Manufacturing Dashboard</field>
+        <field name="res_model">manufacturing.machine.config</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_manufacturing_dashboard_kanban"/>
+        <field name="domain">[('is_active', '=', True)]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Statistics Dashboard (Alternative view) -->
+    <record id="view_dashboard_statistics" model="ir.ui.view">
+        <field name="name">dashboard.statistics</field>
+        <field name="model">manufacturing.part.quality</field>
+        <field name="arch" type="xml">
+            <graph string="Quality Statistics" type="pie">
+                <field name="final_result"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_dashboard_statistics" model="ir.actions.act_window">
+        <field name="name">Quality Statistics</field>
+        <field name="res_model">manufacturing.part.quality</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="view_id" ref="view_dashboard_statistics"/>
+        <field name="domain">[('test_date', '>=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]</field>
+    </record>
+</odoo>

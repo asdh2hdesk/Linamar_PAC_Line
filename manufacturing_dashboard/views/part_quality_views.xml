@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Part Quality Tree View -->
+    <record id="view_part_quality_tree" model="ir.ui.view">
+        <field name="name">part.quality.list</field>
+        <field name="model">manufacturing.part.quality</field>
+        <field name="arch" type="xml">
+            <list decoration-success="final_result=='pass'" decoration-danger="final_result=='reject'" decoration-warning="final_result=='pending'">
+                <field name="serial_number"/>
+                <field name="test_date" widget="datetime"/>
+                <field name="vici_result" widget="badge"
+                       decoration-success="vici_result=='pass'"
+                       decoration-danger="vici_result=='reject'"
+                       decoration-info="vici_result=='pending'"/>
+                <field name="ruhlamat_result" widget="badge"
+                       decoration-success="ruhlamat_result=='pass'"
+                       decoration-danger="ruhlamat_result=='reject'"
+                       decoration-info="ruhlamat_result=='pending'"/>
+                <field name="aumann_result" widget="badge"
+                       decoration-success="aumann_result=='pass'"
+                       decoration-danger="aumann_result=='reject'"
+                       decoration-info="aumann_result=='pending'"/>
+                <field name="final_result" widget="badge"
+                       decoration-success="final_result=='pass'"
+                       decoration-danger="final_result=='reject'"
+                       decoration-warning="final_result=='pending'"/>
+                <field name="box_number"/>
+                <field name="qe_override" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Part Quality Form View -->
+    <record id="view_part_quality_form" model="ir.ui.view">
+        <field name="name">part.quality.form</field>
+        <field name="model">manufacturing.part.quality</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="qe_override_result" type="object" string="QE Override"
+                            class="btn-warning" groups="base.group_system"
+                            modifiers="{'invisible': [('final_result', '=', 'pass')]}"/>
+                    <field name="final_result" widget="statusbar" statusbar_visible="pending,pass,reject"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="QE Override" bg_color="bg-warning"
+                            modifiers="{'invisible': [('qe_override', '=', False)]}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="serial_number" placeholder="Serial Number..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="basic_info" string="Basic Information">
+                            <field name="test_date"/>
+                            <field name="box_number"/>
+                            <field name="box_position"/>
+                        </group>
+                        <group name="station_results" string="Station Results">
+                            <field name="vici_result" widget="badge"/>
+                            <field name="ruhlamat_result" widget="badge"/>
+                            <field name="aumann_result" widget="badge"/>
+                        </group>
+                    </group>
+
+                    <!-- Station Details Tabs -->
+                    <notebook>
+                        <page name="vici_details" string="VICI Vision Details">
+                            <field name="vici_vision_ids" readonly="1">
+                                <list>
+                                    <field name="test_date"/>
+                                    <field name="operator_name"/>
+                                    <field name="measure_number"/>
+                                    <field name="within_tolerance"/>
+                                    <field name="l_64_8"/>
+                                    <field name="l_35_4"/>
+                                    <field name="l_46_6"/>
+                                    <field name="result"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="ruhlamat_details" string="Ruhlamat Press Details">
+                            <field name="ruhlamat_press_ids" readonly="1">
+                                <list>
+                                    <field name="test_date"/>
+                                    <field name="press_force"/>
+                                    <field name="press_distance"/>
+                                    <field name="crack_test_result"/>
+                                    <field name="result"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="aumann_details" string="Aumann Measurement Details">
+                            <field name="aumann_measurement_ids" readonly="1">
+                                <list>
+                                    <field name="test_date"/>
+                                    <field name="total_measurements"/>
+                                    <field name="measurements_passed"/>
+                                    <field name="pass_rate"/>
+                                    <field name="result"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+                    <!-- Quality Engineer Override Section -->
+                    <group string="Quality Engineer Override" groups="base.group_system"
+                           modifiers="{'invisible': [('qe_override', '=', False)]}">
+                        <field name="qe_override" readonly="1"/>
+                        <field name="qe_comments" readonly="1"/>
+                    </group>
+                </sheet>
+<!--                <div class="oe_chatter">-->
+<!--                    <field name="message_follower_ids"/>-->
+<!--                    <field name="message_ids"/>-->
+<!--                </div>-->
+            </form>
+        </field>
+    </record>
+
+    <!-- Part Quality Search View -->
+    <record id="view_part_quality_search" model="ir.ui.view">
+        <field name="name">part.quality.search</field>
+        <field name="model">manufacturing.part.quality</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="serial_number"/>
+                <field name="box_number"/>
+                <filter name="today" string="Today"
+                        domain="[('test_date', '&gt;=', datetime.datetime.now().strftime('%Y-%m-%d'))]"/>
+                <filter name="this_week" string="This Week"
+                        domain="[('test_date', '&gt;=', (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="this_month" string="This Month"
+                        domain="[('test_date', '&gt;=', datetime.datetime.now().strftime('%Y-%m-01'))]"/>
+                <separator/>
+                <filter name="passed" string="Passed" domain="[('final_result', '=', 'pass')]"/>
+                <filter name="rejected" string="Rejected" domain="[('final_result', '=', 'reject')]"/>
+                <filter name="pending" string="Pending" domain="[('final_result', '=', 'pending')]"/>
+                <separator/>
+                <filter name="qe_override" string="QE Override" domain="[('qe_override', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Final Result" name="group_result" context="{'group_by': 'final_result'}"/>
+                    <filter string="Box Number" name="group_box" context="{'group_by': 'box_number'}"/>
+                    <filter string="Test Date" name="group_date" context="{'group_by': 'test_date:day'}"/>
+                    <filter string="VICI Result" name="group_vici" context="{'group_by': 'vici_result'}"/>
+                    <filter string="Ruhlamat Result" name="group_ruhlamat" context="{'group_by': 'ruhlamat_result'}"/>
+                    <filter string="Aumann Result" name="group_aumann" context="{'group_by': 'aumann_result'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Part Quality Kanban View -->
+    <record id="view_part_quality_kanban" model="ir.ui.view">
+        <field name="name">part.quality.kanban</field>
+        <field name="model">manufacturing.part.quality</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="final_result">
+                <field name="serial_number"/>
+                <field name="test_date"/>
+                <field name="final_result"/>
+                <field name="vici_result"/>
+                <field name="ruhlamat_result"/>
+                <field name="aumann_result"/>
+                <field name="box_number"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_details">
+                                <strong><field name="serial_number"/></strong>
+                                <div class="text-muted">
+                                    <field name="test_date" widget="relative"/>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge badge-secondary">VICI: <field name="vici_result"/></span>
+                                    <span class="badge badge-secondary">Ruhlamat: <field name="ruhlamat_result"/></span>
+                                    <span class="badge badge-secondary">Aumann: <field name="aumann_result"/></span>
+                                </div>
+                                <div class="mt-2" t-if="record.box_number.value">
+                                    <small>Box: <field name="box_number"/></small>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Part Quality Graph View -->
+    <record id="view_part_quality_graph" model="ir.ui.view">
+        <field name="name">part.quality.graph</field>
+        <field name="model">manufacturing.part.quality</field>
+        <field name="arch" type="xml">
+            <graph string="Quality Control Statistics" type="pie">
+                <field name="final_result"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Part Quality Pivot View -->
+    <record id="view_part_quality_pivot" model="ir.ui.view">
+        <field name="name">part.quality.pivot</field>
+        <field name="model">manufacturing.part.quality</field>
+        <field name="arch" type="xml">
+            <pivot string="Quality Control Analysis">
+                <field name="test_date" type="row" interval="day"/>
+                <field name="final_result" type="col"/>
+                <field name="serial_number" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Part Quality Action -->
+    <record id="action_part_quality" model="ir.actions.act_window">
+        <field name="name">Part Quality Control</field>
+        <field name="res_model">manufacturing.part.quality</field>
+        <field name="view_mode">list,kanban,form,graph,pivot</field>
+        <field name="context">{'search_default_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No parts tested yet!
+            </p>
+            <p>
+                Parts will appear here automatically as they are processed through your manufacturing stations.
+                Make sure your machines are configured and syncing data.
+            </p>
+        </field>
+    </record>
+</odoo>

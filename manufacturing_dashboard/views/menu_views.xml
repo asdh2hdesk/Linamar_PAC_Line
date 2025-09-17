@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_manufacturing_main"
+              name="Manufacturing Dashboard"
+              sequence="50"
+              web_icon="manufacturing_dashboard,static/description/icon.png"/>
+
+    <!-- Dashboard Menu -->
+    <menuitem id="menu_dashboard"
+              name="Dashboard"
+              parent="menu_manufacturing_main"
+              action="action_manufacturing_dashboard"
+              sequence="10"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_configuration"
+              name="Configuration"
+              parent="menu_manufacturing_main"
+              sequence="90"/>
+
+    <menuitem id="menu_machine_config"
+              name="Machine Configuration"
+              parent="menu_configuration"
+              action="action_machine_config"
+              sequence="10"/>
+
+    <!-- Quality Control Menu -->
+    <menuitem id="menu_quality_control"
+              name="Quality Control"
+              parent="menu_manufacturing_main"
+              sequence="20"/>
+
+    <menuitem id="menu_part_quality"
+              name="Part Quality"
+              parent="menu_quality_control"
+              action="action_part_quality"
+              sequence="10"/>
+
+    <!-- Stations Menu -->
+    <menuitem id="menu_stations"
+              name="Stations"
+              parent="menu_manufacturing_main"
+              sequence="30"/>
+
+    <menuitem id="menu_vici_vision"
+              name="VICI Vision"
+              parent="menu_stations"
+              action="action_vici_vision"
+              sequence="10"/>
+
+    <menuitem id="menu_ruhlamat"
+              name="Ruhlamat Press"
+              parent="menu_stations"
+              action="action_ruhlamat_press"
+              sequence="20"/>
+
+    <menuitem id="menu_aumann"
+              name="Aumann Measurement"
+              parent="menu_stations"
+              action="action_aumann_measurement"
+              sequence="30"/>
+</odoo>

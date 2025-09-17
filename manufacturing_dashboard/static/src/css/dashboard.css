@@ -1,0 +1,66 @@
+.manufacturing_dashboard {
+    padding: 20px;
+}
+
+.dashboard-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.machine-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-running { background-color: #28a745; }
+.status-stopped { background-color: #6c757d; }
+.status-error { background-color: #dc3545; }
+.status-maintenance { background-color: #ffc107; }
+
+.metric-box {
+    text-align: center;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    margin: 5px;
+}
+
+.metric-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #495057;
+}
+
+.metric-label {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.realtime-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background-color: #28a745;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
