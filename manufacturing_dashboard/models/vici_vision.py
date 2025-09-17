@@ -103,6 +103,7 @@ class ViciVision(models.Model):
     ], string='Result')
 
     rejection_reason = fields.Text('Rejection Reason')
+    failed_fields = fields.Char('Failed Fields')
     raw_data = fields.Text('Raw Data')
 
     # Computed fields
@@ -202,7 +203,7 @@ class ViciVision(models.Model):
 
         result = 'pass' if not failed else 'reject'
         reason = False if not failed else 'Out of tolerance: ' + ', '.join(failed)
-        return result, reason
+        return result, reason, failed
 
     def import_vici_csv(self, machine_id, filename='vici_vision_data.csv'):
         """Import VICI Vision CSV located in this module's data/csv_data folder.
@@ -307,9 +308,10 @@ class ViciVision(models.Model):
                         vals[f'{field_name}_tol_low'] = col_to_tol_low.get(idx)
                         vals[f'{field_name}_tol_high'] = col_to_tol_high.get(idx)
 
-                result, reason = self._compute_result_and_reason(vals)
+                result, reason, failed = self._compute_result_and_reason(vals)
                 vals['result'] = result
                 vals['rejection_reason'] = reason
+                vals['failed_fields'] = False if result == 'pass' else ', '.join(failed)
 
                 records_to_create.append(vals)
 

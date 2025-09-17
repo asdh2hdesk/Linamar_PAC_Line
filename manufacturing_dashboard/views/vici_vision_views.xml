@@ -13,6 +13,7 @@
                 <field name="measure_number"/>
                 <field name="within_tolerance" widget="boolean_toggle"/>
                 <field name="result" widget="badge"/>
+                <field name="failed_fields"/>
                 <field name="l_64_8" widget="float" options="{'precision': 4}"/>
                 <field name="l_35_4" widget="float" options="{'precision': 4}"/>
                 <field name="l_46_6" widget="float" options="{'precision': 4}"/>
@@ -137,6 +138,7 @@
                         <page string="Notes">
                             <group>
                                 <field name="rejection_reason" invisible="1" modifiers="{'invisible': [('result', '=', 'pass')]}"/>
+                                <field name="failed_fields" invisible="1" modifiers="{'invisible': [('result', '=', 'pass')]}"/>
                                 <field name="raw_data" widget="text"/>
                             </group>
                         </page>

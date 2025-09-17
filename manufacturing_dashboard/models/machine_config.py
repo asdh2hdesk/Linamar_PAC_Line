@@ -268,6 +268,7 @@ class MachineConfig(models.Model):
 
                     vals['result'] = 'pass' if not failed else 'reject'
                     vals['rejection_reason'] = False if not failed else 'Out of tolerance: ' + ', '.join(failed)
+                    vals['failed_fields'] = False if not failed else ', '.join(failed)
 
                     try:
                         self.env['manufacturing.vici.vision'].create(vals)
