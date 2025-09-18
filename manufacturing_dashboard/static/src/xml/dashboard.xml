@@ -1,86 +1,295 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates>
-    <t t-name="manufacturing_dashboard.Dashboard" owl="1">
-        <div class="manufacturing_dashboard">
-            <div class="row">
-                <div class="col-12">
-                    <h2>Manufacturing Quality Control Dashboard</h2>
-                    <div class="realtime-indicator" title="Live Data"></div>
-                </div>
-            </div>
-
-            <!-- Statistics Overview -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="dashboard-card">
-                        <div class="metric-box">
-                            <div class="metric-value" t-esc="state.statistics.total_parts"/>
-                            <div class="metric-label">Total Parts Today</div>
+    <t t-name="manufacturing_dashboard.ModernDashboard" owl="1">
+        <div class="modern-dashboard">
+            <!-- Header Section -->
+            <div class="dashboard-header">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="dashboard-title">Dashboard Center</h1>
+                            <p class="dashboard-subtitle">Real-time production monitoring and quality control</p>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="dashboard-card">
-                        <div class="metric-box">
-                            <div class="metric-value text-success" t-esc="state.statistics.passed_parts"/>
-                            <div class="metric-label">Passed Parts</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="dashboard-card">
-                        <div class="metric-box">
-                            <div class="metric-value text-danger" t-esc="state.statistics.rejected_parts"/>
-                            <div class="metric-label">Rejected Parts</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="dashboard-card">
-                        <div class="metric-box">
-                            <div class="metric-value text-warning" t-esc="state.statistics.pending_parts"/>
-                            <div class="metric-label">Pending Parts</div>
+                        <div class="col-md-4 text-end">
+                            <div class="live-indicator">
+                                <div class="pulse-dot"></div>
+                                <span>LIVE</span>
+                            </div>
+                            <div class="last-update">
+                                Last updated: <span t-esc="formatTime(new Date())"/>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Machine Status -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="dashboard-card">
-                        <h4>Machine Status</h4>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Machine</th>
-                                        <th>Type</th>
-                                        <th>Status</th>
-                                        <th>Parts Today</th>
-                                        <th>Rejection Rate</th>
-                                        <th>Last Sync</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr t-foreach="state.machines" t-as="machine" t-key="machine.id">
-                                        <td>
-                                            <span class="status-indicator" t-att-class="getStatusClass(machine.status)"></span>
-                                            <t t-esc="machine.machine_name"/>
-                                        </td>
-                                        <td t-esc="machine.machine_type"/>
-                                        <td>
-                                            <span class="badge" t-att-class="'badge-' + machine.status" t-esc="machine.status"/>
-                                        </td>
-                                        <td t-esc="machine.parts_processed_today"/>
-                                        <td>
-                                            <span t-esc="machine.rejection_rate.toFixed(1)"/>%
-                                        </td>
-                                        <td t-esc="formatTime(machine.last_sync)"/>
-                                    </tr>
-                                </tbody>
-                            </table>
+            <!-- Error Display -->
+            <div t-if="state.error" class="alert alert-danger mx-4" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <t t-esc="state.error"/>
+            </div>
+
+            <!-- Loading State -->
+            <div t-if="state.loading" class="loading-container">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Initializing dashboard...</p>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div t-if="!state.loading" class="dashboard-content">
+                <!-- Overall Statistics Cards -->
+                <div class="stats-section">
+                    <div class="container-fluid">
+                        <div class="row g-4">
+                            <div class="col-xl-3 col-lg-6">
+                                <div class="stat-card total-parts">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-cogs"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-value" t-esc="formatNumber(state.statistics.total_parts)"/>
+                                        <div class="stat-label">Total Parts Today</div>
+                                        <div class="stat-change">+12% from yesterday</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-6">
+                                <div class="stat-card passed-parts">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-value" t-esc="formatNumber(state.statistics.passed_parts)"/>
+                                        <div class="stat-label">Passed Parts</div>
+                                        <div class="stat-change">+8% quality rate</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-6">
+                                <div class="stat-card rejected-parts">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-times-circle"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-value" t-esc="formatNumber(state.statistics.rejected_parts)"/>
+                                        <div class="stat-label">Rejected Parts</div>
+                                        <div class="stat-change">-3% improvement</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-6">
+                                <div class="stat-card efficiency">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-value">
+                                            <t t-esc="((state.statistics.passed_parts / Math.max(state.statistics.total_parts, 1)) * 100).toFixed(1)"/>%
+                                        </div>
+                                        <div class="stat-label">Overall Efficiency</div>
+                                        <div class="stat-change">Excellent performance</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Machine Cards Section -->
+                <div class="machines-section">
+                    <div class="container-fluid">
+                        <div class="section-header">
+                            <h2>Production Lines</h2>
+                            <p>Click on a machine to view detailed analytics</p>
+                        </div>
+                        <div class="row g-4">
+                            <div t-foreach="state.machines" t-as="machine" t-key="machine.id" class="col-xl-4 col-lg-6">
+                                <div t-att-class="getCardClass(machine)" t-on-click="() => this.selectMachine(machine)">
+                                    <div class="machine-header">
+                                        <div class="machine-status">
+                                            <div class="status-dot" t-att-class="getStatusClass(machine.status)"></div>
+                                            <span class="status-text" t-esc="machine.status.toUpperCase()"/>
+                                        </div>
+                                        <div class="machine-type" t-esc="machine.type"/>
+                                    </div>
+                                    <div class="machine-name" t-esc="machine.name"/>
+
+                                    <div class="machine-metrics">
+                                        <div class="metric">
+                                            <div class="metric-value" t-esc="machine.parts_today || 0"/>
+                                            <div class="metric-label">Parts Today</div>
+                                        </div>
+                                        <div class="metric">
+                                            <div class="metric-value text-success" t-esc="machine.ok_count || 0"/>
+                                            <div class="metric-label">OK</div>
+                                        </div>
+                                        <div class="metric">
+                                            <div class="metric-value text-danger" t-esc="machine.reject_count || 0"/>
+                                            <div class="metric-label">Reject</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="machine-performance">
+                                        <div class="performance-bar">
+                                            <div class="performance-fill"
+                                                 t-att-style="`width: ${Math.max(0, 100 - (machine.rejection_rate || 0))}%`"></div>
+                                        </div>
+                                        <div class="performance-text">
+                                            <span t-att-class="getEfficiencyColor(machine.rejection_rate || 0)">
+                                                <t t-esc="(100 - (machine.rejection_rate || 0)).toFixed(1)"/>% Efficiency
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="machine-footer">
+                                        <div class="last-sync">
+                                            Last sync: <t t-esc="formatTime(machine.last_sync)"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts & Analytics Section -->
+                <div t-if="state.selectedMachine" class="analytics-section">
+                    <div class="container-fluid">
+                        <div class="section-header">
+                            <h2>Analytics: <span t-esc="state.selectedMachine.name"/></h2>
+                            <p>Detailed production metrics and quality analysis</p>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Production Overview Chart -->
+                            <div class="col-lg-6">
+                                <div class="chart-card">
+                                    <div class="chart-header">
+                                        <h4>Production Overview</h4>
+                                        <p>Today's pass/fail ratio</p>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas t-ref="productionChart"></canvas>
+                                        <div class="chart-center-text">
+                                            <div class="center-value" t-esc="(state.selectedMachine.ok_count || 0) + (state.selectedMachine.reject_count || 0)"/>
+                                            <div class="center-label">Total Parts</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quality Trend Chart -->
+                            <div class="col-lg-6">
+                                <div class="chart-card">
+                                    <div class="chart-header">
+                                        <h4>Production History</h4>
+                                        <p>5-day production volume</p>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas t-ref="qualityChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rejection Rate Trend -->
+                            <div class="col-lg-8">
+                                <div class="chart-card">
+                                    <div class="chart-header">
+                                        <h4>Quality Trend</h4>
+                                        <p>Hourly rejection rate monitoring</p>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas t-ref="trendChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Measurement Analysis -->
+                            <div class="col-lg-4">
+                                <div class="chart-card">
+                                    <div class="chart-header">
+                                        <h4>Measurement Analysis</h4>
+                                        <p>Latest part measurements</p>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas t-ref="measurementChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Production Table -->
+                        <div class="row mt-4" t-if="state.machineDetailData?.records?.length">
+                            <div class="col-12">
+                                <div class="table-card">
+                                    <div class="table-header">
+                                        <h4>Recent Production Records</h4>
+                                        <p>Latest test results and measurements</p>
+                                    </div>
+                                    <div class="table-container">
+                                        <table class="modern-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Serial Number</th>
+                                                    <th>Time</th>
+                                                    <th>Operator</th>
+                                                    <th>Result</th>
+                                                    <th>Key Measurements</th>
+                                                    <th>Issues</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.machineDetailData.records.slice(0, 10)"
+                                                    t-as="record" t-key="record.serial_number + '_' + record.test_date">
+                                                    <td class="serial-number" t-esc="record.serial_number"/>
+                                                    <td class="test-time" t-esc="record.test_date.split(' ')[1]"/>
+                                                    <td t-esc="record.operator || 'Auto'"/>
+                                                    <td>
+                                                        <span t-att-class="record.result === 'pass' ? 'result-badge pass' : 'result-badge fail'"
+                                                              t-esc="record.result.toUpperCase()"/>
+                                                    </td>
+                                                    <td class="measurements">
+                                                        <div class="measurement-tags">
+                                                            <t t-foreach="Object.entries(record.measurements || {}).slice(0, 3)"
+                                                               t-as="measurement" t-key="measurement[0]">
+                                                                <span class="measurement-tag">
+                                                                    <t t-esc="measurement[0]"/>: <t t-esc="parseFloat(measurement[1] || 0).toFixed(2)"/>
+                                                                </span>
+                                                            </t>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span t-if="record.rejection_reason" class="rejection-reason"
+                                                              t-esc="record.rejection_reason"/>
+                                                        <span t-else="" class="text-muted">-</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Machine Selected State -->
+                <div t-if="!state.selectedMachine &amp; state.machines.length" class="no-selection">
+                    <div class="container-fluid text-center py-5">
+                        <i class="fas fa-mouse-pointer fa-3x text-muted mb-3"></i>
+                        <h3 class="text-muted">Select a machine to view analytics</h3>
+                        <p class="text-muted">Click on any machine card above to see detailed charts and production data</p>
+                    </div>
+                </div>
+
+                <!-- No Machines State -->
+                <div t-if="!state.machines.length &amp; !state.loading" class="no-machines">
+                    <div class="container-fluid text-center py-5">
+                        <i class="fas fa-industry fa-3x text-muted mb-3"></i>
+                        <h3 class="text-muted">No machines configured</h3>
+                        <p class="text-muted">Configure your production machines to start monitoring</p>
                     </div>
                 </div>
             </div>

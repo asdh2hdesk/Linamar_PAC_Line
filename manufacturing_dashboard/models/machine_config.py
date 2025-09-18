@@ -566,3 +566,351 @@ class MachineConfig(models.Model):
             dashboard_data['machines'].append(machine_data)
 
         return dashboard_data
+
+    # Add these enhanced methods to your machine_config.py file
+
+    @api.model
+    def get_enhanced_dashboard_data(self):
+        """Enhanced dashboard data with analytics support"""
+        machines = self.search([('is_active', '=', True)])
+        today = fields.Date.today()
+
+        dashboard_data = {
+            'machines': [],
+            'statistics': {
+                'total_parts': 0,
+                'passed_parts': 0,
+                'rejected_parts': 0,
+                'pending_parts': 0,
+            },
+            'last_updated': fields.Datetime.now().isoformat(),
+            'analytics': {
+                'hourly_production': [],
+                'daily_trends': [],
+                'machine_efficiency': {}
+            }
+        }
+
+        total_parts_today = 0
+        total_passed = 0
+        total_rejected = 0
+
+        for machine in machines:
+            # Get today's data for this machine
+            machine_stats = self._get_machine_today_stats(machine.id)
+
+            machine_info = {
+                'id': machine.id,
+                'name': machine.machine_name,
+                'type': machine.machine_type,
+                'status': machine.status,
+                'parts_today': machine_stats['total_count'],
+                'ok_count': machine_stats['ok_count'],
+                'reject_count': machine_stats['reject_count'],
+                'rejection_rate': machine_stats['rejection_rate'],
+                'last_sync': machine.last_sync.isoformat() if machine.last_sync else None,
+                'efficiency': max(0, 100 - machine_stats['rejection_rate']),
+            }
+
+            dashboard_data['machines'].append(machine_info)
+
+            # Aggregate totals
+            total_parts_today += machine_stats['total_count']
+            total_passed += machine_stats['ok_count']
+            total_rejected += machine_stats['reject_count']
+
+        dashboard_data['statistics'] = {
+            'total_parts': total_parts_today,
+            'passed_parts': total_passed,
+            'rejected_parts': total_rejected,
+            'pending_parts': 0,  # Calculate if you have pending logic
+        }
+
+        return dashboard_data
+
+    def _get_machine_today_stats(self, machine_id):
+        """Get today's statistics for a specific machine"""
+        today = fields.Date.today()
+        machine = self.browse(machine_id)
+
+        stats = {
+            'total_count': 0,
+            'ok_count': 0,
+            'reject_count': 0,
+            'rejection_rate': 0.0
+        }
+
+        if machine.machine_type == 'vici_vision':
+            records = self.env['manufacturing.vici.vision'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', today)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
+
+        elif machine.machine_type == 'ruhlamat':
+            records = self.env['manufacturing.ruhlamat.press'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', today)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
+
+        elif machine.machine_type == 'aumann':
+            records = self.env['manufacturing.aumann.measurement'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', today)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
+
+        # Calculate rejection rate
+        if stats['total_count'] > 0:
+            stats['rejection_rate'] = round((stats['reject_count'] / stats['total_count']) * 100, 2)
+
+        return stats
+
+    @api.model
+    def get_machine_detail_data(self, machine_id):
+        """Enhanced machine detail data with analytics"""
+        machine = self.browse(machine_id)
+        if not machine.exists():
+            return {'error': 'Machine not found'}
+
+        today = fields.Date.today()
+
+        # Get basic stats
+        stats = self._get_machine_today_stats(machine_id)
+
+        # Initialize response data
+        machine_data = {
+            'machine_info': {
+                'id': machine.id,
+                'name': machine.machine_name,
+                'type': machine.machine_type,
+                'status': machine.status,
+                'last_sync': machine.last_sync.isoformat() if machine.last_sync else None,
+            },
+            'summary': {
+                'total_count': stats['total_count'],
+                'ok_count': stats['ok_count'],
+                'reject_count': stats['reject_count'],
+            },
+            'records': [],
+            'analytics': {
+                'hourly_production': self._get_hourly_production(machine_id, today),
+                'measurement_trends': self._get_measurement_trends(machine_id, today),
+                'quality_metrics': self._get_quality_metrics(machine_id, today)
+            }
+        }
+
+        # Get detailed records
+        if machine.machine_type == 'vici_vision':
+            records = self.env['manufacturing.vici.vision'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', today)
+            ], order='test_date desc', limit=50)
+
+            for record in records:
+                machine_data['records'].append({
+                    'serial_number': record.serial_number,
+                    'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    'operator': record.operator_name or 'Auto',
+                    'result': record.result,
+                    'rejection_reason': record.rejection_reason or '',
+                    'measurements': {
+                        'L 64.8': record.l_64_8,
+                        'L 35.4': record.l_35_4,
+                        'L 46.6': record.l_46_6,
+                        'L 82': record.l_82,
+                        'L 128.6': record.l_128_6,
+                        'L 164': record.l_164,
+                    }
+                })
+
+        elif machine.machine_type == 'ruhlamat':
+            records = self.env['manufacturing.ruhlamat.press'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', today)
+            ], order='test_date desc', limit=50)
+
+            for record in records:
+                machine_data['records'].append({
+                    'serial_number': record.serial_number,
+                    'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    'operator': 'Auto',
+                    'result': record.result,
+                    'rejection_reason': getattr(record, 'rejection_reason', '') or '',
+                    'measurements': {
+                        'Press Force': record.press_force,
+                        'Press Distance': record.press_distance,
+                        'Crack Test': 'Pass' if record.crack_test_result else 'Fail',
+                    }
+                })
+
+        elif machine.machine_type == 'aumann':
+            records = self.env['manufacturing.aumann.measurement'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', today)
+            ], order='test_date desc', limit=50)
+
+            for record in records:
+                machine_data['records'].append({
+                    'serial_number': record.serial_number,
+                    'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    'operator': 'Auto',
+                    'result': record.result,
+                    'rejection_reason': '',
+                    'measurements': {
+                        'Diameter A1': getattr(record, 'diameter_journal_a1', 0) or 0,
+                        'Diameter A2': getattr(record, 'diameter_journal_a2', 0) or 0,
+                        'Diameter B1': getattr(record, 'diameter_journal_b1', 0) or 0,
+                        'Diameter B2': getattr(record, 'diameter_journal_b2', 0) or 0,
+                        'Runout E31-E22': getattr(record, 'runout_e31_e22', 0) or 0,
+                    }
+                })
+
+        return machine_data
+
+    def _get_hourly_production(self, machine_id, date):
+        """Get hourly production data for charts"""
+        machine = self.browse(machine_id)
+        hourly_data = []
+
+        # Generate 24 hours of data
+        for hour in range(24):
+            start_time = datetime.combine(date, datetime.min.time()) + timedelta(hours=hour)
+            end_time = start_time + timedelta(hours=1)
+
+            if machine.machine_type == 'vici_vision':
+                count = self.env['manufacturing.vici.vision'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_time),
+                    ('test_date', '<', end_time)
+                ])
+            elif machine.machine_type == 'ruhlamat':
+                count = self.env['manufacturing.ruhlamat.press'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_time),
+                    ('test_date', '<', end_time)
+                ])
+            elif machine.machine_type == 'aumann':
+                count = self.env['manufacturing.aumann.measurement'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_time),
+                    ('test_date', '<', end_time)
+                ])
+            else:
+                count = 0
+
+            hourly_data.append({
+                'hour': f"{hour:02d}:00",
+                'count': count
+            })
+
+        return hourly_data
+
+    def _get_measurement_trends(self, machine_id, date):
+        """Get measurement trends for radar charts"""
+        machine = self.browse(machine_id)
+        trends = {}
+
+        if machine.machine_type == 'vici_vision':
+            # Get latest records for trend analysis
+            records = self.env['manufacturing.vici.vision'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', date),
+                ('result', '=', 'pass')  # Only include passed parts for trend
+            ], limit=10, order='test_date desc')
+
+            if records:
+                # Calculate average values for key measurements
+                measurements = ['l_64_8', 'l_35_4', 'l_46_6', 'l_82', 'l_128_6', 'l_164']
+                for measurement in measurements:
+                    values = [getattr(r, measurement, 0) or 0 for r in records]
+                    if values:
+                        trends[measurement] = sum(values) / len(values)
+
+        elif machine.machine_type == 'aumann':
+            records = self.env['manufacturing.aumann.measurement'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', date),
+                ('result', '=', 'pass')
+            ], limit=10, order='test_date desc')
+
+            if records:
+                measurements = ['diameter_journal_a1', 'diameter_journal_a2', 'diameter_journal_b1']
+                for measurement in measurements:
+                    values = [getattr(r, measurement, 0) or 0 for r in records]
+                    if values:
+                        trends[measurement] = sum(values) / len(values)
+
+        return trends
+
+    def _get_quality_metrics(self, machine_id, date):
+        """Get quality metrics for analysis"""
+        machine = self.browse(machine_id)
+
+        # Get data for the last 7 days
+        start_date = date - timedelta(days=6)
+        daily_metrics = []
+
+        for i in range(7):
+            current_date = start_date + timedelta(days=i)
+            next_date = current_date + timedelta(days=1)
+
+            if machine.machine_type == 'vici_vision':
+                total = self.env['manufacturing.vici.vision'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', current_date),
+                    ('test_date', '<', next_date)
+                ])
+                passed = self.env['manufacturing.vici.vision'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', current_date),
+                    ('test_date', '<', next_date),
+                    ('result', '=', 'pass')
+                ])
+            elif machine.machine_type == 'ruhlamat':
+                total = self.env['manufacturing.ruhlamat.press'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', current_date),
+                    ('test_date', '<', next_date)
+                ])
+                passed = self.env['manufacturing.ruhlamat.press'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', current_date),
+                    ('test_date', '<', next_date),
+                    ('result', '=', 'pass')
+                ])
+            elif machine.machine_type == 'aumann':
+                total = self.env['manufacturing.aumann.measurement'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', current_date),
+                    ('test_date', '<', next_date)
+                ])
+                passed = self.env['manufacturing.aumann.measurement'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', current_date),
+                    ('test_date', '<', next_date),
+                    ('result', '=', 'pass')
+                ])
+            else:
+                total = passed = 0
+
+            rejection_rate = 0
+            if total > 0:
+                rejection_rate = ((total - passed) / total) * 100
+
+            daily_metrics.append({
+                'date': current_date.strftime('%Y-%m-%d'),
+                'total_parts': total,
+                'passed_parts': passed,
+                'rejected_parts': total - passed,
+                'rejection_rate': round(rejection_rate, 2)
+            })
+
+        return daily_metrics
