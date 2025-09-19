@@ -4,14 +4,14 @@
     <record id="action_modern_manufacturing_dashboard" model="ir.actions.client">
         <field name="name">Manufacturing Control Center</field>
         <field name="tag">modern_manufacturing_dashboard</field>
-        <field name="target">fullscreen</field>
+<!--        <field name="target">fullscreen</field>-->
     </record>
 
     <!-- Legacy Dashboard Action (keep for compatibility) -->
     <record id="action_manufacturing_dashboard_2" model="ir.actions.client">
         <field name="name">Manufacturing Dashboard</field>
         <field name="tag">modern_manufacturing_dashboard</field>
-        <field name="target">fullscreen</field>
+<!--        <field name="target">fullscreen</field>-->
     </record>
 
     <!-- Main Menu -->
@@ -21,11 +21,11 @@
               web_icon="manufacturing_dashboard,static/description/icon.png"/>
 
     <!-- Dashboard Menu -->
-    <menuitem id="menu_dashboard"
-              name="Dashboard"
-              parent="menu_manufacturing_main"
-              action="action_manufacturing_dashboard"
-              sequence="10"/>
+<!--    <menuitem id="menu_dashboard"-->
+<!--              name="Dashboard"-->
+<!--              parent="menu_manufacturing_main"-->
+<!--              action="action_manufacturing_dashboard"-->
+<!--              sequence="10"/>-->
 
     <menuitem id="menu_dashboard_2"
               name="New Dashboard"
@@ -80,33 +80,20 @@
               parent="menu_stations"
               action="action_aumann_measurement"
               sequence="30"/>
-    
-    <!-- Dashboard Menu -->
-    <menuitem id="menu_manufacturing_dashboard_main"
-              name="Manufacturing Dashboard"
-              action="action_modern_manufacturing_dashboard"
-              web_icon="manufacturing_dashboard,static/description/icon.png"
-              sequence="1"/>
+<!--    -->
+<!--    &lt;!&ndash; Dashboard Menu &ndash;&gt;-->
+<!--    <menuitem id="menu_manufacturing_dashboard_main"-->
+<!--              name="Manufacturing Dashboard"-->
+<!--              action="action_modern_manufacturing_dashboard"-->
+<!--              web_icon="manufacturing_dashboard,static/description/icon.png"-->
+<!--              sequence="1"/>-->
 
-    <!-- Sub Menu Items -->
-    <menuitem id="menu_manufacturing_dashboard_control"
-              name="Control Center"
-              parent="menu_manufacturing_dashboard_main"
-              action="action_modern_manufacturing_dashboard"
-              sequence="1"/>
-
-    <!-- Machine Configuration Menu -->
-    <record id="action_machine_config" model="ir.actions.act_window">
-        <field name="name">Machine Configuration</field>
-        <field name="res_model">manufacturing.machine.config</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <menuitem id="menu_machine_config"
-              name="Machine Config"
-              parent="menu_manufacturing_dashboard_main"
-              action="action_machine_config"
-              sequence="10"/>
+<!--    &lt;!&ndash; Sub Menu Items &ndash;&gt;-->
+<!--    <menuitem id="menu_manufacturing_dashboard_control"-->
+<!--              name="Control Center"-->
+<!--              parent="menu_manufacturing_dashboard_main"-->
+<!--              action="action_modern_manufacturing_dashboard"-->
+<!--              sequence="1"/>-->
 
 
 </odoo>

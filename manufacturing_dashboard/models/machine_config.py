@@ -673,107 +673,227 @@ class MachineConfig(models.Model):
 
         return stats
 
-    @api.model
-    def get_machine_detail_data(self, machine_id):
-        """Enhanced machine detail data with analytics"""
+    def _get_machine_stats_for_period(self, machine_id, start_date, end_date):
+        """Get statistics for a specific machine within a date range"""
         machine = self.browse(machine_id)
-        if not machine.exists():
-            return {'error': 'Machine not found'}
 
-        today = fields.Date.today()
-
-        # Get basic stats
-        stats = self._get_machine_today_stats(machine_id)
-
-        # Initialize response data
-        machine_data = {
-            'machine_info': {
-                'id': machine.id,
-                'name': machine.machine_name,
-                'type': machine.machine_type,
-                'status': machine.status,
-                'last_sync': machine.last_sync.isoformat() if machine.last_sync else None,
-            },
-            'summary': {
-                'total_count': stats['total_count'],
-                'ok_count': stats['ok_count'],
-                'reject_count': stats['reject_count'],
-            },
-            'records': [],
-            'analytics': {
-                'hourly_production': self._get_hourly_production(machine_id, today),
-                'measurement_trends': self._get_measurement_trends(machine_id, today),
-                'quality_metrics': self._get_quality_metrics(machine_id, today)
-            }
+        stats = {
+            'total_count': 0,
+            'ok_count': 0,
+            'reject_count': 0,
+            'rejection_rate': 0.0
         }
 
-        # Get detailed records
         if machine.machine_type == 'vici_vision':
             records = self.env['manufacturing.vici.vision'].search([
                 ('machine_id', '=', machine_id),
-                ('test_date', '>=', today)
-            ], order='test_date desc', limit=50)
-
-            for record in records:
-                machine_data['records'].append({
-                    'serial_number': record.serial_number,
-                    'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
-                    'operator': record.operator_name or 'Auto',
-                    'result': record.result,
-                    'rejection_reason': record.rejection_reason or '',
-                    'measurements': {
-                        'L 64.8': record.l_64_8,
-                        'L 35.4': record.l_35_4,
-                        'L 46.6': record.l_46_6,
-                        'L 82': record.l_82,
-                        'L 128.6': record.l_128_6,
-                        'L 164': record.l_164,
-                    }
-                })
+                ('test_date', '>=', start_date),
+                ('test_date', '<=', end_date)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
 
         elif machine.machine_type == 'ruhlamat':
             records = self.env['manufacturing.ruhlamat.press'].search([
                 ('machine_id', '=', machine_id),
-                ('test_date', '>=', today)
-            ], order='test_date desc', limit=50)
-
-            for record in records:
-                machine_data['records'].append({
-                    'serial_number': record.serial_number,
-                    'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
-                    'operator': 'Auto',
-                    'result': record.result,
-                    'rejection_reason': getattr(record, 'rejection_reason', '') or '',
-                    'measurements': {
-                        'Press Force': record.press_force,
-                        'Press Distance': record.press_distance,
-                        'Crack Test': 'Pass' if record.crack_test_result else 'Fail',
-                    }
-                })
+                ('test_date', '>=', start_date),
+                ('test_date', '<=', end_date)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
 
         elif machine.machine_type == 'aumann':
             records = self.env['manufacturing.aumann.measurement'].search([
                 ('machine_id', '=', machine_id),
-                ('test_date', '>=', today)
-            ], order='test_date desc', limit=50)
+                ('test_date', '>=', start_date),
+                ('test_date', '<=', end_date)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
 
-            for record in records:
-                machine_data['records'].append({
-                    'serial_number': record.serial_number,
-                    'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
-                    'operator': 'Auto',
-                    'result': record.result,
-                    'rejection_reason': '',
-                    'measurements': {
-                        'Diameter A1': getattr(record, 'diameter_journal_a1', 0) or 0,
-                        'Diameter A2': getattr(record, 'diameter_journal_a2', 0) or 0,
-                        'Diameter B1': getattr(record, 'diameter_journal_b1', 0) or 0,
-                        'Diameter B2': getattr(record, 'diameter_journal_b2', 0) or 0,
-                        'Runout E31-E22': getattr(record, 'runout_e31_e22', 0) or 0,
-                    }
-                })
+        # Calculate rejection rate
+        if stats['total_count'] > 0:
+            stats['rejection_rate'] = round((stats['reject_count'] / stats['total_count']) * 100, 2)
 
-        return machine_data
+        return stats
+
+    @api.model
+    def get_machine_detail_data(self, machine_id, filter_type='today', page=1, records_per_page=20):
+        """Enhanced machine detail data with analytics"""
+        try:
+            machine = self.browse(machine_id)
+            if not machine.exists():
+                return {'error': 'Machine not found'}
+
+            # Validate parameters
+            page = max(1, int(page)) if page else 1
+            records_per_page = max(1, min(100, int(records_per_page))) if records_per_page else 20
+            filter_type = str(filter_type) if filter_type else 'today'
+
+            # Calculate date range based on filter_type
+            today = fields.Date.today()
+            if filter_type == 'today':
+                start_date = today
+                end_date = today
+            elif filter_type == 'week':
+                start_date = today - timedelta(days=7)
+                end_date = today
+            elif filter_type == 'month':
+                start_date = today - timedelta(days=30)
+                end_date = today
+            elif filter_type == 'year':
+                start_date = today - timedelta(days=365)
+                end_date = today
+            else:
+                start_date = today
+                end_date = today
+
+            # Get basic stats for the filtered period
+            stats = self._get_machine_stats_for_period(machine_id, start_date, end_date)
+
+            # Initialize response data
+            machine_data = {
+                'machine_info': {
+                    'id': machine.id,
+                    'name': machine.machine_name,
+                    'type': machine.machine_type,
+                    'status': machine.status,
+                    'last_sync': machine.last_sync.isoformat() if machine.last_sync else None,
+                },
+                'summary': {
+                    'total_count': stats['total_count'],
+                    'ok_count': stats['ok_count'],
+                    'reject_count': stats['reject_count'],
+                },
+                'records': [],
+                'analytics': {
+                    'hourly_production': self._get_hourly_production(machine_id, today),
+                    'measurement_trends': self._get_measurement_trends(machine_id, today),
+                    'quality_metrics': self._get_quality_metrics(machine_id, today)
+                }
+            }
+
+            # Get detailed records with pagination
+            offset = (page - 1) * records_per_page
+            
+            if machine.machine_type == 'vici_vision':
+                # Get total count for pagination
+                total_records = self.env['manufacturing.vici.vision'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_date),
+                    ('test_date', '<=', end_date)
+                ])
+                
+                records = self.env['manufacturing.vici.vision'].search([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_date),
+                    ('test_date', '<=', end_date)
+                ], order='test_date desc', limit=records_per_page, offset=offset)
+
+                for record in records:
+                    machine_data['records'].append({
+                        'serial_number': record.serial_number,
+                        'machine_name': record.machine_id.machine_name if record.machine_id else 'N/A',
+                        'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
+                        'log_date': record.log_date.strftime('%Y-%m-%d') if record.log_date else '',
+                        'log_time': record.log_time.strftime('%H:%M:%S') if record.log_time else '',
+                        'operator': record.operator_name or 'Auto',
+                        'measure_number': record.measure_number or 'N/A',
+                        'within_tolerance': record.within_tolerance,
+                        'result': record.result,
+                        'failed_fields': record.failed_fields or '',
+                        'rejection_reason': record.rejection_reason or '',
+                        'measurements': {
+                            'L 64.8': record.l_64_8,
+                            'L 35.4': record.l_35_4,
+                            'L 46.6': record.l_46_6,
+                            'L 82': record.l_82,
+                            'L 128.6': record.l_128_6,
+                            'L 164': record.l_164,
+                        }
+                    })
+
+            elif machine.machine_type == 'ruhlamat':
+                # Get total count for pagination
+                total_records = self.env['manufacturing.ruhlamat.press'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_date),
+                    ('test_date', '<=', end_date)
+                ])
+                
+                records = self.env['manufacturing.ruhlamat.press'].search([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_date),
+                    ('test_date', '<=', end_date)
+                ], order='test_date desc', limit=records_per_page, offset=offset)
+
+                for record in records:
+                    machine_data['records'].append({
+                        'serial_number': record.serial_number,
+                        'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
+                        'operator': 'Auto',
+                        'result': record.result,
+                        'rejection_reason': getattr(record, 'rejection_reason', '') or '',
+                        'measurements': {
+                            'Press Force': record.press_force,
+                            'Press Distance': record.press_distance,
+                            'Crack Test': 'Pass' if record.crack_test_result else 'Fail',
+                        }
+                    })
+
+            elif machine.machine_type == 'aumann':
+                # Get total count for pagination
+                total_records = self.env['manufacturing.aumann.measurement'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_date),
+                    ('test_date', '<=', end_date)
+                ])
+                
+                records = self.env['manufacturing.aumann.measurement'].search([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_date),
+                    ('test_date', '<=', end_date)
+                ], order='test_date desc', limit=records_per_page, offset=offset)
+
+                for record in records:
+                    machine_data['records'].append({
+                        'serial_number': record.serial_number,
+                        'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
+                        'operator': 'Auto',
+                        'result': record.result,
+                        'rejection_reason': '',
+                        'measurements': {
+                            'Diameter A1': getattr(record, 'diameter_journal_a1', 0) or 0,
+                            'Diameter A2': getattr(record, 'diameter_journal_a2', 0) or 0,
+                            'Diameter B1': getattr(record, 'diameter_journal_b1', 0) or 0,
+                            'Diameter B2': getattr(record, 'diameter_journal_b2', 0) or 0,
+                            'Runout E31-E22': getattr(record, 'runout_e31_e22', 0) or 0,
+                        }
+                    })
+            else:
+                # No matching machine type
+                total_records = 0
+
+            # Add pagination information
+            total_pages = (total_records + records_per_page - 1) // records_per_page if total_records > 0 else 1
+            
+            machine_data['pagination'] = {
+                'current_page': page,
+                'total_pages': total_pages,
+                'total_records': total_records,
+                'records_per_page': records_per_page,
+                'has_next': page < total_pages,
+                'has_previous': page > 1
+            }
+
+            return machine_data
+
+        except Exception as e:
+            _logger.error(f"Error in get_machine_detail_data: {str(e)}")
+            return {'error': f'Failed to load machine detail data: {str(e)}'}
 
     def _get_hourly_production(self, machine_id, date):
         """Get hourly production data for charts"""

@@ -59,6 +59,7 @@
                             <field name="press_test_ok"/>
                             <field name="crack_test_result"/>
                             <field name="mpi_test_result"/>
+                            <field name="result"/>
                         </group>
                     </group>
                     <group string="Additional Information">

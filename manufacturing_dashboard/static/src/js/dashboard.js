@@ -23,13 +23,22 @@ export class ModernManufacturingDashboard extends Component {
             machineDetailData: null,
             loading: true,
             error: null,
-            charts: {}
+            charts: {},
+            tableFilter: 'today',
+            tableRecords: [],
+            tableLoading: false,
+            currentPage: 1,
+            totalPages: 1,
+            recordsPerPage: 20,
+            treeData: [],
+            treeLoading: false
         });
 
         this.refreshInterval = null;
         this.chartInstances = {};
 
         onMounted(async () => {
+            console.log('Dashboard mounted, Chart.js available:', !!window.Chart);
             await this.loadDashboardData();
             this.setupCharts();
 
@@ -85,7 +94,7 @@ export class ModernManufacturingDashboard extends Component {
             const data = await this.orm.call(
                 "manufacturing.machine.config",
                 "get_machine_detail_data",
-                [machineId]
+                [machineId, 'today', 1, 50] // Default parameters for basic machine detail
             );
 
             if (data.error) {
@@ -106,23 +115,115 @@ export class ModernManufacturingDashboard extends Component {
         this.state.machineDetailData = null;
         await this.loadMachineDetail(machine.id);
 
+        // Load table records with current filter
+        await this.loadTableRecords();
+
+        // Load tree data
+        await this.loadTreeData();
+
         // Update charts after data load
         setTimeout(() => {
             this.updateCharts();
         }, 100);
     }
 
+    async loadTableRecords() {
+        if (!this.state.selectedMachine) return;
+
+        this.state.tableLoading = true;
+        try {
+            console.log('Loading table records with params:', {
+                machineId: this.state.selectedMachine.id,
+                filter: this.state.tableFilter,
+                page: this.state.currentPage,
+                recordsPerPage: this.state.recordsPerPage
+            });
+
+            const data = await this.orm.call(
+                "manufacturing.machine.config",
+                "get_machine_detail_data",
+                [this.state.selectedMachine.id, this.state.tableFilter, this.state.currentPage, this.state.recordsPerPage]
+            );
+
+            console.log('Table records response:', data);
+
+            this.state.tableRecords = data.records || [];
+            this.state.totalPages = data.pagination?.total_pages || 1;
+            this.state.tableLoading = false;
+        } catch (error) {
+            console.error("Error loading table records:", error);
+            this.state.tableLoading = false;
+        }
+    }
+
+    async onFilterChange(filter) {
+        this.state.tableFilter = filter;
+        this.state.currentPage = 1;
+        await this.loadTableRecords();
+    }
+
+    async onPageChange(page) {
+        if (page >= 1 && page <= this.state.totalPages) {
+            this.state.currentPage = page;
+            await this.loadTableRecords();
+        }
+    }
+
     setupCharts() {
-        // Wait for DOM to be ready
-        setTimeout(() => {
-            this.createProductionChart();
-            this.createQualityChart();
-            this.createTrendChart();
-            this.createMeasurementChart();
-        }, 200);
+        // Wait for Chart.js to be loaded and DOM to be ready
+        this.waitForChartJS().then(() => {
+            setTimeout(() => {
+                try {
+                    this.createProductionChart();
+                    this.createQualityChart();
+                    this.createTrendChart();
+                    this.createMeasurementChart();
+                } catch (error) {
+                    console.error('Error creating charts:', error);
+                }
+            }, 200);
+        }).catch((error) => {
+            console.error('Failed to load Chart.js:', error);
+        });
+    }
+
+    waitForChartJS() {
+        return new Promise((resolve, reject) => {
+            // Check if Chart.js is already available
+            if (window.Chart && typeof window.Chart === 'function') {
+                console.log('Chart.js already available');
+                resolve();
+                return;
+            }
+
+            // Wait for Chart.js to be loaded (it's included in the manifest)
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds max wait time
+            
+            const checkChart = () => {
+                attempts++;
+                
+                if (window.Chart && typeof window.Chart === 'function') {
+                    console.log('Chart.js loaded successfully');
+                    resolve();
+                } else if (attempts >= maxAttempts) {
+                    console.warn('Chart.js not available after waiting, continuing without charts');
+                    resolve(); // Don't reject, just continue without charts
+                } else {
+                    setTimeout(checkChart, 100);
+                }
+            };
+            
+            checkChart();
+        });
     }
 
     createProductionChart() {
+        if (!window.Chart) {
+            console.warn('Chart.js not available, skipping chart creation');
+            return;
+        }
+
         const ctx = this.chartRefs.productionChart.el?.getContext('2d');
         if (!ctx || this.chartInstances.production) return;
 
@@ -154,6 +255,11 @@ export class ModernManufacturingDashboard extends Component {
     }
 
     createQualityChart() {
+        if (!window.Chart) {
+            console.warn('Chart.js not available, skipping chart creation');
+            return;
+        }
+
         const ctx = this.chartRefs.qualityChart.el?.getContext('2d');
         if (!ctx || this.chartInstances.quality) return;
 
@@ -190,6 +296,11 @@ export class ModernManufacturingDashboard extends Component {
     }
 
     createTrendChart() {
+        if (!window.Chart) {
+            console.warn('Chart.js not available, skipping chart creation');
+            return;
+        }
+
         const ctx = this.chartRefs.trendChart.el?.getContext('2d');
         if (!ctx || this.chartInstances.trend) return;
 
@@ -228,6 +339,11 @@ export class ModernManufacturingDashboard extends Component {
     }
 
     createMeasurementChart() {
+        if (!window.Chart) {
+            console.warn('Chart.js not available, skipping chart creation');
+            return;
+        }
+
         const ctx = this.chartRefs.measurementChart.el?.getContext('2d');
         if (!ctx || this.chartInstances.measurement) return;
 
@@ -269,7 +385,7 @@ export class ModernManufacturingDashboard extends Component {
     }
 
     updateProductionChart() {
-        if (!this.chartInstances.production || !this.state.selectedMachine) return;
+        if (!window.Chart || !this.chartInstances.production || !this.state.selectedMachine) return;
 
         const okCount = this.state.selectedMachine.ok_count || 0;
         const rejectCount = this.state.selectedMachine.reject_count || 0;
@@ -279,7 +395,7 @@ export class ModernManufacturingDashboard extends Component {
     }
 
     updateQualityChart() {
-        if (!this.chartInstances.quality || !this.state.machineDetailData) return;
+        if (!window.Chart || !this.chartInstances.quality || !this.state.machineDetailData) return;
 
         // Simulate historical data (replace with real data from your backend)
         const historicalData = [
@@ -295,7 +411,7 @@ export class ModernManufacturingDashboard extends Component {
     }
 
     updateTrendChart() {
-        if (!this.chartInstances.trend || !this.state.machineDetailData) return;
+        if (!window.Chart || !this.chartInstances.trend || !this.state.machineDetailData) return;
 
         // Simulate trend data (replace with real historical data)
         const hours = Array.from({length: 12}, (_, i) => {
@@ -311,7 +427,7 @@ export class ModernManufacturingDashboard extends Component {
     }
 
     updateMeasurementChart() {
-        if (!this.chartInstances.measurement || !this.state.machineDetailData?.records?.length) return;
+        if (!window.Chart || !this.chartInstances.measurement || !this.state.machineDetailData?.records?.length) return;
 
         const latestRecord = this.state.machineDetailData.records[0];
         if (!latestRecord?.measurements) return;
@@ -354,13 +470,231 @@ export class ModernManufacturingDashboard extends Component {
         if (rejectionRate <= 5) return 'text-warning';
         return 'text-danger';
     }
-}
 
-// Load Chart.js if not already loaded
-if (!window.Chart) {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js';
-    document.head.appendChild(script);
+    viewRecordDetails(record) {
+        // Open modal or detailed view for record
+        console.log('Viewing details for record:', record);
+        // You can implement a modal here to show full record details
+    }
+
+    exportRecord(record) {
+        // Export single record data
+        const dataStr = JSON.stringify(record, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `record_${record.serial_number}.json`;
+        link.click();
+    }
+
+    getFilterDisplayName(filter) {
+        const filterNames = {
+            'today': 'Today',
+            'week': 'This Week',
+            'month': 'This Month',
+            'year': 'This Year'
+        };
+        return filterNames[filter] || filter;
+    }
+
+    // Tree Data Methods
+    async loadTreeData() {
+        if (!this.state.selectedMachine) return;
+
+        this.state.treeLoading = true;
+        try {
+            // Generate sample tree data based on machine records
+            const treeData = this.generateTreeData();
+            this.state.treeData = treeData;
+            this.state.treeLoading = false;
+        } catch (error) {
+            console.error("Error loading tree data:", error);
+            this.state.treeLoading = false;
+        }
+    }
+
+    generateTreeData() {
+        if (!this.state.machineDetailData?.records) return [];
+
+        const treeData = [];
+        const records = this.state.machineDetailData.records;
+
+        // Group records by batch or create hierarchical structure
+        const groupedRecords = this.groupRecordsHierarchically(records);
+
+        let idCounter = 1;
+        
+        // Create parent nodes (batches or time periods)
+        Object.entries(groupedRecords).forEach(([groupKey, groupRecords]) => {
+            const parentNode = {
+                id: idCounter++,
+                level: 1,
+                levelName: 'Batch',
+                serialNumber: groupKey,
+                batchNumber: groupKey,
+                category: 'Batch',
+                categoryIcon: 'fas fa-layer-group',
+                status: this.calculateGroupStatus(groupRecords),
+                statusIcon: this.getStatusIcon(this.calculateGroupStatus(groupRecords)),
+                statusText: this.calculateGroupStatus(groupRecords).toUpperCase(),
+                progress: this.calculateGroupProgress(groupRecords),
+                timestamp: groupRecords[0]?.test_date || new Date().toISOString(),
+                measurements: this.getGroupMeasurements(groupRecords),
+                hasChildren: groupRecords.length > 1,
+                expanded: false,
+                children: []
+            };
+
+            // Create child nodes (individual records)
+            groupRecords.forEach((record, index) => {
+                const childNode = {
+                    id: idCounter++,
+                    level: 2,
+                    levelName: 'Record',
+                    serialNumber: record.serial_number,
+                    batchNumber: groupKey,
+                    category: 'Production',
+                    categoryIcon: 'fas fa-cogs',
+                    status: record.result,
+                    statusIcon: this.getStatusIcon(record.result),
+                    statusText: record.result.toUpperCase(),
+                    progress: record.result === 'pass' ? 100 : 0,
+                    timestamp: record.test_date,
+                    measurements: this.formatRecordMeasurements(record.measurements),
+                    hasChildren: false,
+                    expanded: false,
+                    parentId: parentNode.id
+                };
+                parentNode.children.push(childNode);
+            });
+
+            treeData.push(parentNode);
+        });
+
+        return treeData;
+    }
+
+    groupRecordsHierarchically(records) {
+        // Group by batch number if available, otherwise by hour
+        const groups = {};
+        
+        records.forEach(record => {
+            const batchKey = record.batch_serial || this.getHourKey(record.test_date);
+            if (!groups[batchKey]) {
+                groups[batchKey] = [];
+            }
+            groups[batchKey].push(record);
+        });
+
+        return groups;
+    }
+
+    getHourKey(timestamp) {
+        const date = new Date(timestamp);
+        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:00`;
+    }
+
+    calculateGroupStatus(records) {
+        const passCount = records.filter(r => r.result === 'pass').length;
+        const totalCount = records.length;
+        
+        if (passCount === totalCount) return 'pass';
+        if (passCount === 0) return 'fail';
+        return 'partial';
+    }
+
+    calculateGroupProgress(records) {
+        const passCount = records.filter(r => r.result === 'pass').length;
+        return Math.round((passCount / records.length) * 100);
+    }
+
+    getGroupMeasurements(records) {
+        // Get average measurements for the group
+        const measurements = {};
+        const measurementKeys = Object.keys(records[0]?.measurements || {});
+        
+        measurementKeys.forEach(key => {
+            const values = records.map(r => parseFloat(r.measurements?.[key] || 0)).filter(v => !isNaN(v));
+            if (values.length > 0) {
+                const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+                measurements[key] = {
+                    name: key,
+                    value: avg.toFixed(3),
+                    status: 'pass' // Simplified for group view
+                };
+            }
+        });
+
+        return Object.values(measurements);
+    }
+
+    formatRecordMeasurements(measurements) {
+        if (!measurements) return [];
+        
+        return Object.entries(measurements).map(([name, value]) => ({
+            name,
+            value: parseFloat(value || 0).toFixed(3),
+            status: 'pass' // You can add logic to determine pass/fail based on tolerances
+        }));
+    }
+
+    getStatusIcon(status) {
+        const icons = {
+            'pass': 'fas fa-check-circle',
+            'fail': 'fas fa-times-circle',
+            'partial': 'fas fa-exclamation-triangle',
+            'running': 'fas fa-play-circle',
+            'stopped': 'fas fa-stop-circle',
+            'error': 'fas fa-exclamation-circle'
+        };
+        return icons[status] || 'fas fa-question-circle';
+    }
+
+    // Tree interaction methods
+    toggleTreeRow(itemId) {
+        const item = this.state.treeData.find(item => item.id === itemId);
+        if (item) {
+            item.expanded = !item.expanded;
+        }
+    }
+
+    expandAllTreeRows() {
+        this.state.treeData.forEach(item => {
+            if (item.hasChildren) {
+                item.expanded = true;
+            }
+        });
+    }
+
+    collapseAllTreeRows() {
+        this.state.treeData.forEach(item => {
+            item.expanded = false;
+        });
+    }
+
+    viewTreeItemDetails(item) {
+        console.log('Viewing tree item details:', item);
+        // Implement modal or detailed view
+    }
+
+    editTreeItem(item) {
+        console.log('Editing tree item:', item);
+        // Implement edit functionality
+    }
+
+    deleteTreeItem(item) {
+        console.log('Deleting tree item:', item);
+        // Implement delete functionality
+    }
+
+    // Add the missing formatMeasurement function
+    formatMeasurement(value) {
+        if (value === null || value === undefined || value === '') {
+            return '0.000';
+        }
+        return parseFloat(value || 0).toFixed(3);
+    }
 }
 
 registry.category("actions").add("modern_manufacturing_dashboard", ModernManufacturingDashboard);

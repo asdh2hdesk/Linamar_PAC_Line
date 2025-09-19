@@ -7,7 +7,7 @@
                 <div class="container-fluid">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h1 class="dashboard-title">Dashboard Center</h1>
+                            <h1 class="dashboard-title">Dashboard Control Center</h1>
                             <p class="dashboard-subtitle">Real-time production monitoring and quality control</p>
                         </div>
                         <div class="col-md-4 text-end">
@@ -16,7 +16,8 @@
                                 <span>LIVE</span>
                             </div>
                             <div class="last-update">
-                                Last updated: <span t-esc="formatTime(new Date())"/>
+                                Last updated:
+                                <span t-esc="formatTime(new Date())"/>
                             </div>
                         </div>
                     </div>
@@ -86,7 +87,8 @@
                                     </div>
                                     <div class="stat-info">
                                         <div class="stat-value">
-                                            <t t-esc="((state.statistics.passed_parts / Math.max(state.statistics.total_parts, 1)) * 100).toFixed(1)"/>%
+                                            <t t-esc="((state.statistics.passed_parts / Math.max(state.statistics.total_parts, 1)) * 100).toFixed(1)"/>
+                                            %
                                         </div>
                                         <div class="stat-label">Overall Efficiency</div>
                                         <div class="stat-change">Excellent performance</div>
@@ -138,14 +140,16 @@
                                         </div>
                                         <div class="performance-text">
                                             <span t-att-class="getEfficiencyColor(machine.rejection_rate || 0)">
-                                                <t t-esc="(100 - (machine.rejection_rate || 0)).toFixed(1)"/>% Efficiency
+                                                <t t-esc="(100 - (machine.rejection_rate || 0)).toFixed(1)"/>%
+                                                Efficiency
                                             </span>
                                         </div>
                                     </div>
 
                                     <div class="machine-footer">
                                         <div class="last-sync">
-                                            Last sync: <t t-esc="formatTime(machine.last_sync)"/>
+                                            Last sync:
+                                            <t t-esc="formatTime(machine.last_sync)"/>
                                         </div>
                                     </div>
                                 </div>
@@ -153,12 +157,387 @@
                         </div>
                     </div>
                 </div>
+                <!-- Tree Data Table Section -->
+                <div class="row m-4">
+                    <div class="col-12">
+                        <div class="table-card">
+                            <div class="table-header">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h4>Production Tree Data:
+                                            <span t-esc="state.selectedMachine.name"/>
+                                        </h4>
+                                        <p>Hierarchical view of production data with expandable details</p>
+                                    </div>
+                                    <div class="tree-controls">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                                    t-on-click="() => this.expandAllTreeRows()">
+                                                <i class="fas fa-expand-arrows-alt me-1"></i>Expand All
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                    t-on-click="() => this.collapseAllTreeRows()">
+                                                <i class="fas fa-compress-arrows-alt me-1"></i>Collapse All
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tree Table Content -->
+                            <div class="tree-table-container">
+                                <div class="table-responsive">
+                                    <table class="tree-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="tree-expand-col">
+                                                    <i class="fas fa-sitemap"></i>
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-layer-group me-2"></i>Level
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-barcode me-2"></i>Serial Number
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-tag me-2"></i>Category
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-ruler me-2"></i>Measurements
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-chart-line me-2"></i>Status
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-clock me-2"></i>Timestamp
+                                                </th>
+                                                <th class="text-center">
+                                                    <i class="fas fa-cog me-2"></i>Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.treeData" t-as="treeItem"
+                                                t-key="treeItem.id"
+                                                t-att-class="`tree-row level-${treeItem.level} ${treeItem.expanded ? 'expanded' : 'collapsed'}`">
+                                                <td class="tree-expand-col">
+                                                    <button t-if="treeItem.hasChildren"
+                                                            class="btn btn-sm btn-outline-primary tree-toggle"
+                                                            t-on-click="() => this.toggleTreeRow(treeItem.id)"
+                                                            t-att-class="treeItem.expanded ? 'expanded' : 'collapsed'">
+                                                        <i t-att-class="treeItem.expanded ? 'fas fa-minus' : 'fas fa-plus'"></i>
+                                                    </button>
+                                                    <span t-else="" class="tree-spacer"></span>
+                                                </td>
+                                                <td>
+                                                    <div class="tree-level">
+                                                        <span class="level-badge"
+                                                              t-att-class="`level-${treeItem.level}`">
+                                                            <t t-esc="treeItem.level"/>
+                                                        </span>
+                                                        <span class="level-name" t-esc="treeItem.levelName"/>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="serial-info">
+                                                        <strong t-esc="treeItem.serialNumber"/>
+                                                        <small t-if="treeItem.batchNumber"
+                                                               class="d-block text-muted">
+                                                            Batch:
+                                                            <t t-esc="treeItem.batchNumber"/>
+                                                        </small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="category-badge"
+                                                          t-att-class="`category-${treeItem.category}`">
+                                                        <i t-att-class="treeItem.categoryIcon"></i>
+                                                        <t t-esc="treeItem.category"/>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="measurements-tree">
+                                                        <t t-foreach="treeItem.measurements" t-as="measurement"
+                                                           t-key="measurement.name">
+                                                            <div class="measurement-row">
+                                                                <span class="measurement-name"
+                                                                      t-esc="measurement.name"/>:
+                                                                <span class="measurement-value"
+                                                                      t-esc="measurement.value"/>
+                                                                <span t-if="measurement.status === 'pass'"
+                                                                      class="status-indicator pass">
+                                                                    <i class="fas fa-check"></i>
+                                                                </span>
+                                                                <span t-elif="measurement.status === 'fail'"
+                                                                      class="status-indicator fail">
+                                                                    <i class="fas fa-times"></i>
+                                                                </span>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="status-tree">
+                                                        <span t-att-class="`status-badge ${treeItem.status}`">
+                                                            <i t-att-class="treeItem.statusIcon"></i>
+                                                            <t t-esc="treeItem.statusText"/>
+                                                        </span>
+                                                        <div t-if="treeItem.progress" class="progress-tree">
+                                                            <div class="progress-bar"
+                                                                 t-att-style="`width: ${treeItem.progress}%`"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="timestamp-tree">
+                                                        <div class="fw-bold"
+                                                             t-esc="treeItem.timestamp.split(' ')[0]"/>
+                                                        <small class="text-muted"
+                                                               t-esc="treeItem.timestamp.split(' ')[1]"/>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <button class="btn btn-outline-info btn-sm"
+                                                                title="View Details"
+                                                                t-on-click="() => this.viewTreeItemDetails(treeItem)">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-warning btn-sm"
+                                                                title="Edit"
+                                                                t-on-click="() => this.editTreeItem(treeItem)">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger btn-sm"
+                                                                title="Delete"
+                                                                t-on-click="() => this.deleteTreeItem(treeItem)">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <!-- Empty state for tree table -->
+                                    <div t-if="!state.treeData.length" class="empty-tree-state">
+                                        <i class="fas fa-sitemap fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">No tree data available</h5>
+                                        <p class="text-muted">Tree data will be populated when production
+                                            records are available.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Vici Vision Records Table Section -->
+                <div t-if="state.selectedMachine" class="records-section">
+                    <div class="container-fluid">
+                        <div class="section-header">
+                            <h2>Production Records: <span t-esc="state.selectedMachine.name"/></h2>
+                            <p>Detailed test results and measurements</p>
+                        </div>
+                        
+                        <!-- Table Filters -->
+                        <div class="table-filters mb-3">
+                            <div class="btn-group" role="group">
+                                <button type="button"
+                                        t-att-class="state.tableFilter === 'today' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                        t-on-click="() => this.onFilterChange('today')">
+                                    Today
+                                </button>
+                                <button type="button"
+                                        t-att-class="state.tableFilter === 'week' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                        t-on-click="() => this.onFilterChange('week')">
+                                    Week
+                                </button>
+                                <button type="button"
+                                        t-att-class="state.tableFilter === 'month' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                        t-on-click="() => this.onFilterChange('month')">
+                                    Month
+                                </button>
+                                <button type="button"
+                                        t-att-class="state.tableFilter === 'year' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                        t-on-click="() => this.onFilterChange('year')">
+                                    Year
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Table Loading State -->
+                        <div t-if="state.tableLoading" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading records...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading records...</p>
+                        </div>
+
+                        <!-- Table Content -->
+                        <div t-if="!state.tableLoading" class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Serial Number</th>
+                                        <th>Machine</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Operator</th>
+                                        <th>Measure #</th>
+                                        <th>Within Tolerance</th>
+                                        <th>Result</th>
+                                        <th>Failed Fields</th>
+                                        <th>L 64.8</th>
+                                        <th>L 35.4</th>
+                                        <th>L 46.6</th>
+                                        <th>L 82</th>
+                                        <th>L 128.6</th>
+                                        <th>L 164</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.tableRecords" t-as="record" t-key="record.serial_number"
+                                        t-att-class="record.result === 'pass' ? 'table-success' : 'table-danger'">
+                                        <td>
+                                            <strong t-esc="record.serial_number"/>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary" t-esc="record.machine_name || 'N/A'"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="record.test_date ? record.test_date.split(' ')[0] : 'N/A'"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="record.test_date ? record.test_date.split(' ')[1] : 'N/A'"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="record.operator || 'Auto'"/>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info" t-esc="record.measure_number || 'N/A'"/>
+                                        </td>
+                                        <td>
+                                            <span t-att-class="record.within_tolerance ? 'text-success' : 'text-danger'">
+                                                <i t-att-class="record.within_tolerance ? 'fas fa-check-circle' : 'fas fa-times-circle'"/>
+                                                <t t-esc="record.within_tolerance ? 'Yes' : 'No'"/>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span t-att-class="record.result === 'pass' ? 'badge bg-success' : 'badge bg-danger'"
+                                                  t-esc="record.result.toUpperCase()"/>
+                                        </td>
+                                        <td>
+                                            <span t-if="record.failed_fields" class="text-danger" t-esc="record.failed_fields"/>
+                                            <span t-else="" class="text-muted">None</span>
+                                        </td>
+                                        <td>
+                                            <span t-esc="formatMeasurement(record.measurements?.['L 64.8'])"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="formatMeasurement(record.measurements?.['L 35.4'])"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="formatMeasurement(record.measurements?.['L 46.6'])"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="formatMeasurement(record.measurements?.['L 82'])"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="formatMeasurement(record.measurements?.['L 128.6'])"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="formatMeasurement(record.measurements?.['L 164'])"/>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-info btn-sm"
+                                                        title="View Details"
+                                                        t-on-click="() => this.viewRecordDetails(record)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-success btn-sm"
+                                                        title="Export"
+                                                        t-on-click="() => this.exportRecord(record)">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Empty state for table -->
+                            <div t-if="!state.tableRecords.length" class="empty-table-state text-center py-5">
+                                <i class="fas fa-clipboard fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No records found</h5>
+                                <p class="text-muted">No production records found for the selected time period.</p>
+                            </div>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div t-if="state.totalPages > 1" class="pagination-container mt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="pagination-info">
+                                    Showing page <strong t-esc="state.currentPage"/> of <strong t-esc="state.totalPages"/>
+                                    (<strong t-esc="state.tableRecords.length"/> records)
+                                </div>
+                                <nav>
+                                    <ul class="pagination pagination-sm">
+                                        <li t-att-class="state.currentPage === 1 ? 'page-item disabled' : 'page-item'">
+                                            <button class="page-link"
+                                                    t-on-click="() => this.onPageChange(1)">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </button>
+                                        </li>
+                                        <li t-att-class="state.currentPage === 1 ? 'page-item disabled' : 'page-item'">
+                                            <button class="page-link"
+                                                    t-on-click="() => this.onPageChange(state.currentPage - 1)">
+                                                <i class="fas fa-angle-left"></i>
+                                            </button>
+                                        </li>
+
+                                        <t t-set="startPage" t-value="Math.max(1, state.currentPage - 2)"/>
+                                        <t t-set="endPage" t-value="Math.min(state.totalPages, state.currentPage + 2)"/>
+
+                                        <li t-foreach="Array.from({length: endPage - startPage + 1}, (_, i) => startPage + i)"
+                                            t-as="page" t-key="page"
+                                            t-att-class="page === state.currentPage ? 'page-item active' : 'page-item'">
+                                            <button class="page-link"
+                                                    t-on-click="() => this.onPageChange(page)"
+                                                    t-esc="page"/>
+                                        </li>
+
+                                        <li t-att-class="state.currentPage === state.totalPages ? 'page-item disabled' : 'page-item'">
+                                            <button class="page-link"
+                                                    t-on-click="() => this.onPageChange(state.currentPage + 1)">
+                                                <i class="fas fa-angle-right"></i>
+                                            </button>
+                                        </li>
+                                        <li t-att-class="state.currentPage === state.totalPages ? 'page-item disabled' : 'page-item'">
+                                            <button class="page-link"
+                                                    t-on-click="() => this.onPageChange(state.totalPages)">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
                 <!-- Charts & Analytics Section -->
                 <div t-if="state.selectedMachine" class="analytics-section">
                     <div class="container-fluid">
                         <div class="section-header">
-                            <h2>Analytics: <span t-esc="state.selectedMachine.name"/></h2>
+                            <h2>Analytics:
+                                <span t-esc="state.selectedMachine.name"/>
+                            </h2>
                             <p>Detailed production metrics and quality analysis</p>
                         </div>
 
@@ -173,8 +552,13 @@
                                     <div class="chart-container">
                                         <canvas t-ref="productionChart"></canvas>
                                         <div class="chart-center-text">
-                                            <div class="center-value" t-esc="(state.selectedMachine.ok_count || 0) + (state.selectedMachine.reject_count || 0)"/>
+                                            <div class="center-value"
+                                                 t-esc="(state.selectedMachine.ok_count || 0) + (state.selectedMachine.reject_count || 0)"/>
                                             <div class="center-label">Total Parts</div>
+                                        </div>
+                                        <div t-if="!window.Chart" class="chart-fallback">
+                                            <i class="fas fa-chart-pie fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted">Chart visualization not available</p>
                                         </div>
                                     </div>
                                 </div>
@@ -189,6 +573,10 @@
                                     </div>
                                     <div class="chart-container">
                                         <canvas t-ref="qualityChart"></canvas>
+                                        <div t-if="!window.Chart" class="chart-fallback">
+                                            <i class="fas fa-chart-bar fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted">Chart visualization not available</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -202,6 +590,10 @@
                                     </div>
                                     <div class="chart-container">
                                         <canvas t-ref="trendChart"></canvas>
+                                        <div t-if="!window.Chart" class="chart-fallback">
+                                            <i class="fas fa-chart-line fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted">Chart visualization not available</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -215,72 +607,258 @@
                                     </div>
                                     <div class="chart-container">
                                         <canvas t-ref="measurementChart"></canvas>
+                                        <div t-if="!window.Chart" class="chart-fallback">
+                                            <i class="fas fa-chart-area fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted">Chart visualization not available</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Recent Production Table -->
-                        <div class="row mt-4" t-if="state.machineDetailData?.records?.length">
-                            <div class="col-12">
-                                <div class="table-card">
-                                    <div class="table-header">
-                                        <h4>Recent Production Records</h4>
-                                        <p>Latest test results and measurements</p>
-                                    </div>
-                                    <div class="table-container">
-                                        <table class="modern-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Serial Number</th>
-                                                    <th>Time</th>
-                                                    <th>Operator</th>
-                                                    <th>Result</th>
-                                                    <th>Key Measurements</th>
-                                                    <th>Issues</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr t-foreach="state.machineDetailData.records.slice(0, 10)"
-                                                    t-as="record" t-key="record.serial_number + '_' + record.test_date">
-                                                    <td class="serial-number" t-esc="record.serial_number"/>
-                                                    <td class="test-time" t-esc="record.test_date.split(' ')[1]"/>
-                                                    <td t-esc="record.operator || 'Auto'"/>
-                                                    <td>
-                                                        <span t-att-class="record.result === 'pass' ? 'result-badge pass' : 'result-badge fail'"
-                                                              t-esc="record.result.toUpperCase()"/>
-                                                    </td>
-                                                    <td class="measurements">
-                                                        <div class="measurement-tags">
-                                                            <t t-foreach="Object.entries(record.measurements || {}).slice(0, 3)"
-                                                               t-as="measurement" t-key="measurement[0]">
-                                                                <span class="measurement-tag">
-                                                                    <t t-esc="measurement[0]"/>: <t t-esc="parseFloat(measurement[1] || 0).toFixed(2)"/>
-                                                                </span>
-                                                            </t>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <span t-if="record.rejection_reason" class="rejection-reason"
-                                                              t-esc="record.rejection_reason"/>
-                                                        <span t-else="" class="text-muted">-</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Records Table with Filters -->
+                        <!--                        <div class="row mt-4">-->
+                        <!--                            <div class="col-12">-->
+                        <!--                                <div class="table-card">-->
+                        <!--                                    <div class="table-header">-->
+                        <!--                                        <div class="d-flex justify-content-between align-items-center mb-3">-->
+                        <!--                                            <div>-->
+                        <!--                                                <h4>Production Records:-->
+                        <!--                                                    <span t-esc="state.selectedMachine.name"/>-->
+                        <!--                                                </h4>-->
+                        <!--                                                <p>Detailed test results and measurements</p>-->
+                        <!--                                            </div>-->
+                        <!--                                            <div class="table-filters">-->
+                        <!--                                                <div class="btn-group" role="group">-->
+                        <!--                                                    <button type="button"-->
+                        <!--                                                            t-att-class="state.tableFilter === 'today' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"-->
+                        <!--                                                            t-on-click="() => this.onFilterChange('today')">-->
+                        <!--                                                        Today-->
+                        <!--                                                    </button>-->
+                        <!--                                                    <button type="button"-->
+                        <!--                                                            t-att-class="state.tableFilter === 'week' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"-->
+                        <!--                                                            t-on-click="() => this.onFilterChange('week')">-->
+                        <!--                                                        Week-->
+                        <!--                                                    </button>-->
+                        <!--                                                    <button type="button"-->
+                        <!--                                                            t-att-class="state.tableFilter === 'month' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"-->
+                        <!--                                                            t-on-click="() => this.onFilterChange('month')">-->
+                        <!--                                                        Month-->
+                        <!--                                                    </button>-->
+                        <!--                                                    <button type="button"-->
+                        <!--                                                            t-att-class="state.tableFilter === 'year' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"-->
+                        <!--                                                            t-on-click="() => this.onFilterChange('year')">-->
+                        <!--                                                        Year-->
+                        <!--                                                    </button>-->
+                        <!--                                                </div>-->
+                        <!--                                            </div>-->
+                        <!--                                        </div>-->
+                        <!--                                    </div>-->
+
+                        <!--                                    &lt;!&ndash; Table Loading State &ndash;&gt;-->
+                        <!--                                    <div t-if="state.tableLoading" class="text-center py-4">-->
+                        <!--                                        <div class="spinner-border text-primary" role="status">-->
+                        <!--                                            <span class="visually-hidden">Loading records...</span>-->
+                        <!--                                        </div>-->
+                        <!--                                        <p class="mt-2 text-muted">Loading records...</p>-->
+                        <!--                                    </div>-->
+
+                        <!--                                    &lt;!&ndash; Table Content &ndash;&gt;-->
+                        <!--                                    <div t-if="!state.tableLoading" class="table-container-enhanced">-->
+                        <!--                                        <div class="table-responsive">-->
+                        <!--                                            <table class="modern-table-enhanced">-->
+                        <!--                                                <thead class="sticky-top">-->
+                        <!--                                                    <tr>-->
+                        <!--                                                        <th class="text-center">-->
+                        <!--                                                            <i class="fas fa-hashtag"></i>-->
+                        <!--                                                        </th>-->
+                        <!--                                                        <th>-->
+                        <!--                                                            <i class="fas fa-barcode me-2"></i>Serial Number-->
+                        <!--                                                        </th>-->
+                        <!--                                                        <th>-->
+                        <!--                                                            <i class="fas fa-clock me-2"></i>Test Date-->
+                        <!--                                                        </th>-->
+                        <!--                                                        <th>-->
+                        <!--                                                            <i class="fas fa-user me-2"></i>Operator-->
+                        <!--                                                        </th>-->
+                        <!--                                                        <th class="text-center">-->
+                        <!--                                                            <i class="fas fa-check-circle me-2"></i>Result-->
+                        <!--                                                        </th>-->
+                        <!--                                                        <th>-->
+                        <!--                                                            <i class="fas fa-ruler me-2"></i>Key Measurements-->
+                        <!--                                                        </th>-->
+                        <!--                                                        <th>-->
+                        <!--                                                            <i class="fas fa-exclamation-triangle me-2"></i>Issues-->
+                        <!--                                                        </th>-->
+                        <!--                                                        <th class="text-center">-->
+                        <!--                                                            <i class="fas fa-cog me-2"></i>Actions-->
+                        <!--                                                        </th>-->
+                        <!--                                                    </tr>-->
+                        <!--                                                </thead>-->
+                        <!--                                                <tbody>-->
+                        <!--                                                    <tr t-foreach="state.tableRecords" t-as="record"-->
+                        <!--                                                        t-key="record.id"-->
+                        <!--                                                        t-att-class="record.result === 'pass' ? 'table-row-pass' : 'table-row-fail'">-->
+                        <!--                                                        <td class="text-center">-->
+                        <!--                                                            <span class="record-number"-->
+                        <!--                                                                  t-esc="(state.currentPage - 1) * state.recordsPerPage + record_index + 1"/>-->
+                        <!--                                                        </td>-->
+                        <!--                                                        <td>-->
+                        <!--                                                            <div class="serial-cell">-->
+                        <!--                                                                <strong t-esc="record.serial_number"/>-->
+                        <!--                                                                <small class="d-block text-muted"-->
+                        <!--                                                                       t-if="record.batch_serial">-->
+                        <!--                                                                    Batch:-->
+                        <!--                                                                    <t t-esc="record.batch_serial"/>-->
+                        <!--                                                                </small>-->
+                        <!--                                                            </div>-->
+                        <!--                                                        </td>-->
+                        <!--                                                        <td>-->
+                        <!--                                                            <div class="datetime-cell">-->
+                        <!--                                                                <div class="fw-bold"-->
+                        <!--                                                                     t-esc="record.test_date.split(' ')[0]"/>-->
+                        <!--                                                                <small class="text-muted"-->
+                        <!--                                                                       t-esc="record.test_date.split(' ')[1]"/>-->
+                        <!--                                                            </div>-->
+                        <!--                                                        </td>-->
+                        <!--                                                        <td>-->
+                        <!--                                                            <span class="operator-badge"-->
+                        <!--                                                                  t-esc="record.operator || 'Auto'"/>-->
+                        <!--                                                        </td>-->
+                        <!--                                                        <td class="text-center">-->
+                        <!--                                                            <span t-att-class="record.result === 'pass' ? 'result-badge-enhanced pass' : 'result-badge-enhanced fail'">-->
+                        <!--                                                                <i t-att-class="record.result === 'pass' ? 'fas fa-check' : 'fas fa-times'"></i>-->
+                        <!--                                                                <t t-esc="record.result.toUpperCase()"/>-->
+                        <!--                                                            </span>-->
+                        <!--                                                        </td>-->
+                        <!--                                                        <td>-->
+                        <!--                                                            <div class="measurements-enhanced">-->
+                        <!--                                                                <t t-foreach="Object.entries(record.measurements || {}).slice(0, 4)"-->
+                        <!--                                                                   t-as="measurement" t-key="measurement[0]">-->
+                        <!--                                                                    <div class="measurement-item">-->
+                        <!--                                                                        <span class="measurement-name"-->
+                        <!--                                                                              t-esc="measurement[0]"/>:-->
+                        <!--                                                                        <span class="measurement-value"-->
+                        <!--                                                                              t-esc="formatMeasurement(measurement[1])"/>-->
+                        <!--                                                                    </div>-->
+                        <!--                                                                </t>-->
+                        <!--                                                                <div t-if="Object.keys(record.measurements || {}).length > 4"-->
+                        <!--                                                                     class="measurement-more">-->
+                        <!--                                                                    +-->
+                        <!--                                                                    <t t-esc="Object.keys(record.measurements || {}).length - 4"/>-->
+                        <!--                                                                    more...-->
+                        <!--                                                                </div>-->
+                        <!--                                                            </div>-->
+                        <!--                                                        </td>-->
+                        <!--                                                        <td>-->
+                        <!--                                                            <div t-if="record.rejection_reason" class="rejection-info">-->
+                        <!--                                                                <i class="fas fa-exclamation-circle text-danger me-1"></i>-->
+                        <!--                                                                <span class="rejection-text"-->
+                        <!--                                                                      t-esc="record.rejection_reason"/>-->
+                        <!--                                                            </div>-->
+                        <!--                                                            <span t-else="" class="text-success">-->
+                        <!--                                                                <i class="fas fa-check-circle me-1"></i>No issues-->
+                        <!--                                                            </span>-->
+                        <!--                                                        </td>-->
+                        <!--                                                        <td class="text-center">-->
+                        <!--                                                            <div class="btn-group btn-group-sm" role="group">-->
+                        <!--                                                                <button class="btn btn-outline-info btn-sm"-->
+                        <!--                                                                        title="View Details"-->
+                        <!--                                                                        t-on-click="() => this.viewRecordDetails(record)">-->
+                        <!--                                                                    <i class="fas fa-eye"></i>-->
+                        <!--                                                                </button>-->
+                        <!--                                                                <button class="btn btn-outline-secondary btn-sm"-->
+                        <!--                                                                        title="Export Data"-->
+                        <!--                                                                        t-on-click="() => this.exportRecord(record)">-->
+                        <!--                                                                    <i class="fas fa-download"></i>-->
+                        <!--                                                                </button>-->
+                        <!--                                                            </div>-->
+                        <!--                                                        </td>-->
+                        <!--                                                    </tr>-->
+                        <!--                                                </tbody>-->
+                        <!--                                            </table>-->
+
+                        <!--                                            &lt;!&ndash; Empty state for table &ndash;&gt;-->
+                        <!--                                            <div t-if="!state.tableRecords.length" class="empty-table-state">-->
+                        <!--                                                <i class="fas fa-clipboard fa-3x text-muted mb-3"></i>-->
+                        <!--                                                <h5 class="text-muted">No records found</h5>-->
+                        <!--                                                <p class="text-muted">No production records found for the selected time-->
+                        <!--                                                    period.-->
+                        <!--                                                </p>-->
+                        <!--                                            </div>-->
+                        <!--                                        </div>-->
+
+                        <!--                                        &lt;!&ndash; Pagination Controls &ndash;&gt;-->
+                        <!--                                        <div t-if="state.totalPages > 1" class="pagination-container">-->
+                        <!--                                            <div class="d-flex justify-content-between align-items-center">-->
+                        <!--                                                <div class="pagination-info">-->
+                        <!--                                                    Showing page-->
+                        <!--                                                    <strong t-esc="state.currentPage"/>-->
+                        <!--                                                    of-->
+                        <!--                                                    <strong t-esc="state.totalPages"/>-->
+                        <!--                                                    (-->
+                        <!--                                                    <strong t-esc="state.tableRecords.length"/>-->
+                        <!--                                                    records)-->
+                        <!--                                                </div>-->
+                        <!--                                                <nav>-->
+                        <!--                                                    <ul class="pagination pagination-sm">-->
+                        <!--                                                        <li t-att-class="state.currentPage === 1 ? 'page-item disabled' : 'page-item'">-->
+                        <!--                                                            <button class="page-link"-->
+                        <!--                                                                    t-on-click="() => this.onPageChange(1)">-->
+                        <!--                                                                <i class="fas fa-angle-double-left"></i>-->
+                        <!--                                                            </button>-->
+                        <!--                                                        </li>-->
+                        <!--                                                        <li t-att-class="state.currentPage === 1 ? 'page-item disabled' : 'page-item'">-->
+                        <!--                                                            <button class="page-link"-->
+                        <!--                                                                    t-on-click="() => this.onPageChange(state.currentPage - 1)">-->
+                        <!--                                                                <i class="fas fa-angle-left"></i>-->
+                        <!--                                                            </button>-->
+                        <!--                                                        </li>-->
+
+                        <!--                                                        <t t-set="startPage"-->
+                        <!--                                                           t-value="Math.max(1, state.currentPage - 2)"/>-->
+                        <!--                                                        <t t-set="endPage"-->
+                        <!--                                                           t-value="Math.min(state.totalPages, state.currentPage + 2)"/>-->
+
+                        <!--                                                        <li t-foreach="Array.from({length: endPage - startPage + 1}, (_, i) => startPage + i)"-->
+                        <!--                                                            t-as="page" t-key="page"-->
+                        <!--                                                            t-att-class="page === state.currentPage ? 'page-item active' : 'page-item'">-->
+                        <!--                                                            <button class="page-link"-->
+                        <!--                                                                    t-on-click="() => this.onPageChange(page)"-->
+                        <!--                                                                    t-esc="page"/>-->
+                        <!--                                                        </li>-->
+
+                        <!--                                                        <li t-att-class="state.currentPage === state.totalPages ? 'page-item disabled' : 'page-item'">-->
+                        <!--                                                            <button class="page-link"-->
+                        <!--                                                                    t-on-click="() => this.onPageChange(state.currentPage + 1)">-->
+                        <!--                                                                <i class="fas fa-angle-right"></i>-->
+                        <!--                                                            </button>-->
+                        <!--                                                        </li>-->
+                        <!--                                                        <li t-att-class="state.currentPage === state.totalPages ? 'page-item disabled' : 'page-item'">-->
+                        <!--                                                            <button class="page-link"-->
+                        <!--                                                                    t-on-click="() => this.onPageChange(state.totalPages)">-->
+                        <!--                                                                <i class="fas fa-angle-double-right"></i>-->
+                        <!--                                                            </button>-->
+                        <!--                                                        </li>-->
+                        <!--                                                    </ul>-->
+                        <!--                                                </nav>-->
+                        <!--                                            </div>-->
+                        <!--                                        </div>-->
+                        <!--                                    </div>-->
+                        <!--                                </div>-->
+                        <!--                            </div>-->
+                        <!--                        </div>-->
+
                     </div>
                 </div>
-
                 <!-- No Machine Selected State -->
                 <div t-if="!state.selectedMachine &amp; state.machines.length" class="no-selection">
                     <div class="container-fluid text-center py-5">
                         <i class="fas fa-mouse-pointer fa-3x text-muted mb-3"></i>
                         <h3 class="text-muted">Select a machine to view analytics</h3>
-                        <p class="text-muted">Click on any machine card above to see detailed charts and production data</p>
+                        <p class="text-muted">Click on any machine card above to see detailed charts and production
+                            data
+                        </p>
                     </div>
                 </div>
 
