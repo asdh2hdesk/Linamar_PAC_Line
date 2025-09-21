@@ -6,11 +6,11 @@
             <div class="dashboard-header">
                 <div class="container-fluid">
                     <div class="row align-items-center">
-                        <div class="col-md-8">
+                        <div class="col-md-10">
                             <h1 class="dashboard-title">Dashboard Control Center</h1>
                             <p class="dashboard-subtitle">Real-time production monitoring and quality control</p>
                         </div>
-                        <div class="col-md-4 text-end">
+                        <div class="col-md-2 text-end">
                             <div class="live-indicator">
                                 <div class="pulse-dot"></div>
                                 <span>LIVE</span>
@@ -102,10 +102,10 @@
                 <!-- Machine Cards Section -->
                 <div class="machines-section">
                     <div class="container-fluid">
-                        <div class="section-header">
-                            <h2>Production Lines</h2>
-                            <p>Click on a machine to view detailed analytics</p>
-                        </div>
+<!--                        <div class="section-header">-->
+<!--                            <h2>Production Lines</h2>-->
+<!--                            <p>Click on a machine to view detailed analytics</p>-->
+<!--                        </div>-->
                         <div class="row g-4">
                             <div t-foreach="state.machines" t-as="machine" t-key="machine.id" class="col-xl-4 col-lg-6">
                                 <div t-att-class="getCardClass(machine)" t-on-click="() => this.selectMachine(machine)">

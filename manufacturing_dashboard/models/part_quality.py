@@ -55,7 +55,7 @@ class PartQuality(models.Model):
     )
     ruhlamat_press_ids = fields.One2many(
         'manufacturing.ruhlamat.press',
-        'serial_number',
+        'part_quality_id',  # Changed from 'serial_number' to 'part_quality_id'
         string='Ruhlamat Tests'
     )
     aumann_measurement_ids = fields.One2many(

@@ -4,6 +4,7 @@ from odoo import models, fields, api
 import os
 import csv
 import logging
+import pyodbc  # or pypyodbc
 from datetime import datetime, timedelta
 
 _logger = logging.getLogger(__name__)
@@ -60,11 +61,11 @@ class MachineConfig(models.Model):
             elif record.machine_type == 'ruhlamat':
                 ruhlamat_parts = self.env['manufacturing.ruhlamat.press'].search([
                     ('machine_id', '=', record.id),
-                    ('test_date', '>=', today)
+                    # ('test_date', '>=', today)
                 ])
                 for ruhlamat_part in ruhlamat_parts:
                     part_quality = self.env['manufacturing.part.quality'].search([
-                        ('serial_number', '=', ruhlamat_part.serial_number)
+                        ('serial_number', '=', ruhlamat_part.part_id1)
                     ], limit=1)
                     if part_quality:
                         parts |= part_quality
@@ -281,37 +282,319 @@ class MachineConfig(models.Model):
             _logger.error(f"Error syncing VICI data: {str(e)}")
             raise
 
+
+    # You'll need to install pyodbc: pip install pyodbc
+    # Or use pypyodbc as an alternative: pip install pypyodbc
     def _sync_ruhlamat_data(self):
-        """Sync Ruhlamat Press system data"""
+        """Sync Ruhlamat Press system data from MDB file"""
+        _logger.info(f"Starting Ruhlamat MDB sync for machine: {self.machine_name}")
+
         try:
-            with open(self.csv_file_path, 'r', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    serial_number = row.get('SerialNumber', '').strip()
-                    if not serial_number:
-                        continue
+            # Check if file exists
+            if not os.path.exists(
+                    self.csv_file_path):  # Note: You should rename this field to 'file_path' since it's not CSV anymore
+                _logger.error(f"MDB file not found: {self.csv_file_path}")
+                self.status = 'error'
+                return
 
-                    existing = self.env['manufacturing.ruhlamat.press'].search([
-                        ('serial_number', '=', serial_number),
+            # Connect to MDB file using ODBC
+            # For Windows, use Microsoft Access Driver
+            # For Linux, you might need to use mdbtools or convert to SQLite
+
+            # Windows connection string
+            conn_str = (
+                r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
+                f'DBQ={self.csv_file_path};'
+            )
+
+            # Alternative for 64-bit systems
+            # conn_str = (
+            #     r'DRIVER={Microsoft Access Driver (*.mdb)};'
+            #     f'DBQ={self.csv_file_path};'
+            # )
+
+            try:
+                conn = pyodbc.connect(conn_str)
+                cursor = conn.cursor()
+
+                # First, fetch all cycles
+                cycles_query = """
+                    SELECT CycleId, ProgramName, CycleDate, ProgramId, StationId, 
+                           StationName, StationLabel, PartId1, PartId2, PartId3, 
+                           PartId4, PartId5, OK, CycleStatus, UfmUsername, 
+                           CycleRuntimeNC, CycleRuntimePC, NcRuntimeCycleNo, 
+                           NcTotalCycleNo, ProgramDate, UfmVersion, UfmServiceInfo,
+                           CustomInt1, CustomInt2, CustomInt3, CustomString1, 
+                           CustomString2, CustomString3, CustomXml
+                    FROM Cycles
+                    ORDER BY CycleDate DESC
+                """
+
+                cursor.execute(cycles_query)
+                cycles = cursor.fetchall()
+
+                created_cycles = 0
+                created_gaugings = 0
+
+                for cycle_row in cycles:
+                    # Parse the cycle data
+                    cycle_data = {
+                        'cycle_id': cycle_row.CycleId,
+                        'program_name': cycle_row.ProgramName,
+                        'cycle_date': cycle_row.CycleDate,
+                        'program_id': cycle_row.ProgramId,
+                        'station_id': str(cycle_row.StationId) if cycle_row.StationId else '',
+                        'station_name': cycle_row.StationName or '',
+                        'station_label': cycle_row.StationLabel or '',
+                        'part_id1': cycle_row.PartId1.strip() if cycle_row.PartId1 else '',
+                        'part_id2': cycle_row.PartId2 or '',
+                        'part_id3': cycle_row.PartId3 or '',
+                        'part_id4': cycle_row.PartId4 or '',
+                        'part_id5': cycle_row.PartId5 or '',
+                        'ok_status': cycle_row.OK,
+                        'cycle_status': cycle_row.CycleStatus,
+                        'ufm_username': cycle_row.UfmUsername or '',
+                        'cycle_runtime_nc': float(cycle_row.CycleRuntimeNC or 0),
+                        'cycle_runtime_pc': float(cycle_row.CycleRuntimePC or 0),
+                        'nc_runtime_cycle_no': cycle_row.NcRuntimeCycleNo or 0,
+                        'nc_total_cycle_no': cycle_row.NcTotalCycleNo or 0,
+                        'program_date': cycle_row.ProgramDate,
+                        'ufm_version': cycle_row.UfmVersion or 0,
+                        'ufm_service_info': cycle_row.UfmServiceInfo or 0,
+                        'custom_int1': cycle_row.CustomInt1 or 0,
+                        'custom_int2': cycle_row.CustomInt2 or 0,
+                        'custom_int3': cycle_row.CustomInt3 or 0,
+                        'custom_string1': cycle_row.CustomString1 or '',
+                        'custom_string2': cycle_row.CustomString2 or '',
+                        'custom_string3': cycle_row.CustomString3 or '',
+                        'custom_xml': cycle_row.CustomXml or '',
+                        'machine_id': self.id,
+                    }
+
+                    # Skip if cycle already exists
+                    existing_cycle = self.env['manufacturing.ruhlamat.press'].search([
+                        ('cycle_id', '=', cycle_row.CycleId),
                         ('machine_id', '=', self.id)
-                    ])
+                    ], limit=1)
 
-                    if not existing:
-                        press_ok = str(row.get('PressOK', 'False')).lower() == 'true'
-                        crack_test = str(row.get('CrackTest', 'False')).lower() == 'true'
+                    if not existing_cycle:
+                        # Create the cycle record
+                        cycle_record = self.env['manufacturing.ruhlamat.press'].create(cycle_data)
+                        created_cycles += 1
 
-                        self.env['manufacturing.ruhlamat.press'].create({
-                            'serial_number': serial_number,
-                            'machine_id': self.id,
-                            'test_date': fields.Datetime.now(),
-                            'press_force': float(row.get('PressForce', 0) or 0),
-                            'press_distance': float(row.get('PressDistance', 0) or 0),
-                            'result': 'pass' if (press_ok and crack_test) else 'reject',
-                            'crack_test_result': crack_test,
-                            'raw_data': str(row)
-                        })
+                        # Now fetch related gaugings for this cycle
+                        gaugings_query = """
+                            SELECT GaugingId, CycleId, ProgramName, CycleDate, GaugingNo,
+                                   GaugingType, Anchor, OK, GaugingStatus, ActualX, 
+                                   SignalXUnit, ActualY, SignalYUnit, LimitTesting,
+                                   StartX, EndX, UpperLimit, LowerLimit, RunningNo,
+                                   GaugingAlias, SignalXName, SignalYName, SignalXId,
+                                   SignalYId, AbsOffsetX, AbsOffsetY, EdgeTypeBottom,
+                                   EdgeTypeLeft, EdgeTypeRight, EdgeTypeTop, FromStepData,
+                                   StepNo, LastStep
+                            FROM Gaugings
+                            WHERE CycleId = ?
+                            ORDER BY GaugingNo
+                        """
+
+                        cursor.execute(gaugings_query, (cycle_row.CycleId,))
+                        gaugings = cursor.fetchall()
+
+                        for gauging_row in gaugings:
+                            gauging_data = {
+                                'gauging_id': gauging_row.GaugingId,
+                                'cycle_id': gauging_row.CycleId,
+                                'cycle_id_ref': cycle_record.id,
+                                'program_name': gauging_row.ProgramName or '',
+                                'cycle_date': gauging_row.CycleDate,
+                                'gauging_no': gauging_row.GaugingNo or 0,
+                                'gauging_type': gauging_row.GaugingType or '',
+                                'anchor': gauging_row.Anchor or '',
+                                'ok_status': gauging_row.OK,
+                                'gauging_status': gauging_row.GaugingStatus,
+                                'actual_x': float(gauging_row.ActualX or 0),
+                                'signal_x_unit': gauging_row.SignalXUnit or '',
+                                'actual_y': float(gauging_row.ActualY or 0),
+                                'signal_y_unit': gauging_row.SignalYUnit or '',
+                                'limit_testing': gauging_row.LimitTesting or 0,
+                                'start_x': float(gauging_row.StartX or 0),
+                                'end_x': float(gauging_row.EndX or 0),
+                                'upper_limit': float(gauging_row.UpperLimit or 0),
+                                'lower_limit': float(gauging_row.LowerLimit or 0),
+                                'running_no': gauging_row.RunningNo or 0,
+                                'gauging_alias': gauging_row.GaugingAlias or '',
+                                'signal_x_name': gauging_row.SignalXName or '',
+                                'signal_y_name': gauging_row.SignalYName or '',
+                                'signal_x_id': gauging_row.SignalXId or 0,
+                                'signal_y_id': gauging_row.SignalYId or 0,
+                                'abs_offset_x': float(gauging_row.AbsOffsetX or 0),
+                                'abs_offset_y': float(gauging_row.AbsOffsetY or 0),
+                                'edge_type_bottom': gauging_row.EdgeTypeBottom or '',
+                                'edge_type_left': gauging_row.EdgeTypeLeft or '',
+                                'edge_type_right': gauging_row.EdgeTypeRight or '',
+                                'edge_type_top': gauging_row.EdgeTypeTop or '',
+                                'from_step_data': gauging_row.FromStepData or 0,
+                                'step_no': gauging_row.StepNo or 0,
+                                'last_step': gauging_row.LastStep or 0,
+                            }
+
+                            # Check if gauging already exists
+                            existing_gauging = self.env['manufacturing.ruhlamat.gauging'].search([
+                                ('gauging_id', '=', gauging_row.GaugingId),
+                                ('cycle_id', '=', gauging_row.CycleId)
+                            ], limit=1)
+
+                            if not existing_gauging:
+                                self.env['manufacturing.ruhlamat.gauging'].create(gauging_data)
+                                created_gaugings += 1
+
+                cursor.close()
+                conn.close()
+
+                _logger.info(
+                    f"Ruhlamat MDB sync completed. Created {created_cycles} cycles and {created_gaugings} gaugings.")
+                self.last_sync = fields.Datetime.now()
+                self.status = 'running'
+
+            except pyodbc.Error as e:
+                _logger.error(f"Database connection error: {str(e)}")
+                _logger.info("Trying alternative method using mdbtools or pandas...")
+                # Alternative method using pandas and mdbtools (for Linux) or pypyodbc
+                self._sync_ruhlamat_data_alternative()
+
         except Exception as e:
-            _logger.error(f"Error syncing Ruhlamat data: {str(e)}")
+            _logger.error(f"Error syncing Ruhlamat MDB data: {str(e)}")
+            self.status = 'error'
+            raise
+
+    def _sync_ruhlamat_data_alternative(self):
+        """Alternative method to sync MDB data using pandas"""
+        try:
+            import pandas as pd
+            import pypyodbc  # Alternative pure Python ODBC driver
+
+            # For Linux systems, you might need to convert MDB to SQLite first
+            # using mdbtools: mdb-export database.mdb Cycles > cycles.csv
+
+            # Try using pypyodbc
+            conn_str = (
+                f'Driver={{Microsoft Access Driver (*.mdb)}};'
+                f'DBQ={self.csv_file_path};'
+            )
+
+            conn = pypyodbc.connect(conn_str)
+
+            # Read tables into pandas DataFrames
+            cycles_df = pd.read_sql("SELECT * FROM Cycles", conn)
+            gaugings_df = pd.read_sql("SELECT * FROM Gaugings", conn)
+
+            created_cycles = 0
+            created_gaugings = 0
+
+            # Process cycles
+            for _, cycle_row in cycles_df.iterrows():
+                cycle_id = cycle_row['CycleId']
+
+                # Check if cycle already exists
+                existing_cycle = self.env['manufacturing.ruhlamat.press'].search([
+                    ('cycle_id', '=', cycle_id),
+                    ('machine_id', '=', self.id)
+                ], limit=1)
+
+                if not existing_cycle:
+                    # Prepare cycle data
+                    cycle_data = {
+                        'cycle_id': int(cycle_id),
+                        'program_name': str(cycle_row.get('ProgramName', '')),
+                        'cycle_date': pd.to_datetime(cycle_row['CycleDate']),
+                        'program_id': int(cycle_row.get('ProgramId', 0)),
+                        'station_id': str(cycle_row.get('StationId', '')),
+                        'station_name': str(cycle_row.get('StationName', '')),
+                        'station_label': str(cycle_row.get('StationLabel', '')),
+                        'part_id1': str(cycle_row.get('PartId1', '')).strip(),
+                        'part_id2': str(cycle_row.get('PartId2', '')),
+                        'part_id3': str(cycle_row.get('PartId3', '')),
+                        'part_id4': str(cycle_row.get('PartId4', '')),
+                        'part_id5': str(cycle_row.get('PartId5', '')),
+                        'ok_status': int(cycle_row.get('OK', 0)),
+                        'cycle_status': int(cycle_row.get('CycleStatus', 0)),
+                        'ufm_username': str(cycle_row.get('UfmUsername', '')),
+                        'cycle_runtime_nc': float(cycle_row.get('CycleRuntimeNC', 0)),
+                        'cycle_runtime_pc': float(cycle_row.get('CycleRuntimePC', 0)),
+                        'nc_runtime_cycle_no': int(cycle_row.get('NcRuntimeCycleNo', 0)),
+                        'nc_total_cycle_no': int(cycle_row.get('NcTotalCycleNo', 0)),
+                        'program_date': pd.to_datetime(cycle_row.get('ProgramDate')) if pd.notna(
+                            cycle_row.get('ProgramDate')) else False,
+                        'ufm_version': int(cycle_row.get('UfmVersion', 0)),
+                        'ufm_service_info': int(cycle_row.get('UfmServiceInfo', 0)),
+                        'custom_int1': int(cycle_row.get('CustomInt1', 0)),
+                        'custom_int2': int(cycle_row.get('CustomInt2', 0)),
+                        'custom_int3': int(cycle_row.get('CustomInt3', 0)),
+                        'custom_string1': str(cycle_row.get('CustomString1', '')),
+                        'custom_string2': str(cycle_row.get('CustomString2', '')),
+                        'custom_string3': str(cycle_row.get('CustomString3', '')),
+                        'custom_xml': str(cycle_row.get('CustomXml', '')),
+                        'machine_id': self.id,
+                    }
+
+                    # Create cycle record
+                    cycle_record = self.env['manufacturing.ruhlamat.press'].create(cycle_data)
+                    created_cycles += 1
+
+                    # Get related gaugings
+                    cycle_gaugings = gaugings_df[gaugings_df['CycleId'] == cycle_id]
+
+                    for _, gauging_row in cycle_gaugings.iterrows():
+                        gauging_data = {
+                            'gauging_id': int(gauging_row['GaugingId']),
+                            'cycle_id': int(gauging_row['CycleId']),
+                            'cycle_id_ref': cycle_record.id,
+                            'program_name': str(gauging_row.get('ProgramName', '')),
+                            'cycle_date': pd.to_datetime(gauging_row['CycleDate']),
+                            'gauging_no': int(gauging_row.get('GaugingNo', 0)),
+                            'gauging_type': str(gauging_row.get('GaugingType', '')),
+                            'anchor': str(gauging_row.get('Anchor', '')),
+                            'ok_status': int(gauging_row.get('OK', 0)),
+                            'gauging_status': int(gauging_row.get('GaugingStatus', 0)),
+                            'actual_x': float(gauging_row.get('ActualX', 0)),
+                            'signal_x_unit': str(gauging_row.get('SignalXUnit', '')),
+                            'actual_y': float(gauging_row.get('ActualY', 0)),
+                            'signal_y_unit': str(gauging_row.get('SignalYUnit', '')),
+                            'limit_testing': int(gauging_row.get('LimitTesting', 0)),
+                            'start_x': float(gauging_row.get('StartX', 0)),
+                            'end_x': float(gauging_row.get('EndX', 0)),
+                            'upper_limit': float(gauging_row.get('UpperLimit', 0)),
+                            'lower_limit': float(gauging_row.get('LowerLimit', 0)),
+                            'running_no': int(gauging_row.get('RunningNo', 0)),
+                            'gauging_alias': str(gauging_row.get('GaugingAlias', '')),
+                            'signal_x_name': str(gauging_row.get('SignalXName', '')),
+                            'signal_y_name': str(gauging_row.get('SignalYName', '')),
+                            'signal_x_id': int(gauging_row.get('SignalXId', 0)),
+                            'signal_y_id': int(gauging_row.get('SignalYId', 0)),
+                            'abs_offset_x': float(gauging_row.get('AbsOffsetX', 0)),
+                            'abs_offset_y': float(gauging_row.get('AbsOffsetY', 0)),
+                            'edge_type_bottom': str(gauging_row.get('EdgeTypeBottom', '')),
+                            'edge_type_left': str(gauging_row.get('EdgeTypeLeft', '')),
+                            'edge_type_right': str(gauging_row.get('EdgeTypeRight', '')),
+                            'edge_type_top': str(gauging_row.get('EdgeTypeTop', '')),
+                            'from_step_data': int(gauging_row.get('FromStepData', 0)),
+                            'step_no': int(gauging_row.get('StepNo', 0)),
+                            'last_step': int(gauging_row.get('LastStep', 0)),
+                        }
+
+                        self.env['manufacturing.ruhlamat.gauging'].create(gauging_data)
+                        created_gaugings += 1
+
+            conn.close()
+
+            _logger.info(
+                f"Ruhlamat MDB sync (alternative method) completed. Created {created_cycles} cycles and {created_gaugings} gaugings.")
+            self.last_sync = fields.Datetime.now()
+            self.status = 'running'
+
+        except Exception as e:
+            _logger.error(f"Alternative MDB sync method failed: {str(e)}")
+            self.status = 'error'
             raise
 
     def _sync_aumann_data(self):
