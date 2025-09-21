@@ -1,9 +1,10 @@
 /* Modern Manufacturing Dashboard Styles */
 .modern-dashboard {
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    position: relative;
-    overflow-x: hidden;
+    /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+    background: url('/manufacturing_dashboard/static/src/img/dashboard_bg.png') no-repeat center center fixed;
+    background-size: cover;
+    padding: 0px;
 }
 
 .modern-dashboard::before {
@@ -14,33 +15,42 @@
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+        radial-gradient(circle at 20% 80%, rgba(253, 186, 116, 0.3) 0%, transparent 50%),  /* light orange */
+        radial-gradient(circle at 80% 20%, rgba(134, 239, 172, 0.25) 0%, transparent 50%), /* light green */
+        radial-gradient(circle at 40% 40%, rgba(255, 213, 128, 0.25) 0%, transparent 50%); /* pale golden */
+    animation: float 20s ease-in-out infinite;
     pointer-events: none;
     z-index: 0;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+    33% { transform: translate(30px, -30px) rotate(120deg); }
+    66% { transform: translate(-20px, 20px) rotate(240deg); }
 }
 
 /* Header Section */
 .dashboard-header {
     position: relative;
     z-index: 1;
-    padding: 2rem 0;
+    padding: 0.2rem 0;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgb(252 252 252 / 20%);
+    box-shadow: 2px 3px 10px rgb(0 0 0 / 50%);
+    border-radius: 8px !important;
 }
 
 .dashboard-title {
-    color: white;
-    font-size: 2.5rem;
+    color: black;
+    font-size: 2.0rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-align:left;
 }
 
 .dashboard-subtitle {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(0, 0, 0, 0.8);
     font-size: 1.1rem;
     margin-bottom: 0;
     font-weight: 300;
@@ -50,7 +60,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: white;
+    color: black;
     font-weight: 600;
     margin-bottom: 0.5rem;
 }
@@ -71,7 +81,7 @@
 }
 
 .last-update {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(0, 0, 0, 0.6);
     font-size: 0.9rem;
 }
 
@@ -87,7 +97,7 @@
 
 .loading-spinner {
     text-align: center;
-    color: white;
+    color: black;
 }
 
 .spinner {
@@ -128,6 +138,7 @@
     border-radius: 20px;
     padding: 2rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     height: 100%;
     display: flex;
@@ -149,7 +160,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    color: white;
+    color: black;
     flex-shrink: 0;
 }
 
@@ -158,11 +169,11 @@
 }
 
 .passed-parts .stat-icon {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    background: linear-gradient(135deg, #4bff00, #26b42f);
 }
 
 .rejected-parts .stat-icon {
-    background: linear-gradient(135deg, #fa709a, #fee140);
+    background: linear-gradient(135deg, #ff1d1d, #730000);
 }
 
 .efficiency .stat-icon {
@@ -176,20 +187,20 @@
 .stat-value {
     font-size: 2.5rem;
     font-weight: 700;
-    color: white;
+    color: black;
     line-height: 1;
     margin-bottom: 0.5rem;
 }
 
 .stat-label {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(0, 0, 0, 0.7);
     font-size: 1rem;
     font-weight: 500;
     margin-bottom: 0.25rem;
 }
 
 .stat-change {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(0, 0, 0, 0.7);
     font-size: 0.85rem;
 }
 
@@ -204,14 +215,14 @@
 }
 
 .section-header h2 {
-    color: white;
+    color: rgba(0, 0, 0, 1);
     font-size: 2.2rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
 .section-header p {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(0, 0, 0, 0.7);
     font-size: 1.1rem;
 }
 
@@ -285,14 +296,14 @@
 }
 
 .status-text {
-    color: white;
+    color: black;
     font-size: 0.8rem;
     font-weight: 600;
 }
 
 .machine-type {
     background: rgba(255, 255, 255, 0.2);
-    color: white;
+    color: black;
     padding: 0.25rem 0.75rem;
     border-radius: 12px;
     font-size: 0.8rem;
@@ -300,7 +311,7 @@
 }
 
 .machine-name {
-    color: white;
+    color: black;
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
@@ -317,14 +328,14 @@
 }
 
 .metric-value {
-    color: white;
+    color: black;
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1;
 }
 
 .metric-label {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(0, 0, 0, 0.7);
     font-size: 0.75rem;
     margin-top: 0.25rem;
 }
@@ -358,7 +369,7 @@
 }
 
 .last-sync {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(0, 0, 0, 0.6);
     font-size: 0.8rem;
 }
 
@@ -504,7 +515,7 @@
     padding: 0.15rem 0.5rem;
     border-radius: 8px;
     font-size: 0.75rem;
-    white-space: nowrap;
+    black-space: nowrap;
 }
 
 .rejection-reason {
@@ -521,16 +532,16 @@
 }
 
 .no-selection i, .no-machines i {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(0, 0, 0, 0.5);
 }
 
 .no-selection h3, .no-machines h3 {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(0, 0, 0, 0.8);
     margin-bottom: 1rem;
 }
 
 .no-selection p, .no-machines p {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(0, 0, 0, 0.6);
 }
 
 /* Responsive Design */
@@ -723,12 +734,12 @@
 
 .tree-toggle.expanded {
     background: #007bff;
-    color: white;
+    color: black;
 }
 
 .tree-toggle.collapsed {
     background: #6c757d;
-    color: white;
+    color: black;
 }
 
 .tree-spacer {
@@ -752,7 +763,7 @@
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 600;
-    color: white;
+    color: black;
 }
 
 .level-badge.level-1 {
