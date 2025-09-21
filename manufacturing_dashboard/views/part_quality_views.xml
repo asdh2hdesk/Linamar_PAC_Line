@@ -79,17 +79,17 @@
                                 </list>
                             </field>
                         </page>
-<!--                        <page name="ruhlamat_details" string="Ruhlamat Press Details">-->
-<!--                            <field name="ruhlamat_press_ids" readonly="1">-->
-<!--                                <list>-->
-<!--                                    <field name="test_date"/>-->
-<!--                                    <field name="press_force"/>-->
-<!--                                    <field name="press_distance"/>-->
-<!--                                    <field name="crack_test_result"/>-->
-<!--                                    <field name="result"/>-->
-<!--                                </list>-->
-<!--                            </field>-->
-<!--                        </page>-->
+                        <page name="ruhlamat_details" string="Ruhlamat Press Details">
+                            <field name="ruhlamat_press_ids" readonly="1">
+                                <list>
+                                    <field name="test_date"/>
+                                    <field name="press_force"/>
+                                    <field name="press_distance"/>
+                                    <field name="crack_test_result"/>
+                                    <field name="result"/>
+                                </list>
+                            </field>
+                        </page>
                         <page name="aumann_details" string="Aumann Measurement Details">
                             <field name="aumann_measurement_ids" readonly="1">
                                 <list>

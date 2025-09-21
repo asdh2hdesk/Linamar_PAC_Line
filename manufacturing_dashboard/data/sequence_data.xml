@@ -26,7 +26,7 @@
         <record id="machine_ruhlamat_01" model="manufacturing.machine.config">
             <field name="machine_name">Ruhlamat Press Station 01</field>
             <field name="machine_type">ruhlamat</field>
-            <field name="csv_file_path">D:\Projects_18\my_addons_18\Linamar_PAC_Line\manufacturing_dashboard\data\csv_data\ufm_8959787117.mdb</field>
+            <field name="csv_file_path">/opt/odoo/csv_data/ruhlamat_data.csv</field>
             <field name="sync_interval">30</field>
             <field name="is_active">False</field>
             <field name="status">stopped</field>
