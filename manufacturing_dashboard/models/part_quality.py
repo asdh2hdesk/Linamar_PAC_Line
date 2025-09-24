@@ -31,6 +31,12 @@ class PartQuality(models.Model):
         ('reject', 'Reject')
     ], default='pending', string='Aumann Result')
 
+    gauging_result = fields.Selection([
+        ('pending', 'Pending'),
+        ('pass', 'Pass'),
+        ('reject', 'Reject')
+    ], default='pending', string='Gauging Result')
+
     # Final result
     final_result = fields.Selection([
         ('pending', 'Pending'),
@@ -63,15 +69,20 @@ class PartQuality(models.Model):
         'serial_number',
         string='Aumann Tests'
     )
+    gauging_measurement_ids = fields.One2many(
+        'manufacturing.gauging.measurement',
+        'serial_number',
+        string='Gauging Tests'
+    )
 
-    @api.depends('vici_result', 'ruhlamat_result', 'aumann_result', 'qe_override')
+    @api.depends('vici_result', 'ruhlamat_result', 'aumann_result', 'gauging_result', 'qe_override')
     def _compute_final_result(self):
         for record in self:
             if record.qe_override:
                 # If QE has overridden, keep current final_result
                 continue
 
-            results = [record.vici_result, record.ruhlamat_result, record.aumann_result]
+            results = [record.vici_result, record.ruhlamat_result, record.aumann_result, record.gauging_result]
 
             if 'reject' in results:
                 record.final_result = 'reject'

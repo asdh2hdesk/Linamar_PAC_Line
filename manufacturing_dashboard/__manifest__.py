@@ -33,6 +33,7 @@ Features:
         'views/vici_vision_views.xml',
         'views/ruhlamat_press_views.xml',
         'views/aumann_measurement_views.xml',
+        'views/gauging_measurement_views.xml',
         'views/dashboard_views.xml',
         'views/menu_views.xml',
         'data/cron_data.xml',

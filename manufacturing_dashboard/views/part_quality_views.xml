@@ -20,6 +20,10 @@
                        decoration-success="aumann_result=='pass'"
                        decoration-danger="aumann_result=='reject'"
                        decoration-info="aumann_result=='pending'"/>
+                <field name="gauging_result" widget="badge"
+                       decoration-success="gauging_result=='pass'"
+                       decoration-danger="gauging_result=='reject'"
+                       decoration-info="gauging_result=='pending'"/>
                 <field name="final_result" widget="badge"
                        decoration-success="final_result=='pass'"
                        decoration-danger="final_result=='reject'"
@@ -60,6 +64,7 @@
                             <field name="vici_result" widget="badge"/>
                             <field name="ruhlamat_result" widget="badge"/>
                             <field name="aumann_result" widget="badge"/>
+                            <field name="gauging_result" widget="badge"/>
                         </group>
                     </group>
 
@@ -97,6 +102,19 @@
                                     <field name="total_measurements"/>
                                     <field name="measurements_passed"/>
                                     <field name="pass_rate"/>
+                                    <field name="result"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="gauging_details" string="Gauging Measurement Details">
+                            <field name="gauging_measurement_ids" readonly="1">
+                                <list>
+                                    <field name="test_date"/>
+                                    <field name="job_number"/>
+                                    <field name="machine_code"/>
+                                    <field name="angle_measurement"/>
+                                    <field name="angle_degrees"/>
+                                    <field name="status"/>
                                     <field name="result"/>
                                 </list>
                             </field>
@@ -145,6 +163,7 @@
                     <filter string="VICI Result" name="group_vici" context="{'group_by': 'vici_result'}"/>
                     <filter string="Ruhlamat Result" name="group_ruhlamat" context="{'group_by': 'ruhlamat_result'}"/>
                     <filter string="Aumann Result" name="group_aumann" context="{'group_by': 'aumann_result'}"/>
+                    <filter string="Gauging Result" name="group_gauging" context="{'group_by': 'gauging_result'}"/>
                 </group>
             </search>
         </field>
@@ -162,6 +181,7 @@
                 <field name="vici_result"/>
                 <field name="ruhlamat_result"/>
                 <field name="aumann_result"/>
+                <field name="gauging_result"/>
                 <field name="box_number"/>
                 <templates>
                     <t t-name="kanban-box">
@@ -175,6 +195,7 @@
                                     <span class="badge badge-secondary">VICI: <field name="vici_result"/></span>
                                     <span class="badge badge-secondary">Ruhlamat: <field name="ruhlamat_result"/></span>
                                     <span class="badge badge-secondary">Aumann: <field name="aumann_result"/></span>
+                                    <span class="badge badge-secondary">Gauging: <field name="gauging_result"/></span>
                                 </div>
                                 <div class="mt-2" t-if="record.box_number.value">
                                     <small>Box: <field name="box_number"/></small>

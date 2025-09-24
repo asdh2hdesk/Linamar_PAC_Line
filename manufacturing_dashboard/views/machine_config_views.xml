@@ -5,7 +5,8 @@
         <field name="name">machine.config.list</field>
         <field name="model">manufacturing.machine.config</field>
         <field name="arch" type="xml">
-            <list decoration-success="status=='running'" decoration-danger="status=='error'" decoration-warning="status=='maintenance'" decoration-muted="status=='stopped'">
+            <list decoration-success="status=='running'" decoration-danger="status=='error'"
+                  decoration-warning="status=='maintenance'" decoration-muted="status=='stopped'">
                 <field name="machine_name"/>
                 <field name="machine_type"/>
                 <field name="status" widget="badge"
@@ -28,7 +29,8 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="sync_machine_data" type="object" string="Sync Now" class="btn-primary" icon="fa-refresh"/>
+                    <button name="sync_machine_data" type="object" string="Sync Now" class="btn-primary"
+                            icon="fa-refresh"/>
                     <field name="status" widget="statusbar" statusbar_visible="stopped,running,error,maintenance"/>
                 </header>
                 <sheet>
@@ -46,7 +48,20 @@
                             </div>
                         </button>
                     </div>
-                    <widget name="web_ribbon" title="Inactive" bg_color="bg-danger" modifiers="{'invisible': [('is_active', '=', True)]}"/>
+                    <!--                    <widget name="web_ribbon" title="Inactive" bg_color="bg-danger" modifiers="{'invisible': [('is_active', '=', True)]}"/>-->
+                    <widget name="web_ribbon" title="Running" bg_color="bg-success"
+                            invisible="status != 'running'"/>
+
+                    <widget name="web_ribbon" title="Stopped" bg_color="bg-danger"
+                            invisible="status != 'stopped'"/>
+
+                    <widget name="web_ribbon" title="Error" bg_color="bg-warning"
+                            invisible="status != 'error'"/>
+
+                    <widget name="web_ribbon" title="Maintenance" bg_color="bg-info"
+                            invisible="status != 'maintenance'"/>
+
+
                     <div class="oe_title">
                         <h1>
                             <field name="machine_name" placeholder="Machine Name..."/>
@@ -73,10 +88,10 @@
                         </group>
                     </group>
                 </sheet>
-<!--                <div class="oe_chatter">-->
-<!--                    <field name="message_follower_ids"/>-->
-<!--                    <field name="message_ids"/>-->
-<!--                </div>-->
+                <!--                <div class="oe_chatter">-->
+                <!--                    <field name="message_follower_ids"/>-->
+                <!--                    <field name="message_ids"/>-->
+                <!--                </div>-->
             </form>
         </field>
     </record>
@@ -96,7 +111,7 @@
                 <filter name="error" string="Error" domain="[('status', '=', 'error')]"/>
                 <filter name="maintenance" string="Maintenance" domain="[('status', '=', 'maintenance')]"/>
                 <separator/>
-<!--                <filter name="high_rejection" string="High Rejection Rate" domain="[('rejection_rate', '>', 5)]"/>-->
+                <!--                <filter name="high_rejection" string="High Rejection Rate" domain="[('rejection_rate', '>', 5)]"/>-->
                 <group expand="0" string="Group By">
                     <filter string="Machine Type" name="group_type" context="{'group_by': 'machine_type'}"/>
                     <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>

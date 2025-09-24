@@ -15,6 +15,33 @@
                                 <div class="pulse-dot"></div>
                                 <span>LIVE</span>
                             </div>
+                            <!-- Global Time Filter -->
+                            <div class="container-fluid mb-3">
+                                <div class="table-filters d-flex justify-content-center">
+                                    <div class="btn-group" role="group" aria-label="Global time filter">
+                                        <button type="button"
+                                                t-att-class="state.tableFilter === 'today' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                                t-on-click="() => this.onFilterChange('today')">
+                                            Today
+                                        </button>
+                                        <button type="button"
+                                                t-att-class="state.tableFilter === 'week' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                                t-on-click="() => this.onFilterChange('week')">
+                                            Week
+                                        </button>
+                                        <button type="button"
+                                                t-att-class="state.tableFilter === 'month' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                                t-on-click="() => this.onFilterChange('month')">
+                                            Month
+                                        </button>
+                                        <button type="button"
+                                                t-att-class="state.tableFilter === 'year' ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm'"
+                                                t-on-click="() => this.onFilterChange('year')">
+                                            Year
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="last-update">
                                 Last updated:
                                 <span t-esc="formatTime(new Date())"/>
@@ -102,21 +129,17 @@
                 <!-- Machine Cards Section -->
                 <div class="machines-section">
                     <div class="container-fluid">
-<!--                        <div class="section-header">-->
-<!--                            <h2>Production Lines</h2>-->
-<!--                            <p>Click on a machine to view detailed analytics</p>-->
-<!--                        </div>-->
                         <div class="row g-4">
-                            <div t-foreach="state.machines" t-as="machine" t-key="machine.id" class="col-xl-4 col-lg-6">
+                            <div t-foreach="state.machines" t-as="machine" t-key="machine.id" class="col-xl-3 col-lg-6">
                                 <div t-att-class="getCardClass(machine)" t-on-click="() => this.selectMachine(machine)">
                                     <div class="machine-header">
                                         <div class="machine-status">
                                             <div class="status-dot" t-att-class="getStatusClass(machine.status)"></div>
                                             <span class="status-text" t-esc="machine.status.toUpperCase()"/>
                                         </div>
-                                        <div class="machine-type" t-esc="machine.type"/>
+                                        <div class="machine-type clickable" t-esc="machine.type" t-on-click="() => this.openMachineListView(machine)"/>
                                     </div>
-                                    <div class="machine-name" t-esc="machine.name"/>
+                                    <div class="machine-name" t-esc="machine.name" />
 
                                     <div class="machine-metrics">
                                         <div class="metric">
@@ -166,6 +189,7 @@
                                 <span t-esc="state.selectedMachine.name"/>
                             </h2>
                             <p>Detailed production metrics and quality analysis</p>
+
                         </div>
 
                         <div class="row g-4">

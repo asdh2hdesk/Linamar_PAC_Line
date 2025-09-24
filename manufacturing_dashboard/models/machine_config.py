@@ -19,6 +19,7 @@ class MachineConfig(models.Model):
     machine_type = fields.Selection([
         ('vici_vision', 'VICI Vision System'),
         ('ruhlamat', 'Ruhlamat Press'),
+        ('gauging', 'Gauging System'),
         ('aumann', 'Aumann Measurement'),
     ], string='Machine Type', required=True)
 
@@ -61,11 +62,23 @@ class MachineConfig(models.Model):
             elif record.machine_type == 'ruhlamat':
                 ruhlamat_parts = self.env['manufacturing.ruhlamat.press'].search([
                     ('machine_id', '=', record.id),
-                    # ('test_date', '>=', today)
+                    ('test_date', '>=', today)
                 ])
                 for ruhlamat_part in ruhlamat_parts:
                     part_quality = self.env['manufacturing.part.quality'].search([
                         ('serial_number', '=', ruhlamat_part.part_id1)
+                    ], limit=1)
+                    if part_quality:
+                        parts |= part_quality
+
+            elif record.machine_type == 'gauging':
+                gauging_parts = self.env['manufacturing.gauging.measurement'].search([
+                    ('machine_id', '=', record.id),
+                    ('test_date', '>=', today)
+                ])
+                for gauging_part in gauging_parts:
+                    part_quality = self.env['manufacturing.part.quality'].search([
+                        ('serial_number', '=', gauging_part.serial_number)
                     ], limit=1)
                     if part_quality:
                         parts |= part_quality
@@ -126,6 +139,8 @@ class MachineConfig(models.Model):
                 self._sync_vici_data()
             elif self.machine_type == 'ruhlamat':
                 self._sync_ruhlamat_data()
+            elif self.machine_type == 'gauging':
+                self._sync_gauging_data()
             elif self.machine_type == 'aumann':
                 self._sync_aumann_data()
 
@@ -814,6 +829,299 @@ class MachineConfig(models.Model):
             _logger.error(f"An unexpected error occurred during Aumann data sync: {e}", exc_info=True)
             self.status = 'error'
 
+    def _sync_gauging_data(self):
+        """Sync Gauging system data from Excel file"""
+        _logger.info(f"Starting Gauging data sync for machine: {self.machine_name} from {self.csv_file_path}")
+        
+        try:
+            # Check file existence and readability
+            if not os.path.exists(self.csv_file_path):
+                _logger.error(f"Gauging Excel file not found: {self.csv_file_path}")
+                self.status = 'error'
+                return
+            if not os.access(self.csv_file_path, os.R_OK):
+                _logger.error(f"Gauging Excel file not readable: {self.csv_file_path}. Check permissions.")
+                self.status = 'error'
+                return
+
+            # Try to import required libraries
+            try:
+                import pandas as pd
+                from datetime import datetime
+            except ImportError:
+                _logger.error("pandas is required for Excel file processing. Please install it: pip install pandas openpyxl")
+                self.status = 'error'
+                return
+
+            # Read Excel file without header to preserve all rows
+            try:
+                df = pd.read_excel(self.csv_file_path, engine='openpyxl', header=None)
+                _logger.info(f"Gauging Excel file loaded successfully. Shape: {df.shape}")
+            except Exception as e:
+                _logger.error(f"Failed to read Excel file: {str(e)}")
+                self.status = 'error'
+                return
+
+            if df.empty:
+                _logger.warning("Gauging Excel file is empty")
+                return
+
+            records_created = 0
+            
+            # Find the header row that contains "Sr No."
+            header_row_index = None
+            column_mapping = {}  # Map column indices to names
+            
+            for i in range(len(df)):
+                row = df.iloc[i]
+                # Check if this row contains "Sr No." in any column
+                if any('Sr No' in str(val) for val in row.values if pd.notna(val)):
+                    header_row_index = i
+                    _logger.info(f"Found header row at index {i}")
+                    
+                    # Create column mapping from this header row
+                    for col_idx, col_name in enumerate(row.values):
+                        if pd.notna(col_name):
+                            column_mapping[col_idx] = str(col_name).strip()
+                    
+                    _logger.info(f"Column mapping: {column_mapping}")
+                    break
+            
+            if header_row_index is None:
+                _logger.error("Could not find header row containing 'Sr No.' in the Excel file")
+                return
+            
+            # Check if we have enough rows after header for tolerance data and actual data
+            if len(df) < header_row_index + 6:  # header + 4 tolerance rows + at least 1 data row
+                _logger.warning(f"Gauging Excel file has insufficient rows after header row {header_row_index}")
+                return
+
+            # Get the rows based on header position
+            header_row = df.iloc[header_row_index]
+            utl_row = df.iloc[header_row_index + 1]  # Upper Tolerance Limit
+            ucl_row = df.iloc[header_row_index + 2]  # Upper Control Limit  
+            lcl_row = df.iloc[header_row_index + 3]  # Lower Control Limit
+            ltl_row = df.iloc[header_row_index + 4]  # Lower Tolerance Limit
+            
+            # Log the structure for debugging
+            _logger.info(f"Header row (index {header_row_index}): {header_row.values}")
+            
+            # Build tolerance dictionaries by column index and name
+            tolerance_data = {}
+            for col_idx, col_name in column_mapping.items():
+                if col_name not in ['Sr No.', 'Job Number', 'Date/Time', 'Machine', 'Status']:
+                    # For angle measurements, convert from degrees/minutes/seconds to decimal
+                    utl_val = utl_row.iloc[col_idx] if col_idx < len(utl_row) else None
+                    ucl_val = ucl_row.iloc[col_idx] if col_idx < len(ucl_row) else None
+                    lcl_val = lcl_row.iloc[col_idx] if col_idx < len(lcl_row) else None
+                    ltl_val = ltl_row.iloc[col_idx] if col_idx < len(ltl_row) else None
+                    
+                    # Convert angle values to decimal degrees if they are in DMS format
+                    if 'ANGIE' in col_name.upper():
+                        utl_val = self._parse_angle_to_decimal(utl_val) if pd.notna(utl_val) else None
+                        ucl_val = self._parse_angle_to_decimal(ucl_val) if pd.notna(ucl_val) else None
+                        lcl_val = self._parse_angle_to_decimal(lcl_val) if pd.notna(lcl_val) else None
+                        ltl_val = self._parse_angle_to_decimal(ltl_val) if pd.notna(ltl_val) else None
+                    else:
+                        utl_val = self._safe_float(utl_val)
+                        ucl_val = self._safe_float(ucl_val)
+                        lcl_val = self._safe_float(lcl_val)
+                        ltl_val = self._safe_float(ltl_val)
+                    
+                    tolerance_data[col_name] = {
+                        'utl': utl_val,
+                        'ucl': ucl_val,
+                        'lcl': lcl_val,
+                        'ltl': ltl_val
+                    }
+            
+            # Log parsed tolerance data
+            _logger.info(f"Parsed tolerance data: {tolerance_data}")
+            
+            # Process actual data rows (starting 5 rows after header)
+            data_start_index = header_row_index + 5
+            for index in range(data_start_index, len(df)):
+                try:
+                    row = df.iloc[index]
+                    
+                    # Helper function to get value by column name
+                    def get_value_by_column_name(column_name, default=''):
+                        for col_idx, col_name in column_mapping.items():
+                            if column_name.lower() in col_name.lower() or col_name.lower() in column_name.lower():
+                                return row.iloc[col_idx] if col_idx < len(row) else default
+                        return default
+                    
+                    # Extract data based on the Excel structure using column mapping
+                    sr_no = str(get_value_by_column_name('Sr No')).strip()
+                    job_number = str(get_value_by_column_name('Job Number')).strip()
+                    date_time = get_value_by_column_name('Date/Time')
+                    machine_code = str(get_value_by_column_name('Machine')).strip()
+                    angle_measurement = str(get_value_by_column_name('1-ANGIE')).strip()
+                    status = str(get_value_by_column_name('Status', 'ACCEPT')).strip().upper()
+                    
+                    # Skip empty rows
+                    if not job_number or job_number == 'nan':
+                        continue
+                    
+                    serial_number = job_number
+                    
+                    # Check if record already exists to prevent duplicates
+                    existing = self.env['manufacturing.gauging.measurement'].search([
+                        ('serial_number', '=', serial_number),
+                        ('machine_id', '=', self.id)
+                    ], limit=1)
+                    
+                    if existing:
+                        _logger.debug(f"Gauging record for Serial Number {serial_number} already exists. Skipping.")
+                        continue
+                    
+                    # Parse test date
+                    test_date = fields.Datetime.now()
+                    if pd.notna(date_time):
+                        try:
+                            if isinstance(date_time, str):
+                                # Try different date formats for US format with AM/PM
+                                date_formats = [
+                                    '%m/%d/%Y %I:%M:%S %p',  # US format with AM/PM
+                                    '%d/%m/%Y %H:%M:%S',     # European format 24h
+                                    '%Y-%m-%d %H:%M:%S',     # ISO format
+                                    '%m/%d/%Y %H:%M:%S',     # US format 24h
+                                ]
+                                
+                                for fmt in date_formats:
+                                    try:
+                                        test_date = datetime.strptime(date_time.strip(), fmt)
+                                        break
+                                    except ValueError:
+                                        continue
+                                else:
+                                    # If all formats failed, log and use current time
+                                    _logger.warning(f"Could not parse date '{date_time}' with any known format. Using current time.")
+                            else:
+                                test_date = pd.to_datetime(date_time)
+                        except Exception as e:
+                            _logger.warning(f"Could not parse date '{date_time}': {e}. Using current time.")
+                    
+                    # Map status
+                    if status in ['ACCEPT', 'ACCEPTED']:
+                        status_mapped = 'accept'
+                    elif status in ['REJECT', 'REJECTED']:
+                        status_mapped = 'reject'
+                    else:
+                        status_mapped = 'accept'  # Default
+                    
+                    # Check tolerance for angle measurement
+                    angle_within_tolerance = True
+                    rejection_reason = None
+                    
+                    if angle_measurement and angle_measurement != 'nan':
+                        # Get tolerance data for 1-ANGIE column
+                        angie_tolerance = tolerance_data.get('1-ANGIE', {})
+                        if angie_tolerance:
+                            # Parse angle to decimal degrees for tolerance checking
+                            try:
+                                decimal_degrees = self._parse_angle_to_decimal(angle_measurement)
+                                utl = angie_tolerance.get('utl')
+                                ltl = angie_tolerance.get('ltl')
+                                
+                                if utl is not None and ltl is not None:
+                                    if not (ltl <= decimal_degrees <= utl):
+                                        angle_within_tolerance = False
+                                        status_mapped = 'reject'  # Override status if out of tolerance
+                                        rejection_reason = f"Angle {decimal_degrees:.4f}° out of tolerance ({ltl:.4f}° - {utl:.4f}°)"
+                            except Exception as e:
+                                _logger.warning(f"Failed to check tolerance for angle '{angle_measurement}': {e}")
+                    
+                    # Prepare data for creation
+                    create_vals = {
+                        # 'sr_no': sr_no,
+                        'machine_id': self.id,
+                        'test_date': test_date,
+                        'job_number': job_number if job_number != 'nan' else '',
+                        'serial_number': job_number if job_number != 'nan' else '',
+                        'machine_code': machine_code if machine_code != 'nan' else '',
+                        'angle_measurement': angle_measurement if angle_measurement != 'nan' else '',
+                        'status': status_mapped,
+                        'within_tolerance': angle_within_tolerance,
+                        'raw_data': str(row.to_dict())[:2000]  # Limit raw data size
+                    }
+                    
+                    if rejection_reason:
+                        create_vals['rejection_reason'] = rejection_reason
+                    
+                    # Add tolerance data if available
+                    angie_tolerance = tolerance_data.get('1-ANGIE', {})
+                    if angie_tolerance:
+                        create_vals.update({
+                            'upper_tolerance': angie_tolerance.get('utl'),
+                            'lower_tolerance': angie_tolerance.get('ltl'),
+                            'nominal_value': angie_tolerance.get('ucl')  # Using UCL as nominal
+                        })
+                    
+                    # Create the record
+                    new_record = self.env['manufacturing.gauging.measurement'].create(create_vals)
+                    records_created += 1
+                    _logger.debug(f"Successfully created Gauging record for Serial Number: {serial_number}")
+                    
+                except Exception as e:
+                    _logger.error(f"Failed to process Gauging row {index}: {e}")
+                    continue
+            
+            _logger.info(f"Gauging data sync completed. Total records created: {records_created}")
+            
+        except FileNotFoundError:
+            _logger.error(f"Gauging Excel file not found at {self.csv_file_path}. Please check the path.")
+            self.status = 'error'
+        except Exception as e:
+            _logger.error(f"An unexpected error occurred during Gauging data sync: {e}", exc_info=True)
+            self.status = 'error'
+
+    def _safe_float(self, value):
+        """Safely convert value to float"""
+        try:
+            import pandas as pd
+            if pd.isna(value) or value == '' or str(value).lower() == 'nan':
+                return None
+            return float(value)
+        except:
+            return None
+
+    def _parse_angle_to_decimal(self, angle_str):
+        """Parse angle measurement from format like "1°30'0"" to decimal degrees"""
+        if not angle_str:
+            return 0.0
+            
+        try:
+            # Remove any extra quotes or spaces
+            angle_str = str(angle_str).strip().strip('"')
+            
+            # Pattern to match degrees°minutes'seconds" format
+            import re
+            pattern = r"(-?\d+)°(\d+)'(\d+)\"?"
+            match = re.match(pattern, angle_str)
+            
+            if match:
+                degrees = int(match.group(1))
+                minutes = int(match.group(2))
+                seconds = int(match.group(3))
+                
+                # Convert to decimal degrees
+                decimal_degrees = abs(degrees) + minutes/60.0 + seconds/3600.0
+                if degrees < 0:
+                    decimal_degrees = -decimal_degrees
+                    
+                return decimal_degrees
+            else:
+                # Try to parse as simple decimal
+                try:
+                    return float(angle_str)
+                except:
+                    return 0.0
+                    
+        except Exception as e:
+            _logger.warning(f"Failed to parse angle measurement '{angle_str}': {e}")
+            return 0.0
+
     @api.model
     def get_dashboard_data(self):
         """Get dashboard data for frontend"""
@@ -853,10 +1161,26 @@ class MachineConfig(models.Model):
     # Add these enhanced methods to your machine_config.py file
 
     @api.model
-    def get_enhanced_dashboard_data(self):
-        """Enhanced dashboard data with analytics support"""
+    def get_enhanced_dashboard_data(self, filter_type='today'):
+        """Enhanced dashboard data with analytics support for selected window"""
         machines = self.search([('is_active', '=', True)])
+        # Determine date window
         today = fields.Date.today()
+        if filter_type == 'today':
+            start_date = today
+            end_date = today
+        elif filter_type == 'week':
+            start_date = today - timedelta(days=7)
+            end_date = today
+        elif filter_type == 'month':
+            start_date = today - timedelta(days=30)
+            end_date = today
+        elif filter_type == 'year':
+            start_date = today - timedelta(days=365)
+            end_date = today
+        else:
+            start_date = today
+            end_date = today
 
         dashboard_data = {
             'machines': [],
@@ -874,13 +1198,13 @@ class MachineConfig(models.Model):
             }
         }
 
-        total_parts_today = 0
+        total_parts = 0
         total_passed = 0
         total_rejected = 0
 
         for machine in machines:
-            # Get today's data for this machine
-            machine_stats = self._get_machine_today_stats(machine.id)
+            # Get filtered window stats for this machine
+            machine_stats = self._get_machine_stats_for_period(machine.id, start_date, end_date)
 
             machine_info = {
                 'id': machine.id,
@@ -898,15 +1222,21 @@ class MachineConfig(models.Model):
             dashboard_data['machines'].append(machine_info)
 
             # Aggregate totals
-            total_parts_today += machine_stats['total_count']
+            total_parts += machine_stats['total_count']
             total_passed += machine_stats['ok_count']
             total_rejected += machine_stats['reject_count']
 
         dashboard_data['statistics'] = {
-            'total_parts': total_parts_today,
+            'total_parts': total_parts,
             'passed_parts': total_passed,
             'rejected_parts': total_rejected,
             'pending_parts': 0,  # Calculate if you have pending logic
+        }
+
+        dashboard_data['window'] = {
+            'filter_type': filter_type,
+            'start_date': start_date.isoformat(),
+            'end_date': end_date.isoformat(),
         }
 
         return dashboard_data
@@ -943,6 +1273,15 @@ class MachineConfig(models.Model):
 
         elif machine.machine_type == 'aumann':
             records = self.env['manufacturing.aumann.measurement'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', today)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
+
+        elif machine.machine_type == 'gauging':
+            records = self.env['manufacturing.gauging.measurement'].search([
                 ('machine_id', '=', machine_id),
                 ('test_date', '>=', today)
             ])
@@ -997,6 +1336,16 @@ class MachineConfig(models.Model):
             stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
             stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
 
+        elif machine.machine_type == 'gauging':
+            records = self.env['manufacturing.gauging.measurement'].search([
+                ('machine_id', '=', machine_id),
+                ('test_date', '>=', start_date),
+                ('test_date', '<=', end_date)
+            ])
+            stats['total_count'] = len(records)
+            stats['ok_count'] = len(records.filtered(lambda r: r.result == 'pass'))
+            stats['reject_count'] = len(records.filtered(lambda r: r.result == 'reject'))
+
         # Calculate rejection rate
         if stats['total_count'] > 0:
             stats['rejection_rate'] = round((stats['reject_count'] / stats['total_count']) * 100, 2)
@@ -1004,7 +1353,7 @@ class MachineConfig(models.Model):
         return stats
 
     @api.model
-    def get_machine_detail_data(self, machine_id, filter_type='today', page=1, records_per_page=20):
+    def get_machine_detail_data(self, machine_id, filter_type='today'):
         """Enhanced machine detail data with analytics"""
         try:
             machine = self.browse(machine_id)
@@ -1012,8 +1361,6 @@ class MachineConfig(models.Model):
                 return {'error': 'Machine not found'}
 
             # Validate parameters
-            page = max(1, int(page)) if page else 1
-            records_per_page = max(1, min(100, int(records_per_page))) if records_per_page else 20
             filter_type = str(filter_type) if filter_type else 'today'
 
             # Calculate date range based on filter_type
@@ -1051,126 +1398,9 @@ class MachineConfig(models.Model):
                     'ok_count': stats['ok_count'],
                     'reject_count': stats['reject_count'],
                 },
-                'records': [],
-                'analytics': {
-                    'hourly_production': self._get_hourly_production(machine_id, today),
-                    'measurement_trends': self._get_measurement_trends(machine_id, today),
-                    'quality_metrics': self._get_quality_metrics(machine_id, today)
-                }
+                'analytics': self._build_analytics(machine_id, start_date, end_date)
             }
 
-            # Get detailed records with pagination
-            offset = (page - 1) * records_per_page
-            
-            if machine.machine_type == 'vici_vision':
-                # Get total count for pagination
-                total_records = self.env['manufacturing.vici.vision'].search_count([
-                    ('machine_id', '=', machine_id),
-                    ('test_date', '>=', start_date),
-                    ('test_date', '<=', end_date)
-                ])
-                
-                records = self.env['manufacturing.vici.vision'].search([
-                    ('machine_id', '=', machine_id),
-                    ('test_date', '>=', start_date),
-                    ('test_date', '<=', end_date)
-                ], order='test_date desc', limit=records_per_page, offset=offset)
-
-                for record in records:
-                    machine_data['records'].append({
-                        'serial_number': record.serial_number,
-                        'machine_name': record.machine_id.machine_name if record.machine_id else 'N/A',
-                        'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
-                        'log_date': record.log_date.strftime('%Y-%m-%d') if record.log_date else '',
-                        'log_time': record.log_time.strftime('%H:%M:%S') if record.log_time else '',
-                        'operator': record.operator_name or 'Auto',
-                        'measure_number': record.measure_number or 'N/A',
-                        'within_tolerance': record.within_tolerance,
-                        'result': record.result,
-                        'failed_fields': record.failed_fields or '',
-                        'rejection_reason': record.rejection_reason or '',
-                        'measurements': {
-                            'L 64.8': record.l_64_8,
-                            'L 35.4': record.l_35_4,
-                            'L 46.6': record.l_46_6,
-                            'L 82': record.l_82,
-                            'L 128.6': record.l_128_6,
-                            'L 164': record.l_164,
-                        }
-                    })
-
-            elif machine.machine_type == 'ruhlamat':
-                # Get total count for pagination
-                total_records = self.env['manufacturing.ruhlamat.press'].search_count([
-                    ('machine_id', '=', machine_id),
-                    ('test_date', '>=', start_date),
-                    ('test_date', '<=', end_date)
-                ])
-                
-                records = self.env['manufacturing.ruhlamat.press'].search([
-                    ('machine_id', '=', machine_id),
-                    ('test_date', '>=', start_date),
-                    ('test_date', '<=', end_date)
-                ], order='test_date desc', limit=records_per_page, offset=offset)
-
-                for record in records:
-                    machine_data['records'].append({
-                        'serial_number': record.serial_number,
-                        'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
-                        'operator': 'Auto',
-                        'result': record.result,
-                        'rejection_reason': getattr(record, 'rejection_reason', '') or '',
-                        'measurements': {
-                            'Press Force': record.press_force,
-                            'Press Distance': record.press_distance,
-                            'Crack Test': 'Pass' if record.crack_test_result else 'Fail',
-                        }
-                    })
-
-            elif machine.machine_type == 'aumann':
-                # Get total count for pagination
-                total_records = self.env['manufacturing.aumann.measurement'].search_count([
-                    ('machine_id', '=', machine_id),
-                    ('test_date', '>=', start_date),
-                    ('test_date', '<=', end_date)
-                ])
-                
-                records = self.env['manufacturing.aumann.measurement'].search([
-                    ('machine_id', '=', machine_id),
-                    ('test_date', '>=', start_date),
-                    ('test_date', '<=', end_date)
-                ], order='test_date desc', limit=records_per_page, offset=offset)
-
-                for record in records:
-                    machine_data['records'].append({
-                        'serial_number': record.serial_number,
-                        'test_date': record.test_date.strftime('%Y-%m-%d %H:%M:%S'),
-                        'operator': 'Auto',
-                        'result': record.result,
-                        'rejection_reason': '',
-                        'measurements': {
-                            'Diameter A1': getattr(record, 'diameter_journal_a1', 0) or 0,
-                            'Diameter A2': getattr(record, 'diameter_journal_a2', 0) or 0,
-                            'Diameter B1': getattr(record, 'diameter_journal_b1', 0) or 0,
-                            'Diameter B2': getattr(record, 'diameter_journal_b2', 0) or 0,
-                            'Runout E31-E22': getattr(record, 'runout_e31_e22', 0) or 0,
-                        }
-                    })
-            else:
-                # No matching machine type
-                total_records = 0
-
-            # Add pagination information
-            total_pages = (total_records + records_per_page - 1) // records_per_page if total_records > 0 else 1
-            
-            machine_data['pagination'] = {
-                'current_page': page,
-                'total_pages': total_pages,
-                'total_records': total_records,
-                'records_per_page': records_per_page,
-                'has_next': page < total_pages,
-                'has_previous': page > 1
-            }
 
             return machine_data
 
@@ -1206,6 +1436,12 @@ class MachineConfig(models.Model):
                     ('test_date', '>=', start_time),
                     ('test_date', '<', end_time)
                 ])
+            elif machine.machine_type == 'gauging':
+                count = self.env['manufacturing.gauging.measurement'].search_count([
+                    ('machine_id', '=', machine_id),
+                    ('test_date', '>=', start_time),
+                    ('test_date', '<', end_time)
+                ])
             else:
                 count = 0
 
@@ -1215,6 +1451,147 @@ class MachineConfig(models.Model):
             })
 
         return hourly_data
+
+    def _build_analytics(self, machine_id, start_date, end_date):
+        """Build analytics payload based on the selected date range"""
+        machine = self.browse(machine_id)
+
+        # Normalize to datetimes (inclusive start, exclusive end)
+        start_dt = datetime.combine(start_date, datetime.min.time())
+        end_dt = datetime.combine(end_date + timedelta(days=1), datetime.min.time())
+        total_days = (end_dt - start_dt).days
+
+        # Decide interval based on date range
+        if total_days <= 1:
+            interval = 'hour'
+        elif total_days <= 31:
+            interval = 'day'
+        else:
+            interval = 'month'
+
+        production_series = self._get_production_series(machine, start_dt, end_dt, interval)
+        rejection_series = self._get_rejection_rate_series(machine, start_dt, end_dt, interval)
+        measurement_avg = self._get_measurement_average(machine, start_dt, end_dt)
+
+        return {
+            'production_series': production_series,  # {labels:[], values:[]}
+            'rejection_series': rejection_series,    # {labels:[], values:[]}
+            'measurement_avg': measurement_avg      # {labels:[], values:[]}
+        }
+
+    def _get_model_for_machine(self, machine):
+        if machine.machine_type == 'vici_vision':
+            return self.env['manufacturing.vici.vision']
+        if machine.machine_type == 'ruhlamat':
+            return self.env['manufacturing.ruhlamat.press']
+        if machine.machine_type == 'aumann':
+            return self.env['manufacturing.aumann.measurement']
+        if machine.machine_type == 'gauging':
+            return self.env['manufacturing.gauging.measurement']
+        return None
+
+    def _iter_intervals(self, start_dt, end_dt, interval):
+        current = start_dt
+        while current < end_dt:
+            if interval == 'hour':
+                nxt = current + timedelta(hours=1)
+                label = current.strftime('%H:00')
+            elif interval == 'day':
+                nxt = current + timedelta(days=1)
+                label = current.strftime('%Y-%m-%d')
+            elif interval == 'month':
+                year = current.year
+                month = current.month
+                if month == 12:
+                    nxt = datetime(year + 1, 1, 1)
+                else:
+                    nxt = datetime(year, month + 1, 1)
+                label = current.strftime('%Y-%m')
+            else:  # year
+                year = current.year
+                nxt = datetime(year + 1, 1, 1)
+                label = current.strftime('%Y')
+            yield (current, min(nxt, end_dt), label)
+            current = nxt
+
+    def _get_production_series(self, machine, start_dt, end_dt, interval):
+        model = self._get_model_for_machine(machine)
+        labels, values = [], []
+        if not model:
+            return {'labels': labels, 'values': values}
+
+        for begin, finish, label in self._iter_intervals(start_dt, end_dt, interval):
+            count = model.search_count([
+                ('machine_id', '=', machine.id),
+                ('test_date', '>=', begin),
+                ('test_date', '<', finish),
+            ])
+            labels.append(label)
+            values.append(count)
+
+        return {'labels': labels, 'values': values}
+
+    def _get_rejection_rate_series(self, machine, start_dt, end_dt, interval):
+        model = self._get_model_for_machine(machine)
+        labels, values = [], []
+        if not model:
+            return {'labels': labels, 'values': values}
+
+        for begin, finish, label in self._iter_intervals(start_dt, end_dt, interval):
+            total = model.search_count([
+                ('machine_id', '=', machine.id),
+                ('test_date', '>=', begin),
+                ('test_date', '<', finish),
+            ])
+            rejected = model.search_count([
+                ('machine_id', '=', machine.id),
+                ('test_date', '>=', begin),
+                ('test_date', '<', finish),
+                ('result', '=', 'reject'),
+            ])
+            rate = round((rejected / total) * 100, 2) if total else 0.0
+            labels.append(label)
+            values.append(rate)
+
+        return {'labels': labels, 'values': values}
+
+    def _get_measurement_average(self, machine, start_dt, end_dt):
+        model = self._get_model_for_machine(machine)
+        if not model:
+            return {'labels': [], 'values': []}
+
+        domain = [
+            ('machine_id', '=', machine.id),
+            ('test_date', '>=', start_dt),
+            ('test_date', '<', end_dt),
+        ]
+        records = model.search(domain, limit=500)  # reasonable cap
+
+        labels, values = [], []
+        if machine.machine_type == 'vici_vision':
+            fields_list = ['l_64_8', 'l_35_4', 'l_46_6', 'l_82', 'l_128_6', 'l_164']
+            labels = ['L 64.8', 'L 35.4', 'L 46.6', 'L 82', 'L 128.6', 'L 164']
+        elif machine.machine_type == 'aumann':
+            fields_list = ['diameter_journal_a1', 'diameter_journal_a2', 'diameter_journal_b1', 'diameter_journal_b2']
+            labels = ['Diameter A1', 'Diameter A2', 'Diameter B1', 'Diameter B2']
+        elif machine.machine_type == 'gauging':
+            fields_list = ['angle_degrees', 'measurement_value']
+            labels = ['Angle (Degrees)', 'Measurement Value']
+        else:
+            fields_list = []
+
+        for idx, f in enumerate(fields_list):
+            vals = []
+            for r in records:
+                v = getattr(r, f, 0) or 0
+                try:
+                    vals.append(float(v))
+                except Exception:
+                    continue
+            avg = round(sum(vals) / len(vals), 3) if vals else 0.0
+            values.append(avg)
+
+        return {'labels': labels, 'values': values}
 
     def _get_measurement_trends(self, machine_id, date):
         """Get measurement trends for radar charts"""

@@ -74,6 +74,13 @@ class RuhlamatPress(models.Model):
         ondelete='set null'
     )
 
+    test_date = fields.Datetime(
+        string='Test Date',
+        related='cycle_date',
+        store=True,
+        readonly=False,  # If you want to allow editing it manually
+    )
+
     @api.depends('gauging_ids', 'ok_status', 'cycle_status')
     def _compute_result(self):
         for record in self:

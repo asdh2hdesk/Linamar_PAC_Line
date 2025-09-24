@@ -28,7 +28,16 @@
             <field name="machine_type">ruhlamat</field>
             <field name="csv_file_path">D:\Projects_18\my_addons_18\Linamar_PAC_Line\manufacturing_dashboard\data\csv_data\ufm_8959787117.mdb</field>
             <field name="sync_interval">30</field>
-            <field name="is_active">False</field>
+            <field name="is_active">True</field>
+            <field name="status">stopped</field>
+        </record>
+
+        <record id="machine_gauging_01" model="manufacturing.machine.config">
+            <field name="machine_name">Gauging Measurement Station 01</field>
+            <field name="machine_type">gauging</field>
+            <field name="csv_file_path">D:\Projects_18\my_addons_18\Linamar_PAC_Line\manufacturing_dashboard\data\csv_data\gauging.xlsx</field>
+            <field name="sync_interval">30</field>
+            <field name="is_active">True</field>
             <field name="status">stopped</field>
         </record>
 
@@ -37,7 +46,7 @@
             <field name="machine_type">aumann</field>
             <field name="csv_file_path">/opt/odoo/csv_data/aumann_data.csv</field>
             <field name="sync_interval">30</field>
-            <field name="is_active">False</field>
+            <field name="is_active">True</field>
             <field name="status">stopped</field>
         </record>
     </data>
