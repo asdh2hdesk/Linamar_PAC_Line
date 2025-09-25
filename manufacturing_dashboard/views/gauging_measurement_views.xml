@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_gauging_measurement_tree" model="ir.ui.view">
+        <field name="name">gauging.measurement.list</field>
+        <field name="model">manufacturing.gauging.measurement</field>
+        <field name="arch" type="xml">
+            <list decoration-success="result=='pass'" decoration-danger="result=='reject'">
+                <field name="serial_number"/>
+                <field name="machine_id"/>
+                <field name="test_date"/>
+                <field name="job_number"/>
+                <field name="machine_code"/>
+                <field name="angle_measurement"/>
+                <field name="angle_degrees"/>
+                <field name="status" widget="badge"/>
+                <field name="result" widget="badge"/>
+                <field name="within_tolerance" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_gauging_measurement_form" model="ir.ui.view">
+        <field name="name">gauging.measurement.form</field>
+        <field name="model">manufacturing.gauging.measurement</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="result" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="serial_number"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="machine_id"/>
+                            <field name="test_date"/>
+                            <field name="job_number"/>
+                            <field name="machine_code"/>
+                            <field name="status"/>
+                        </group>
+                        <group>
+                            <field name="within_tolerance"/>
+                            <field name="deviation"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Angle Measurements">
+                            <group>
+                                <group string="Angle Data">
+                                    <field name="angle_measurement"/>
+                                    <field name="angle_degrees"/>
+                                    <field name="angle_minutes"/>
+                                    <field name="angle_seconds"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Additional Measurements">
+                            <group>
+                                <group string="Measurement Values">
+                                    <field name="measurement_value"/>
+                                    <field name="nominal_value"/>
+                                    <field name="upper_tolerance"/>
+                                    <field name="lower_tolerance"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Raw Data">
+                            <group>
+                                <field name="rejection_reason" nolabel="1"/>
+                                <field name="raw_data" widget="text" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_gauging_measurement_search" model="ir.ui.view">
+        <field name="name">gauging.measurement.search</field>
+        <field name="model">manufacturing.gauging.measurement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="serial_number"/>
+                <field name="job_number"/>
+                <field name="machine_id"/>
+                <field name="machine_code"/>
+                <separator/>
+                <filter name="today" string="Today" 
+                        domain="[('test_date','&gt;=',datetime.datetime.combine(context_today(),datetime.time(0,0,0))),
+                                 ('test_date','&lt;=',datetime.datetime.combine(context_today(),datetime.time(23,59,59)))]"/>
+                <filter name="this_week" string="This Week"
+                        domain="[('test_date','&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                                 ('test_date','&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="passed" string="Passed" domain="[('result','=','pass')]"/>
+                <filter name="rejected" string="Rejected" domain="[('result','=','reject')]"/>
+                <filter name="accepted" string="Accepted" domain="[('status','=','accept')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_machine" string="Machine" context="{'group_by':'machine_id'}"/>
+                    <filter name="group_by_status" string="Status" context="{'group_by':'status'}"/>
+                    <filter name="group_by_result" string="Result" context="{'group_by':'result'}"/>
+                    <filter name="group_by_date" string="Test Date" context="{'group_by':'test_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_gauging_measurement" model="ir.actions.act_window">
+        <field name="name">Gauging Measurements</field>
+        <field name="res_model">manufacturing.gauging.measurement</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_today': 1}</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_gauging_measurement" 
+              name="Gauging Measurements"
+              parent="menu_stations"
+              action="action_gauging_measurement"
+              sequence="40"/>
+</odoo>
