@@ -613,221 +613,295 @@ class MachineConfig(models.Model):
             raise
 
     def _sync_aumann_data(self):
-        """Sync Aumann Measurement system data"""
-        _logger.info(f"Starting Aumann data sync for machine: {self.machine_name} from {self.csv_file_path}")
+        """Sync Aumann Measurement system data from folder of CSV files (one per serial number)"""
+        _logger.info(f"Starting Aumann data sync for machine: {self.machine_name} from folder: {self.csv_file_path}")
         try:
-            # Check file existence and readability
+            # Check if the path is a directory (folder-based approach)
             if not os.path.exists(self.csv_file_path):
-                _logger.error(f"Aumann CSV file not found: {self.csv_file_path}")
+                _logger.error(f"Aumann CSV folder not found: {self.csv_file_path}")
                 self.status = 'error'
                 return
-            if not os.access(self.csv_file_path, os.R_OK):
-                _logger.error(f"Aumann CSV file not readable: {self.csv_file_path}. Check permissions.")
+            
+            if not os.path.isdir(self.csv_file_path):
+                _logger.error(f"Aumann path is not a directory: {self.csv_file_path}")
                 self.status = 'error'
                 return
 
-            with open(self.csv_file_path, 'r', encoding='utf-8-sig') as file:
-                # Skip the first 6 header rows
-                for i in range(6):
-                    try:
-                        next(file)
-                    except StopIteration:
-                        _logger.warning(f"CSV file has fewer than 6 header rows. Stopped at row {i+1}.")
-                        return # Exit if file is too short
-
-                # Read the actual header row after skipping
-                header_line = next(file)
-                # Determine delimiter by checking if comma or semicolon is present
-                delimiter = ',' if ',' in header_line else ';'
-                _logger.info(f"Detected delimiter: '{delimiter}' for Aumann CSV.")
-
-                # Rewind file to the beginning of the header line
-                file.seek(0)
-                for _ in range(6): # Skip again to get to the correct starting point for DictReader
-                    next(file)
-
-                reader = csv.DictReader(file, delimiter=delimiter)
-
-                # Log the fieldnames to verify correct header parsing
-                _logger.info(f"Aumann CSV Fieldnames: {reader.fieldnames}")
-
-                # Define nominal values and tolerances (hardcoded for now, as they are static in the provided header)
-                nominal_values = {
-                    'L 64.8': 64.8000, 'L 35.4': 35.4000, 'L 46.6': 46.6000, 'L 82': 82.0000,
-                    'L 128.6': 128.6000, 'L 164': 164.0000, 'Runout E31-E22': 0.0000,
-                    'Runout E21-E12': 0.0000, 'Runout E11 tube end': 0.0000,
-                    'Angular difference E32-E12 pos tool': 240.0000,
-                    'Angular difference E31-E12 pos tool': 240.0000,
-                    'Angular difference E22-E12 pos tool': 120.0000,
-                    'Angular difference E21-E12 pos tool': 120.0000,
-                    'Angular difference E11-E12 pos tool': 0.0000
-                }
-                lower_tolerances = {
-                    'L 64.8': -0.5000, 'L 35.4': -0.2500, 'L 46.6': -0.2500, 'L 82': -0.2500,
-                    'L 128.6': -0.2500, 'L 164': -0.2500, 'Runout E31-E22': -0.0000,
-                    'Runout E21-E12': -0.0000, 'Runout E11 tube end': -0.0000,
-                    'Angular difference E32-E12 pos tool': -2.0000,
-                    'Angular difference E31-E12 pos tool': -2.0000,
-                    'Angular difference E22-E12 pos tool': -2.0000,
-                    'Angular difference E21-E12 pos tool': -2.0000,
-                    'Angular difference E11-E12 pos tool': -2.0000
-                }
-                upper_tolerances = {
-                    'L 64.8': 0.5000, 'L 35.4': 0.2500, 'L 46.6': 0.2500, 'L 82': 0.2500,
-                    'L 128.6': 0.2500, 'L 164': 0.2500, 'Runout E31-E22': 0.1500,
-                    'Runout E21-E12': 0.1500, 'Runout E11 tube end': 0.1500,
-                    'Angular difference E32-E12 pos tool': 2.0000,
-                    'Angular difference E31-E12 pos tool': 2.0000,
-                    'Angular difference E22-E12 pos tool': 2.0000,
-                    'Angular difference E21-E12 pos tool': 2.0000,
-                    'Angular difference E11-E12 pos tool': 2.0000
-                }
-                measurement_keys = list(nominal_values.keys()) # Use keys from nominal_values for consistency
-
-                records_created = 0
-                for row_idx, row in enumerate(reader):
-                    _logger.debug(f"Processing Aumann row {row_idx + 1}: {row}")
-
-                    serial_number = row.get('Serial Number', '').strip()
-                    if not serial_number:
-                        _logger.warning(f"Skipping Aumann row {row_idx + 1} due to missing 'Serial Number'. Row data: {row}")
-                        continue
-
-                    # Check if record already exists to prevent duplicates
-                    existing = self.env['manufacturing.aumann.measurement'].search([
-                        ('serial_number', '=', serial_number),
-                        ('machine_id', '=', self.id)
-                    ], limit=1)
-
-                    if existing:
-                        _logger.info(f"Aumann record for Serial Number {serial_number} already exists. Skipping creation.")
-                        continue
-
-                    measurements = {}
-                    measurements_passed = 0
-                    total_measurements = 0
-                    all_measurements_valid = True
-
-                    for key in measurement_keys:
-                        value = row.get(key)
-                        if value is not None and str(value).strip():
-                            try:
-                                # Replace comma with dot for float conversion
-                                float_value = float(str(value).replace(',', '.'))
-                                measurements[key] = float_value
-                                total_measurements += 1
-
-                                # Perform tolerance check
-                                nominal = nominal_values.get(key)
-                                lower_tol = lower_tolerances.get(key)
-                                upper_tol = upper_tolerances.get(key)
-
-                                if nominal is None or lower_tol is None or upper_tol is None:
-                                    _logger.warning(f"Missing nominal/tolerance for key '{key}'. Skipping tolerance check for this measurement.")
-                                    # If nominal/tolerance is missing, we can't check, so assume it passes for this specific measurement
-                                    measurements_passed += 1
-                                    continue
-
-                                # For 'L' dimensions, check if value is within nominal +/- tolerance
-                                if 'L ' in key: # Check for 'L ' to distinguish from 'Angular difference E11-E12 pos tool'
-                                    if (nominal + lower_tol) <= float_value <= (nominal + upper_tol):
-                                        measurements_passed += 1
-                                    else:
-                                        all_measurements_valid = False
-                                        _logger.debug(f"Measurement {key} ({float_value}) failed tolerance. Nominal: {nominal}, Lower: {nominal + lower_tol}, Upper: {nominal + upper_tol}")
-                                # For Runout and Angular differences, nominal is 0, and tolerance defines the acceptable range from 0.
-                                # The lower_tolerance for these is typically 0 or negative, and upper_tolerance is positive.
-                                elif 'Runout' in key or 'Angular difference' in key:
-                                    if lower_tol <= float_value <= upper_tol:
-                                        measurements_passed += 1
-                                    else:
-                                        all_measurements_valid = False
-                                        _logger.debug(f"Measurement {key} ({float_value}) failed tolerance. Lower: {lower_tol}, Upper: {upper_tol}")
-                                else:
-                                    _logger.warning(f"Unknown measurement key type: {key}. Skipping tolerance check.")
-                                    measurements_passed += 1 # Assume pass if type is unknown
-
-                            except (ValueError, TypeError) as e:
-                                _logger.warning(f"Could not convert value '{value}' for key '{key}' to float for serial number {serial_number}: {e}. This measurement will not be counted as passed.")
-                                all_measurements_valid = False # Mark as invalid if conversion fails
-                                pass
-                        else:
-                            _logger.debug(f"Measurement key '{key}' has no value or is empty for serial number {serial_number}.")
-
-
-                    # Determine overall result
-                    result = 'pass' if all_measurements_valid and total_measurements > 0 else 'reject'
-                    if total_measurements == 0:
-                        result = 'reject' # If no valid measurements, it's a reject
-
-                    # Extract test_date from 'Date' and 'Hour' columns
-                    date_str = row.get('Date')
-                    time_str = row.get('Hour')
-                    test_datetime = fields.Datetime.now() # Default to now if parsing fails
-                    if date_str and time_str:
-                        try:
-                            # Assuming date format is DD-MM-YYYY and time is HH:MM:SS
-                            test_datetime = datetime.strptime(f"{date_str} {time_str}", "%d-%m-%Y %H:%M:%S")
-                        except ValueError:
-                            _logger.warning(f"Could not parse date/time '{date_str} {time_str}' for serial number {serial_number}. Using current time.")
-
-                    # Prepare data for creation
-                    create_vals = {
-                        'serial_number': serial_number,
-                        'machine_id': self.id,
-                        'test_date': test_datetime,
-                        'part_form': 'Exhaust CAMSHAFT', # Placeholder, adjust as needed
-                        'product_id': 'Q50-11502-0056810', # Placeholder, adjust as needed
-                        'assembly': 'MSA', # Placeholder, adjust as needed
-                        'total_measurements': total_measurements,
-                        'measurements_passed': measurements_passed,
-                        'result': result,
-                        'raw_data': str(row)[:2000]  # Limit raw data size
-                    }
-
-                    # Dynamically add measurement values to create_vals
-                    # Ensure your Odoo model 'manufacturing.aumann.measurement' has these fields
-                    # e.g., diameter_journal_a1 = fields.Float('Diameter Journal A1')
-                    field_mapping = {
-                        'L 64.8': 'diameter_journal_a1',
-                        'L 35.4': 'diameter_journal_a2',
-                        'L 46.6': 'diameter_journal_a3',
-                        'L 82': 'diameter_journal_b1',
-                        'L 128.6': 'diameter_journal_b2',
-                        'L 164': 'diameter_journal_b3', # Assuming this maps to b3
-                        'Runout E31-E22': 'runout_e31_e22',
-                        'Runout E21-E12': 'runout_e21_e12',
-                        'Runout E11 tube end': 'runout_e11_tube_end',
-                        'Angular difference E32-E12 pos tool': 'angular_diff_e32_e12',
-                        'Angular difference E31-E12 pos tool': 'angular_diff_e31_e12',
-                        'Angular difference E22-E12 pos tool': 'angular_diff_e22_e12',
-                        'Angular difference E21-E12 pos tool': 'angular_diff_e21_e12',
-                        'Angular difference E11-E12 pos tool': 'angular_diff_e11_e12',
-                    }
-
-                    for csv_key, odoo_field in field_mapping.items():
-                        if csv_key in measurements:
-                            create_vals[odoo_field] = measurements[csv_key]
-                        else:
-                            # Set to 0.0 or None if measurement not found in CSV row
-                            create_vals[odoo_field] = 0.0 # Or None, depending on field definition
-
-                    try:
-                        self.env['manufacturing.aumann.measurement'].create(create_vals)
-                        records_created += 1
-                        _logger.info(f"Successfully created Aumann record for Serial Number: {serial_number} with result: {result}")
-                    except Exception as e:
-                        _logger.error(f"Failed to create Aumann record for Serial Number {serial_number}: {e}. Data: {create_vals}")
-                        # Continue to next record even if one fails
-
+            # Get all CSV files in the directory
+            csv_files = [f for f in os.listdir(self.csv_file_path) if f.lower().endswith('.csv')]
+            _logger.info(f"Found {len(csv_files)} CSV files in Aumann folder")
+            
+            records_created = 0
+            
+            for csv_file in csv_files:
+                csv_path = os.path.join(self.csv_file_path, csv_file)
+                try:
+                    records_created += self._process_aumann_csv_file(csv_path)
+                except Exception as e:
+                    _logger.error(f"Error processing Aumann CSV file {csv_file}: {e}")
+                    continue
+            
             _logger.info(f"Aumann data sync completed. Total records created: {records_created}")
-
-        except FileNotFoundError:
-            _logger.error(f"Aumann CSV file not found at {self.csv_file_path}. Please check the path.")
-            self.status = 'error'
+            self.status = 'running'
+            self.last_sync = fields.Datetime.now()
+            
         except Exception as e:
-            _logger.error(f"An unexpected error occurred during Aumann data sync: {e}", exc_info=True)
+            _logger.error(f"Error in Aumann data sync: {e}")
             self.status = 'error'
+            raise
+
+    def _process_aumann_csv_file(self, csv_path):
+        """Process a single Aumann CSV file for one serial number"""
+        records_created = 0
+        
+        try:
+            with open(csv_path, 'r', encoding='utf-8-sig') as file:
+                # Read the header row
+                header_line = file.readline().strip()
+                delimiter = ';' if ';' in header_line else ','
+                
+                # Reset file pointer and read with DictReader
+                file.seek(0)
+                reader = csv.DictReader(file, delimiter=delimiter)
+                
+                # Process each row (should be only one row per file for Aumann)
+                for row in reader:
+                    try:
+                        # Extract serial number from filename or row data
+                        serial_number = self._extract_serial_number_from_filename(csv_path, row)
+                        if not serial_number:
+                            _logger.warning(f"Could not extract serial number from file: {csv_path}")
+                            continue
+                        
+                        # Check if record already exists
+                        existing = self.env['manufacturing.aumann.measurement'].search([
+                            ('serial_number', '=', serial_number),
+                            ('machine_id', '=', self.id)
+                        ], limit=1)
+                        
+                        if existing:
+                            _logger.debug(f"Aumann record for Serial Number {serial_number} already exists. Skipping.")
+                            continue
+                        
+                        # Parse timestamp
+                        test_date = self._parse_aumann_timestamp(row.get('Timestamp', ''))
+                        
+                        # Create measurement record with all fields
+                        create_vals = {
+                            'serial_number': serial_number,
+                            'machine_id': self.id,
+                            'test_date': test_date,
+                            'part_type': row.get('Type', ''),
+                            'raw_data': str(row)[:2000],  # Limit raw data size
+                        }
+                        
+                        # Map all measurement fields from CSV to model fields
+                        field_mapping = self._get_aumann_field_mapping()
+                        for csv_field, model_field in field_mapping.items():
+                            if csv_field in row and row[csv_field]:
+                                try:
+                                    create_vals[model_field] = float(row[csv_field])
+                                except (ValueError, TypeError):
+                                    _logger.warning(f"Could not parse {csv_field} value: {row[csv_field]}")
+                        
+                        # Determine result based on measurements
+                        create_vals['result'] = self._determine_aumann_result(create_vals)
+                        
+                        # Create the record
+                        new_record = self.env['manufacturing.aumann.measurement'].create(create_vals)
+                        records_created += 1
+                        _logger.debug(f"Successfully created Aumann record for Serial Number: {serial_number}")
+                        
+                    except Exception as e:
+                        _logger.error(f"Failed to process Aumann row in {csv_path}: {e}")
+                        continue
+                        
+        except Exception as e:
+            _logger.error(f"Error processing Aumann CSV file {csv_path}: {e}")
+            
+        return records_created
+
+    def _extract_serial_number_from_filename(self, csv_path, row):
+        """Extract serial number from filename or row data"""
+        # Try to get from Seriennummer field first
+        if 'Seriennummer' in row and row['Seriennummer']:
+            return str(row['Seriennummer']).strip()
+        
+        # Try to extract from filename
+        filename = os.path.basename(csv_path)
+        # Remove .csv extension
+        name_without_ext = os.path.splitext(filename)[0]
+        
+        # If filename looks like a serial number, use it
+        if len(name_without_ext) > 5:  # Assume serial numbers are longer than 5 characters
+            return name_without_ext
+        
+        return None
+
+    def _parse_aumann_timestamp(self, timestamp_str):
+        """Parse Aumann timestamp string"""
+        if not timestamp_str:
+            return fields.Datetime.now()
+        
+        try:
+            # Try different timestamp formats
+            timestamp_formats = [
+                '%Y-%m-%d %H:%M:%S',
+                '%Y-%m-%d %H:%M:%S.%f',
+                '%d/%m/%Y %H:%M:%S',
+                '%m/%d/%Y %H:%M:%S',
+            ]
+            
+            for fmt in timestamp_formats:
+                try:
+                    return datetime.strptime(timestamp_str.strip(), fmt)
+                except ValueError:
+                    continue
+            
+            # If all formats failed, use current time
+            _logger.warning(f"Could not parse timestamp '{timestamp_str}', using current time")
+            return fields.Datetime.now()
+            
+        except Exception as e:
+            _logger.warning(f"Error parsing timestamp '{timestamp_str}': {e}")
+            return fields.Datetime.now()
+
+    def _get_aumann_field_mapping(self):
+        """Get mapping from CSV field names to model field names"""
+        return {
+            # Wheel Angle Measurements
+            'Wheel Angle Left 120 - CTF 41.3': 'wheel_angle_left_120',
+            'Wheel Angle Left 150 - CTF 41.2': 'wheel_angle_left_150',
+            'Wheel Angle Left 180 - CTF 41.1': 'wheel_angle_left_180',
+            'Wheel Angle Right 120 - CTF 41.5': 'wheel_angle_right_120',
+            'Wheel Angle Right 150 - CTF 41.4': 'wheel_angle_right_150',
+            'Wheel Angle to Reference - CTF 42': 'wheel_angle_to_reference',
+            
+            # Angle Lobe Measurements
+            'Angle Lobe E11 to Ref. - CTF 29': 'angle_lobe_e11_to_ref',
+            'Angle Lobe E12 to Ref. - CTF 29': 'angle_lobe_e12_to_ref',
+            'Angle Lobe E21 to Ref. - CTF 29': 'angle_lobe_e21_to_ref',
+            'Angle Lobe E22 to Ref. - CTF 29': 'angle_lobe_e22_to_ref',
+            'Angle Lobe E31 to Ref. - CTF 29': 'angle_lobe_e31_to_ref',
+            'Angle Lobe E32 to Ref. - CTF 29': 'angle_lobe_e32_to_ref',
+            
+            # Base Circle Radius Measurements
+            'Base Circle Radius Lobe E11 - CTF 54': 'base_circle_radius_lobe_e11',
+            'Base Circle Radius Lobe E12 - CTF 54': 'base_circle_radius_lobe_e12',
+            'Base Circle Radius Lobe E21 - CTF 54': 'base_circle_radius_lobe_e21',
+            'Base Circle Radius Lobe E22 - CTF 54': 'base_circle_radius_lobe_e22',
+            'Base Circle Radius Lobe E31 - CTF 54': 'base_circle_radius_lobe_e31',
+            'Base Circle Radius Lobe E32 - CTF 54': 'base_circle_radius_lobe_e32',
+            
+            # Base Circle Runout Measurements
+            'Base Circle Runout Lobe E11 adj. - CTF 15': 'base_circle_runout_lobe_e11_adj',
+            'Base Circle Runout Lobe E12 adj. - CTF 15': 'base_circle_runout_lobe_e12_adj',
+            'Base Circle Runout Lobe E21 adj. - CTF 15': 'base_circle_runout_lobe_e21_adj',
+            'Base Circle Runout Lobe E22 adj. - CTF 15': 'base_circle_runout_lobe_e22_adj',
+            'Base Circle Runout Lobe E31 adj. - CTF 15': 'base_circle_runout_lobe_e31_adj',
+            'Base Circle Runout Lobe E32 adj. - CTF 15': 'base_circle_runout_lobe_e32_adj',
+            
+            # Bearing and Width Measurements
+            'Bearing Width - CTF 55': 'bearing_width',
+            'Cam Angle12': 'cam_angle12',
+            'Cam Angle34': 'cam_angle34',
+            'Cam Angle56 ': 'cam_angle56',
+            
+            # Concentricity Measurements
+            'Concentricity Front Bearing H - CTF 63': 'concentricity_front_bearing_h',
+            'Concentricity IO -M- Front End Dia 39 - CTF 59': 'concentricity_io_front_end_dia_39',
+            'Concentricity IO -M- Front end major Dia 40 - CTF 61': 'concentricity_io_front_end_major_dia_40',
+            'Concentricity IO -M- Step Diameter 32.5 - CTF 25': 'concentricity_io_step_diameter_32_5',
+            
+            # Concentricity Results
+            'Concentricity result Front End Dia 39 - CTF 59': 'concentricity_result_front_end_dia_39',
+            'Concentricity result Front end major Dia 40 - CTF 61': 'concentricity_result_front_end_major_dia_40',
+            'Concentricity result Step Diameter 32.5 - CTF 25': 'concentricity_result_step_diameter_32_5',
+            
+            # Diameter Measurements
+            'Diameter Front Bearing H - CTF 62': 'diameter_front_bearing_h',
+            'Diameter Front End - CTF 58': 'diameter_front_end',
+            'Diameter Front end major - CTF 60': 'diameter_front_end_major',
+            'Diameter Journal A1 - CTF 1': 'diameter_journal_a1',
+            'Diameter Journal A2 - CTF 1': 'diameter_journal_a2',
+            'Diameter Journal A3 - CTF 1': 'diameter_journal_a3',
+            'Diameter Journal B1 - CTF 7': 'diameter_journal_b1',
+            'Diameter Journal B2 - CTF 7': 'diameter_journal_b2',
+            'Diameter Step Diameter tpc - CTF 24': 'diameter_step_diameter_tpc',
+            
+            # Distance Measurements
+            'Distance Lobe E11 - CTF 52.1': 'distance_lobe_e11',
+            'Distance Lobe E12 - CTF 52.2': 'distance_lobe_e12',
+            'Distance Lobe E21 - CTF 52.3': 'distance_lobe_e21',
+            'Distance Lobe E22 - CTF 52.4': 'distance_lobe_e22',
+            'Distance Lobe E31 - CTF 52.5': 'distance_lobe_e31',
+            'Distance Lobe E32 - CTF 52.6': 'distance_lobe_e32',
+            'Distance Rear End - CTF 214': 'distance_rear_end',
+            'Distance Step length front face - CTF 66': 'distance_step_length_front_face',
+            'Distance Trigger Length - CTF 213': 'distance_trigger_length',
+            'Distance from front end face - CTF 65': 'distance_from_front_end_face',
+            
+            # Face Measurements
+            'Face total runout of bearing face - 0 - CTF 56': 'face_total_runout_bearing_face_0',
+            'Face total runout of bearing face - 25 - CTF 56': 'face_total_runout_bearing_face_25',
+            'Front face flatness Concav - CTF 68': 'front_face_flatness_concav',
+            'Front face flatness Convex - CTF 68': 'front_face_flatness_convex',
+            'Front face runout - CTF 67': 'front_face_runout',
+            
+            # Profile Measurements
+            'Max. Profile 30 for trigger wheel diameter - CTF 39': 'max_profile_30_trigger_wheel_diameter',
+            'Max. Profile 42 for trigger wheel diameter - CTF 39': 'max_profile_42_trigger_wheel_diameter',
+            'Min. Profile 30 for trigger wheel diameter - CTF 39': 'min_profile_30_trigger_wheel_diameter',
+            'Min. Profile 42 for trigger wheel diameter - CTF 39': 'min_profile_42_trigger_wheel_diameter',
+            
+            # Temperature Measurements
+            'Temperature Machine': 'temperature_machine',
+            'Temperature Sensor': 'temperature_sensor',
+            
+            # Trigger Wheel Measurements
+            'Trigger wheel diameter - CTF 248': 'trigger_wheel_diameter',
+            'Trigger wheel width - CTF 218': 'trigger_wheel_width',
+            
+            # Two Flat Measurements
+            'Two Flat Size - CTF 20': 'two_flat_size',
+            'Two Flat Symmetry - CTF 21': 'two_flat_symmetry',
+            
+            # Rear End Length
+            'Rear end length- CTF 211': 'rear_end_length',
+            
+            # Roundness Measurements
+            'Roundness Journal A1 - CTF 2': 'roundness_journal_a1',
+            'Roundness Journal A2 - CTF 2': 'roundness_journal_a2',
+            'Roundness Journal A3 - CTF 2': 'roundness_journal_a3',
+            'Roundness Journal B1 - CTF 8': 'roundness_journal_b1',
+            'Roundness Journal B2 - CTF 8': 'roundness_journal_b2',
+            
+            # Runout Measurements
+            'Runout Journal A1 A1-B1 - CTF 4': 'runout_journal_a1_a1_b1',
+            'Runout Journal A2 A1-B1 - CTF 4': 'runout_journal_a2_a1_b1',
+            'Runout Journal A3 A1-B1 - CTF 4': 'runout_journal_a3_a1_b1',
+            'Runout Journal B1 A1-A3 - CTF 10': 'runout_journal_b1_a1_a3',
+            'Runout Journal B2 A1-A3 - CTF 10': 'runout_journal_b2_a1_a3',
+        }
+
+    def _determine_aumann_result(self, create_vals):
+        """Determine pass/reject result based on Aumann measurements"""
+        # Define critical measurement tolerances
+        critical_tolerances = {
+            'diameter_journal_a1': (23.959, 23.980),
+            'diameter_journal_a2': (23.959, 23.980),
+            'diameter_journal_a3': (23.959, 23.980),
+            'diameter_journal_b1': (28.959, 28.980),
+            'diameter_journal_b2': (28.959, 28.980),
+        }
+        
+        # Check critical measurements
+        for field, (min_val, max_val) in critical_tolerances.items():
+            if field in create_vals and create_vals[field] is not None:
+                if not (min_val <= create_vals[field] <= max_val):
+                    return 'reject'
+        
+        return 'pass'
 
     def _sync_gauging_data(self):
         """Sync Gauging system data from Excel file"""

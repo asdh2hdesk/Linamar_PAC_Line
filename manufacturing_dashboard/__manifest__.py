@@ -40,8 +40,8 @@ Features:
     ],
     'assets': {
         'web.assets_backend': [
-            # Chart.js library
-            'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js',
+            # Chart.js library - using unpkg CDN
+            'https://unpkg.com/chart.js@4.4.0/dist/chart.min.js',
             # Dashboard assets
             'manufacturing_dashboard/static/src/css/dashboard.css',
             'manufacturing_dashboard/static/src/js/dashboard.js',
@@ -51,5 +51,5 @@ Features:
     'installable': True,
     'application': True,
     'auto_install': False,
-    'license': 'LGPL-3',
+    'license': 'LGPL-3', 
 }

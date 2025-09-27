@@ -76,21 +76,21 @@
                         <page string="Cam Measurements">
                             <group>
                                 <group string="Base Circle Radius">
-                                    <field name="base_circle_radius_e11"/>
-                                    <field name="base_circle_radius_e12"/>
-                                    <field name="base_circle_radius_e21"/>
+                                    <field name="base_circle_radius_lobe_e11"/>
+                                    <field name="base_circle_radius_lobe_e12"/>
+                                    <field name="base_circle_radius_lobe_e21"/>
                                 </group>
                                 <group string="Lobe Width">
-                                    <field name="lobe_width_e11"/>
-                                    <field name="lobe_width_e12"/>
-                                    <field name="lobe_width_e21"/>
+                                    <field name="width_lobe_e11"/>
+                                    <field name="width_lobe_e12"/>
+                                    <field name="width_lobe_e21"/>
                                 </group>
                             </group>
                             <group>
                                 <group string="Angles">
-                                    <field name="angle_lobe_e11"/>
-                                    <field name="angle_lobe_e12"/>
-                                    <field name="angle_lobe_e21"/>
+                                    <field name="angle_lobe_e11_to_ref"/>
+                                    <field name="angle_lobe_e12_to_ref"/>
+                                    <field name="angle_lobe_e21_to_ref"/>
                                 </group>
                             </group>
                         </page>
