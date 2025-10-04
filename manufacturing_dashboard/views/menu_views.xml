@@ -74,6 +74,12 @@
               parent="menu_stations"
               action="action_ruhlamat_press"
               sequence="20"/>
+     <!-- Menu Item -->
+    <menuitem id="menu_gauging_measurement"
+              name="Gauging Measurements"
+              parent="menu_stations"
+              action="action_gauging_measurement"
+              sequence="40"/>
 
     <menuitem id="menu_aumann"
               name="Aumann Measurement"

@@ -122,10 +122,5 @@
         <field name="context">{'search_default_today': 1}</field>
     </record>
 
-    <!-- Menu Item -->
-    <menuitem id="menu_gauging_measurement" 
-              name="Gauging Measurements"
-              parent="menu_stations"
-              action="action_gauging_measurement"
-              sequence="40"/>
+
 </odoo>

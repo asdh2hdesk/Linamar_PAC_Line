@@ -37,6 +37,14 @@ class MachineConfig(models.Model):
         ('maintenance', 'Maintenance')
     ], default='stopped')
 
+    # Progress tracking fields
+    sync_progress = fields.Float('Sync Progress %', default=0.0, help='Current sync progress percentage')
+    sync_stage = fields.Char('Current Sync Stage', help='Current stage of sync process')
+    sync_total_records = fields.Integer('Total Records to Process', default=0)
+    sync_processed_records = fields.Integer('Processed Records', default=0)
+    sync_start_time = fields.Datetime('Sync Start Time')
+    sync_estimated_completion = fields.Datetime('Estimated Completion Time')
+
     parts_processed_today = fields.Integer('Parts Processed Today', compute='_compute_daily_stats')
     rejection_rate = fields.Float('Rejection Rate %', compute='_compute_daily_stats')
 
@@ -303,6 +311,14 @@ class MachineConfig(models.Model):
     def _sync_ruhlamat_data(self):
         """Sync Ruhlamat Press system data from MDB file"""
         _logger.info(f"Starting Ruhlamat MDB sync for machine: {self.machine_name}")
+        
+        # Initialize progress tracking
+        self.sync_start_time = fields.Datetime.now()
+        self.sync_progress = 0.0
+        self.sync_stage = "Initializing sync process"
+        self.sync_processed_records = 0
+        self.sync_total_records = 0
+        self.env.cr.commit()
 
         try:
             # Check if file exists
@@ -310,6 +326,7 @@ class MachineConfig(models.Model):
                     self.csv_file_path):  # Note: You should rename this field to 'file_path' since it's not CSV anymore
                 _logger.error(f"MDB file not found: {self.csv_file_path}")
                 self.status = 'error'
+                self.sync_stage = "Error: File not found"
                 return
 
             # Connect to MDB file using ODBC
@@ -329,8 +346,20 @@ class MachineConfig(models.Model):
             # )
 
             try:
+                # Update progress: Connecting to database
+                self.sync_stage = "Connecting to MDB database"
+                self.sync_progress = 5.0
+                self.env.cr.commit()
+                _logger.info(f"Connecting to MDB database: {self.csv_file_path}")
+                
                 conn = pyodbc.connect(conn_str)
                 cursor = conn.cursor()
+
+                # Update progress: Querying cycles
+                self.sync_stage = "Querying cycles from database"
+                self.sync_progress = 10.0
+                self.env.cr.commit()
+                _logger.info("Querying cycles from MDB database...")
 
                 # First, fetch all cycles
                 cycles_query = """
@@ -347,11 +376,30 @@ class MachineConfig(models.Model):
 
                 cursor.execute(cycles_query)
                 cycles = cursor.fetchall()
+                
+                # Update progress: Got cycles count
+                total_cycles = len(cycles)
+                self.sync_total_records = total_cycles
+                self.sync_stage = f"Processing {total_cycles} cycles"
+                self.sync_progress = 15.0
+                self.env.cr.commit()
+                _logger.info(f"Found {total_cycles} cycles to process")
 
                 created_cycles = 0
                 created_gaugings = 0
 
-                for cycle_row in cycles:
+                for cycle_index, cycle_row in enumerate(cycles):
+                    # Update progress for cycle processing
+                    cycle_progress = 15.0 + (cycle_index / total_cycles) * 70.0  # 15-85% for cycles
+                    self.sync_progress = cycle_progress
+                    self.sync_processed_records = cycle_index + 1
+                    self.sync_stage = f"Processing cycle {cycle_index + 1} of {total_cycles}"
+                    
+                    # Commit progress every 10 cycles or at the end
+                    if cycle_index % 10 == 0 or cycle_index == total_cycles - 1:
+                        self.env.cr.commit()
+                        _logger.info(f"Progress: {cycle_progress:.1f}% - Processing cycle {cycle_index + 1}/{total_cycles}")
+                    
                     # Parse the cycle data
                     cycle_data = {
                         'cycle_id': cycle_row.CycleId,
@@ -397,6 +445,10 @@ class MachineConfig(models.Model):
                         cycle_record = self.env['manufacturing.ruhlamat.press'].create(cycle_data)
                         created_cycles += 1
 
+                        # Update progress: Fetching gaugings for cycle
+                        self.sync_stage = f"Fetching gaugings for cycle {cycle_index + 1}"
+                        self.env.cr.commit()
+                        
                         # Now fetch related gaugings for this cycle
                         gaugings_query = """
                             SELECT GaugingId, CycleId, ProgramName, CycleDate, GaugingNo,
@@ -414,8 +466,12 @@ class MachineConfig(models.Model):
 
                         cursor.execute(gaugings_query, (cycle_row.CycleId,))
                         gaugings = cursor.fetchall()
+                        
+                        # Log gauging count for this cycle
+                        if gaugings:
+                            _logger.info(f"Found {len(gaugings)} gaugings for cycle {cycle_row.CycleId}")
 
-                        for gauging_row in gaugings:
+                        for gauging_index, gauging_row in enumerate(gaugings):
                             gauging_data = {
                                 'gauging_id': gauging_row.GaugingId,
                                 'cycle_id': gauging_row.CycleId,
@@ -466,8 +522,16 @@ class MachineConfig(models.Model):
                 cursor.close()
                 conn.close()
 
+                # Update progress: Completion
+                self.sync_progress = 100.0
+                self.sync_stage = "Sync completed successfully"
+                self.sync_processed_records = total_cycles
+                self.env.cr.commit()
+
                 _logger.info(
                     f"Ruhlamat MDB sync completed. Created {created_cycles} cycles and {created_gaugings} gaugings.")
+                _logger.info(f"Total processing time: {fields.Datetime.now() - self.sync_start_time}")
+                
                 self.last_sync = fields.Datetime.now()
                 self.status = 'running'
 
@@ -485,6 +549,12 @@ class MachineConfig(models.Model):
     def _sync_ruhlamat_data_alternative(self):
         """Alternative method to sync MDB data using pandas"""
         try:
+            # Update progress: Using alternative method
+            self.sync_stage = "Using alternative sync method (pandas)"
+            self.sync_progress = 5.0
+            self.env.cr.commit()
+            _logger.info("Using alternative sync method with pandas...")
+            
             import pandas as pd
             import pypyodbc  # Alternative pure Python ODBC driver
 
@@ -498,16 +568,39 @@ class MachineConfig(models.Model):
             )
 
             conn = pypyodbc.connect(conn_str)
+            
+            # Update progress: Reading data
+            self.sync_stage = "Reading data from MDB using pandas"
+            self.sync_progress = 15.0
+            self.env.cr.commit()
 
             # Read tables into pandas DataFrames
             cycles_df = pd.read_sql("SELECT * FROM Cycles", conn)
             gaugings_df = pd.read_sql("SELECT * FROM Gaugings", conn)
+            
+            # Update progress: Data loaded
+            total_cycles_alt = len(cycles_df)
+            self.sync_total_records = total_cycles_alt
+            self.sync_stage = f"Processing {total_cycles_alt} cycles (alternative method)"
+            self.sync_progress = 20.0
+            self.env.cr.commit()
+            _logger.info(f"Loaded {total_cycles_alt} cycles and {len(gaugings_df)} gaugings using pandas")
 
             created_cycles = 0
             created_gaugings = 0
 
             # Process cycles
-            for _, cycle_row in cycles_df.iterrows():
+            for cycle_index, (_, cycle_row) in enumerate(cycles_df.iterrows()):
+                # Update progress for alternative method
+                cycle_progress = 20.0 + (cycle_index / total_cycles_alt) * 70.0  # 20-90% for cycles
+                self.sync_progress = cycle_progress
+                self.sync_processed_records = cycle_index + 1
+                self.sync_stage = f"Processing cycle {cycle_index + 1} of {total_cycles_alt} (alternative)"
+                
+                # Commit progress every 10 cycles
+                if cycle_index % 10 == 0 or cycle_index == total_cycles_alt - 1:
+                    self.env.cr.commit()
+                    _logger.info(f"Alternative method progress: {cycle_progress:.1f}% - Processing cycle {cycle_index + 1}/{total_cycles_alt}")
                 cycle_id = cycle_row['CycleId']
 
                 # Check if cycle already exists
@@ -602,8 +695,16 @@ class MachineConfig(models.Model):
 
             conn.close()
 
+            # Update progress: Alternative method completion
+            self.sync_progress = 100.0
+            self.sync_stage = "Alternative sync method completed successfully"
+            self.sync_processed_records = total_cycles_alt
+            self.env.cr.commit()
+
             _logger.info(
                 f"Ruhlamat MDB sync (alternative method) completed. Created {created_cycles} cycles and {created_gaugings} gaugings.")
+            _logger.info(f"Alternative method total processing time: {fields.Datetime.now() - self.sync_start_time}")
+            
             self.last_sync = fields.Datetime.now()
             self.status = 'running'
 
@@ -615,110 +716,201 @@ class MachineConfig(models.Model):
     def _sync_aumann_data(self):
         """Sync Aumann Measurement system data from folder of CSV files (one per serial number)"""
         _logger.info(f"Starting Aumann data sync for machine: {self.machine_name} from folder: {self.csv_file_path}")
+        
+        # Initialize progress tracking
+        self.sync_start_time = fields.Datetime.now()
+        self.sync_progress = 0.0
+        self.sync_stage = "Initializing Aumann sync process"
+        self.sync_processed_records = 0
+        self.sync_total_records = 0
+        self.env.cr.commit()
+        
         try:
             # Check if the path is a directory (folder-based approach)
             if not os.path.exists(self.csv_file_path):
                 _logger.error(f"Aumann CSV folder not found: {self.csv_file_path}")
                 self.status = 'error'
+                self.sync_stage = "Error: Folder not found"
                 return
             
             if not os.path.isdir(self.csv_file_path):
                 _logger.error(f"Aumann path is not a directory: {self.csv_file_path}")
                 self.status = 'error'
+                self.sync_stage = "Error: Path is not a directory"
                 return
+
+            # Update progress: Scanning folder
+            self.sync_stage = "Scanning folder for CSV files"
+            self.sync_progress = 10.0
+            self.env.cr.commit()
+            _logger.info("Scanning folder for CSV files...")
 
             # Get all CSV files in the directory
             csv_files = [f for f in os.listdir(self.csv_file_path) if f.lower().endswith('.csv')]
-            _logger.info(f"Found {len(csv_files)} CSV files in Aumann folder")
+            total_files = len(csv_files)
+            self.sync_total_records = total_files
+            self.sync_stage = f"Found {total_files} CSV files to process"
+            self.sync_progress = 15.0
+            self.env.cr.commit()
+            _logger.info(f"Found {total_files} CSV files in Aumann folder")
             
             records_created = 0
             
-            for csv_file in csv_files:
+            for file_index, csv_file in enumerate(csv_files):
+                # Update progress for file processing
+                file_progress = 15.0 + (file_index / total_files) * 80.0  # 15-95% for files
+                self.sync_progress = file_progress
+                self.sync_processed_records = file_index + 1
+                self.sync_stage = f"Processing file {file_index + 1} of {total_files}: {csv_file}"
+                
+                # Commit progress every 10 files or at the end
+                if file_index % 10 == 0 or file_index == total_files - 1:
+                    self.env.cr.commit()
+                    _logger.info(f"Progress: {file_progress:.1f}% - Processing file {file_index + 1}/{total_files}")
+                
                 csv_path = os.path.join(self.csv_file_path, csv_file)
                 try:
-                    records_created += self._process_aumann_csv_file(csv_path)
+                    file_records = self._process_aumann_csv_file(csv_path)
+                    records_created += file_records
+                    
+                    if file_records > 0:
+                        _logger.debug(f"Created {file_records} records from {csv_file}")
+                        
                 except Exception as e:
                     _logger.error(f"Error processing Aumann CSV file {csv_file}: {e}")
                     continue
             
+            # Update progress: Completion
+            self.sync_progress = 100.0
+            self.sync_stage = "Aumann sync completed successfully"
+            self.sync_processed_records = total_files
+            self.env.cr.commit()
+            
             _logger.info(f"Aumann data sync completed. Total records created: {records_created}")
+            _logger.info(f"Total processing time: {fields.Datetime.now() - self.sync_start_time}")
+            
             self.status = 'running'
             self.last_sync = fields.Datetime.now()
             
         except Exception as e:
             _logger.error(f"Error in Aumann data sync: {e}")
             self.status = 'error'
+            self.sync_stage = f"Error: {str(e)}"
             raise
 
     def _process_aumann_csv_file(self, csv_path):
         """Process a single Aumann CSV file for one serial number"""
         records_created = 0
+        filename = os.path.basename(csv_path)
         
+        _logger.debug(f"Processing Aumann CSV file: {filename}")
+
+        # Try multiple encodings
+        encodings = ['utf-8-sig', 'utf-8', 'latin-1', 'iso-8859-1', 'cp1252', 'windows-1252']
+
+        file_content = None
+        successful_encoding = None
+
+        for encoding in encodings:
+            try:
+                with open(csv_path, 'r', encoding=encoding) as file:
+                    file_content = file.read()
+                    successful_encoding = encoding
+                    break
+            except (UnicodeDecodeError, UnicodeError):
+                continue
+
+        if file_content is None:
+            _logger.error(f"Could not decode file {csv_path} with any known encoding")
+            return 0
+
+        _logger.debug(f"Successfully decoded {filename} using {successful_encoding}")
+
         try:
-            with open(csv_path, 'r', encoding='utf-8-sig') as file:
-                # Read the header row
-                header_line = file.readline().strip()
-                delimiter = ';' if ';' in header_line else ','
+            # Process the decoded content
+            lines = file_content.split('\n')
+            if not lines:
+                _logger.warning(f"Empty file: {filename}")
+                return 0
+
+            header_line = lines[0].strip()
+            delimiter = ';' if ';' in header_line else ','
+            _logger.debug(f"Using delimiter '{delimiter}' for {filename}")
+
+            # Use StringIO to create a file-like object from the string
+            from io import StringIO
+            file_like = StringIO(file_content)
+            reader = csv.DictReader(file_like, delimiter=delimiter)
+
+            # Process each row (should be only one row per file for Aumann)
+            row_count = 0
+            for row in reader:
+                row_count += 1
+                _logger.debug(f"Processing row {row_count} in {filename}")
                 
-                # Reset file pointer and read with DictReader
-                file.seek(0)
-                reader = csv.DictReader(file, delimiter=delimiter)
-                
-                # Process each row (should be only one row per file for Aumann)
-                for row in reader:
-                    try:
-                        # Extract serial number from filename or row data
-                        serial_number = self._extract_serial_number_from_filename(csv_path, row)
-                        if not serial_number:
-                            _logger.warning(f"Could not extract serial number from file: {csv_path}")
-                            continue
-                        
-                        # Check if record already exists
-                        existing = self.env['manufacturing.aumann.measurement'].search([
-                            ('serial_number', '=', serial_number),
-                            ('machine_id', '=', self.id)
-                        ], limit=1)
-                        
-                        if existing:
-                            _logger.debug(f"Aumann record for Serial Number {serial_number} already exists. Skipping.")
-                            continue
-                        
-                        # Parse timestamp
-                        test_date = self._parse_aumann_timestamp(row.get('Timestamp', ''))
-                        
-                        # Create measurement record with all fields
-                        create_vals = {
-                            'serial_number': serial_number,
-                            'machine_id': self.id,
-                            'test_date': test_date,
-                            'part_type': row.get('Type', ''),
-                            'raw_data': str(row)[:2000],  # Limit raw data size
-                        }
-                        
-                        # Map all measurement fields from CSV to model fields
-                        field_mapping = self._get_aumann_field_mapping()
-                        for csv_field, model_field in field_mapping.items():
-                            if csv_field in row and row[csv_field]:
-                                try:
-                                    create_vals[model_field] = float(row[csv_field])
-                                except (ValueError, TypeError):
-                                    _logger.warning(f"Could not parse {csv_field} value: {row[csv_field]}")
-                        
-                        # Determine result based on measurements
-                        create_vals['result'] = self._determine_aumann_result(create_vals)
-                        
-                        # Create the record
-                        new_record = self.env['manufacturing.aumann.measurement'].create(create_vals)
-                        records_created += 1
-                        _logger.debug(f"Successfully created Aumann record for Serial Number: {serial_number}")
-                        
-                    except Exception as e:
-                        _logger.error(f"Failed to process Aumann row in {csv_path}: {e}")
+                try:
+                    # Extract serial number from filename or row data
+                    serial_number = self._extract_serial_number_from_filename(csv_path, row)
+                    if not serial_number:
+                        _logger.warning(f"Could not extract serial number from file: {filename}")
                         continue
-                        
+
+                    _logger.debug(f"Extracted serial number: {serial_number} from {filename}")
+
+                    # Check if record already exists
+                    existing = self.env['manufacturing.aumann.measurement'].search([
+                        ('serial_number', '=', serial_number),
+                        ('machine_id', '=', self.id)
+                    ], limit=1)
+
+                    if existing:
+                        _logger.debug(f"Aumann record for Serial Number {serial_number} already exists. Skipping.")
+                        continue
+
+                    # Parse timestamp
+                    test_date = self._parse_aumann_timestamp(row.get('Timestamp', ''))
+                    _logger.debug(f"Parsed test date: {test_date} for {serial_number}")
+
+                    # Create measurement record with all fields
+                    create_vals = {
+                        'serial_number': serial_number,
+                        'machine_id': self.id,
+                        'test_date': test_date,
+                        'part_type': row.get('Type', ''),
+                        'raw_data': str(row)[:2000],  # Limit raw data size
+                    }
+
+                    # Map all measurement fields from CSV to model fields
+                    field_mapping = self._get_aumann_field_mapping()
+                    mapped_fields = 0
+                    for csv_field, model_field in field_mapping.items():
+                        if csv_field in row and row[csv_field]:
+                            try:
+                                create_vals[model_field] = float(row[csv_field])
+                                mapped_fields += 1
+                            except (ValueError, TypeError):
+                                _logger.warning(f"Could not parse {csv_field} value: {row[csv_field]} in {filename}")
+
+                    _logger.debug(f"Mapped {mapped_fields} measurement fields for {serial_number}")
+
+                    # Determine result based on measurements
+                    create_vals['result'] = self._determine_aumann_result(create_vals)
+                    _logger.debug(f"Determined result: {create_vals['result']} for {serial_number}")
+
+                    # Create the record
+                    new_record = self.env['manufacturing.aumann.measurement'].create(create_vals)
+                    records_created += 1
+                    _logger.debug(f"Successfully created Aumann record for Serial Number: {serial_number}")
+
+                except Exception as e:
+                    _logger.error(f"Failed to process Aumann row in {filename}: {e}")
+                    continue
+            
+            _logger.debug(f"Processed {row_count} rows from {filename}, created {records_created} records")
+
         except Exception as e:
             _logger.error(f"Error processing Aumann CSV file {csv_path}: {e}")
-            
+
         return records_created
 
     def _extract_serial_number_from_filename(self, csv_path, row):
@@ -1195,6 +1387,20 @@ class MachineConfig(models.Model):
         except Exception as e:
             _logger.warning(f"Failed to parse angle measurement '{angle_str}': {e}")
             return 0.0
+
+    def get_sync_progress(self):
+        """Get current sync progress information"""
+        return {
+            'machine_name': self.machine_name,
+            'status': self.status,
+            'sync_progress': self.sync_progress,
+            'sync_stage': self.sync_stage,
+            'sync_processed_records': self.sync_processed_records,
+            'sync_total_records': self.sync_total_records,
+            'sync_start_time': self.sync_start_time.isoformat() if self.sync_start_time else None,
+            'last_sync': self.last_sync.isoformat() if self.last_sync else None,
+            'estimated_completion': self.sync_estimated_completion.isoformat() if self.sync_estimated_completion else None,
+        }
 
     @api.model
     def get_dashboard_data(self):
