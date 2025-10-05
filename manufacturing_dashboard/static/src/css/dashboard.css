@@ -720,19 +720,19 @@
 }
 
 /* Tree Table Styles */
-.tree-table-container {
+.list-table-container {
     max-height: 600px;
     overflow-y: auto;
 }
 
-.tree-table {
+.list-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.9rem;
 }
 
-.tree-table thead th {
+.list-table thead th {
     background: #f8f9fa;
     color: #2c3e50;
     font-weight: 600;
@@ -744,36 +744,36 @@
     border-bottom: 2px solid #dee2e6;
 }
 
-.tree-table tbody td {
+.list-table tbody td {
     padding: 0.75rem;
     border-bottom: 1px solid #e9ecef;
     vertical-align: middle;
 }
 
-.tree-row {
+.list-row {
     transition: all 0.2s ease;
 }
 
-.tree-row:hover {
+.list-row:hover {
     background: #f8f9fa;
 }
 
-.tree-row.level-1 {
+.list-row.level-1 {
     background: rgba(0, 123, 255, 0.05);
     font-weight: 600;
 }
 
-.tree-row.level-2 {
+.list-row.level-2 {
     background: rgba(0, 123, 255, 0.02);
     padding-left: 2rem;
 }
 
-.tree-expand-col {
+.list-expand-col {
     width: 50px;
     text-align: center;
 }
 
-.tree-toggle {
+.list-toggle {
     width: 24px;
     height: 24px;
     padding: 0;
@@ -784,27 +784,27 @@
     transition: all 0.2s ease;
 }
 
-.tree-toggle:hover {
+.list-toggle:hover {
     transform: scale(1.1);
 }
 
-.tree-toggle.expanded {
+.list-toggle.expanded {
     background: #007bff;
     color: black;
 }
 
-.tree-toggle.collapsed {
+.list-toggle.collapsed {
     background: #6c757d;
     color: black;
 }
 
-.tree-spacer {
+.list-spacer {
     width: 24px;
     height: 24px;
     display: inline-block;
 }
 
-.tree-level {
+.list-level {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -876,7 +876,7 @@
     color: #ffc107;
 }
 
-.measurements-tree {
+.measurements-list {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -921,7 +921,7 @@
     color: #721c24;
 }
 
-.status-tree {
+.status-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -968,7 +968,7 @@
     color: #721c24;
 }
 
-.progress-tree {
+.progress-list {
     width: 100%;
     height: 4px;
     background: #e9ecef;
@@ -976,35 +976,35 @@
     overflow: hidden;
 }
 
-.progress-tree .progress-bar {
+.progress-list .progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #28a745, #20c997);
     border-radius: 2px;
     transition: width 0.3s ease;
 }
 
-.timestamp-tree {
+.timestamp-list {
     display: flex;
     flex-direction: column;
 }
 
-.timestamp-tree .fw-bold {
+.timestamp-list .fw-bold {
     color: #2c3e50;
     font-size: 0.85rem;
 }
 
-.tree-controls {
+.list-controls {
     display: flex;
     gap: 0.5rem;
 }
 
-.empty-tree-state {
+.empty-list-state {
     text-align: center;
     padding: 3rem 1rem;
     color: #6c757d;
 }
 
-.empty-tree-state i {
+.empty-list-state i {
     color: #dee2e6;
 }
 
@@ -1167,14 +1167,14 @@
 /* Custom Scrollbar */
 .table-container::-webkit-scrollbar,
 .measurements-compact::-webkit-scrollbar,
-.tree-table-container::-webkit-scrollbar,
+.list-table-container::-webkit-scrollbar,
 .table-container-enhanced::-webkit-scrollbar {
     width: 6px;
 }
 
 .table-container::-webkit-scrollbar-track,
 .measurements-compact::-webkit-scrollbar-track,
-.tree-table-container::-webkit-scrollbar-track,
+.list-table-container::-webkit-scrollbar-track,
 .table-container-enhanced::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 3px;
@@ -1182,7 +1182,7 @@
 
 .table-container::-webkit-scrollbar-thumb,
 .measurements-compact::-webkit-scrollbar-thumb,
-.tree-table-container::-webkit-scrollbar-thumb,
+.list-table-container::-webkit-scrollbar-thumb,
 .table-container-enhanced::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 3px;
@@ -1190,7 +1190,7 @@
 
 .table-container::-webkit-scrollbar-thumb:hover,
 .measurements-compact::-webkit-scrollbar-thumb:hover,
-.tree-table-container::-webkit-scrollbar-thumb:hover,
+.list-table-container::-webkit-scrollbar-thumb:hover,
 .table-container-enhanced::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
 }

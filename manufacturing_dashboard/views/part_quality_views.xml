@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Part Quality Tree View -->
-    <record id="view_part_quality_tree" model="ir.ui.view">
+    <record id="view_part_quality_list" model="ir.ui.view">
         <field name="name">part.quality.list</field>
         <field name="model">manufacturing.part.quality</field>
         <field name="arch" type="xml">

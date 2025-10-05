@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Machine Configuration Tree View -->
-    <record id="view_machine_config_tree" model="ir.ui.view">
+    <record id="view_machine_config_list" model="ir.ui.view">
         <field name="name">machine.config.list</field>
         <field name="model">manufacturing.machine.config</field>
         <field name="arch" type="xml">
@@ -31,6 +31,30 @@
                 <header>
                     <button name="sync_machine_data" type="object" string="Sync Now" class="btn-primary"
                             icon="fa-refresh"/>
+                    <button name="test_plc_connection" type="object" string="Test PLC" class="btn-secondary"
+                            icon="fa-plug" invisible="machine_type != 'final_station'"/>
+
+                    <button name="toggle_operation_mode" type="object" string="Toggle Mode" class="btn-info"
+                            icon="fa-toggle-on" invisible="machine_type != 'final_station'"/>
+
+                    <button name="manual_trigger_camera" type="object" string="Trigger Camera" class="btn-warning"
+                            icon="fa-camera" invisible="machine_type != 'final_station'"/>
+
+                    <button name="manual_cylinder_forward_action" type="object" string="Cylinder Forward"
+                            class="btn-success"
+                            icon="fa-arrow-right" invisible="machine_type != 'final_station'"/>
+
+                    <button name="manual_cylinder_reverse_action" type="object" string="Cylinder Reverse"
+                            class="btn-warning"
+                            icon="fa-arrow-left" invisible="machine_type != 'final_station'"/>
+
+                    <button name="start_auto_monitoring" type="object" string="Start Auto Monitoring"
+                            class="btn-success"
+                            icon="fa-play" invisible="machine_type != 'final_station'"/>
+
+                    <button name="check_part_presence" type="object" string="Check Part Presence" class="btn-info"
+                            icon="fa-search" invisible="machine_type != 'final_station'"/>
+
                     <field name="status" widget="statusbar" statusbar_visible="stopped,running,error,maintenance"/>
                 </header>
                 <sheet>
@@ -87,6 +111,61 @@
                             <field name="sync_interval" help="How often to check for new data (in seconds)"/>
                         </group>
                     </group>
+
+                    <notebook>
+                        <page string="Final Station Configuration"
+                              invisible="machine_type != 'final_station'">
+                            <group>
+                                <group string="PLC Configuration">
+                                    <field name="plc_ip_address"/>
+                                    <field name="plc_port"/>
+                                    <field name="plc_online" readonly="1"/>
+                                    <field name="last_plc_communication"/>
+                                </group>
+                                <group string="Camera Configuration">
+                                    <field name="camera_ip_address"/>
+                                    <field name="camera_port"/>
+                                    <field name="operation_mode" widget="radio"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Current Status">
+                                    <field name="part_present" readonly="1"/>
+                                    <field name="camera_triggered" readonly="1"/>
+                                    <field name="cylinder_forward" readonly="1"/>
+                                    <field name="cylinder_reverse" readonly="1"/>
+                                </group>
+                                <group string="Last Measurement">
+                                    <field name="last_serial_number" readonly="1"/>
+                                    <field name="last_capture_time" readonly="1"/>
+                                    <field name="last_result" readonly="1"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Manual Controls">
+                                    <field name="manual_camera_trigger"/>
+                                    <field name="manual_cylinder_forward"/>
+                                    <field name="manual_cylinder_reverse"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Measurements" name="measurements"
+                              invisible="machine_type != 'final_station'">
+                            <field name="measurement_ids" readonly="1">
+                                <list limit="20">
+                                    <field name="serial_number"/>
+                                    <field name="capture_date"/>
+                                    <field name="result" widget="badge"/>
+                                    <field name="operation_mode"/>
+                                    <field name="trigger_type"/>
+                                    <field name="pass_rate" widget="percentage"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <!--                <div class="oe_chatter">-->
                 <!--                    <field name="message_follower_ids"/>-->

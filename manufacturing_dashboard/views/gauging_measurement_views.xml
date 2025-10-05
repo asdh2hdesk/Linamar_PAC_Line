@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Tree View -->
-    <record id="view_gauging_measurement_tree" model="ir.ui.view">
+    <record id="view_gauging_measurement_list" model="ir.ui.view">
         <field name="name">gauging.measurement.list</field>
         <field name="model">manufacturing.gauging.measurement</field>
         <field name="arch" type="xml">

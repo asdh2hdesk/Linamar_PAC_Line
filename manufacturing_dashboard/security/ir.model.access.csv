@@ -12,3 +12,5 @@ access_aumann_measurement_user,Manufacturing Aumann Measurement User,model_manuf
 access_aumann_measurement_system,Manufacturing Aumann Measurement System,model_manufacturing_aumann_measurement,base.group_system,1,1,1,1
 access_gauging_measurement_user,Manufacturing Gauging Measurement User,model_manufacturing_gauging_measurement,base.group_user,1,0,1,0
 access_gauging_measurement_system,Manufacturing Gauging Measurement System,model_manufacturing_gauging_measurement,base.group_system,1,1,1,1
+access_final_station_measurement_user,Manufacturing Final Station Measurement User,model_manufacturing_final_station_measurement,base.group_user,1,1,1,0
+access_final_station_measurement_system,Manufacturing Final Station Measurement System,model_manufacturing_final_station_measurement,base.group_system,1,1,1,1

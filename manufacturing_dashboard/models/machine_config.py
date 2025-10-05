@@ -21,10 +21,11 @@ class MachineConfig(models.Model):
         ('ruhlamat', 'Ruhlamat Press'),
         ('gauging', 'Gauging System'),
         ('aumann', 'Aumann Measurement'),
+        ('final_station', 'Final Station'),
     ], string='Machine Type', required=True)
 
-    csv_file_path = fields.Char('CSV File Path', required=True,
-                                help='Full path to the CSV file for this machine')
+    csv_file_path = fields.Char('CSV File Path', 
+                                help='Full path to the CSV file for this machine (not required for final stations)')
     is_active = fields.Boolean('Active', default=True)
     last_sync = fields.Datetime('Last Sync')
     sync_interval = fields.Integer('Sync Interval (seconds)', default=30)
@@ -47,6 +48,126 @@ class MachineConfig(models.Model):
 
     parts_processed_today = fields.Integer('Parts Processed Today', compute='_compute_daily_stats')
     rejection_rate = fields.Float('Rejection Rate %', compute='_compute_daily_stats')
+
+    # Final Station specific fields
+    plc_ip_address = fields.Char('PLC IP Address', help='PLC IP address for final station')
+    plc_port = fields.Integer('PLC Port', default=502, help='PLC port for final station')
+    camera_ip_address = fields.Char('Camera IP Address', help='Keyence camera IP address')
+    camera_port = fields.Integer('Camera Port', default=80, help='Camera port for final station')
+    operation_mode = fields.Selection([
+        ('auto', 'Auto'),
+        ('manual', 'Manual')
+    ], default='auto', string='Operation Mode', help='Final station operation mode')
+    
+        # Final Station status fields
+    plc_online = fields.Boolean('PLC Online', compute='_compute_plc_status', store=True)
+    last_plc_communication = fields.Datetime('Last PLC Communication')
+    part_present = fields.Boolean('Part Present', readonly=True)
+    camera_triggered = fields.Boolean('Camera Triggered', readonly=True)
+    cylinder_forward = fields.Boolean('Cylinder Forward', readonly=True)
+    cylinder_reverse = fields.Boolean('Cylinder Reverse', readonly=True)
+    processing_part = fields.Boolean('Processing Part', default=False, help='Flag to prevent multiple triggers')
+
+    # Final Station measurement fields
+    last_serial_number = fields.Char('Last Serial Number')
+    last_capture_time = fields.Datetime('Last Capture Time')
+    last_result = fields.Selection([
+        ('ok', 'OK'),
+        ('nok', 'NOK'),
+        ('pending', 'Pending')
+    ], default='pending', string='Last Result')
+    
+    # Manual control fields
+    manual_camera_trigger = fields.Boolean('Manual Camera Trigger', default=False)
+    manual_cylinder_forward = fields.Boolean('Manual Cylinder Forward', default=False)
+    manual_cylinder_reverse = fields.Boolean('Manual Cylinder Reverse', default=False)
+    
+    # Final Station Measurements
+    measurement_ids = fields.One2many('manufacturing.final.station.measurement', 'machine_id', string='Measurements')
+
+    @api.onchange('manual_cylinder_forward')
+    def _onchange_manual_cylinder_forward(self):
+        """If toggled in UI, send a 1s pulse on D3 (1 then 0)."""
+        for rec in self:
+            if rec.machine_type != 'final_station' or not rec.manual_cylinder_forward:
+                continue
+            try:
+                if rec._write_plc_register(3, 1):
+                    _logger.info("Onchange: D3=1 (forward)")
+                    import time
+                    time.sleep(1)
+                    rec._write_plc_register(3, 0)
+                    _logger.info("Onchange: D3 reset to 0")
+                rec.manual_cylinder_forward = False
+                rec.cylinder_forward = False
+                rec.cylinder_reverse = False
+            except Exception as e:
+                _logger.error(f"Onchange manual_cylinder_forward error: {str(e)}")
+
+    @api.onchange('manual_cylinder_reverse')
+    def _onchange_manual_cylinder_reverse(self):
+        """If toggled in UI, send a 1s pulse on D4 (1 then 0)."""
+        for rec in self:
+            if rec.machine_type != 'final_station' or not rec.manual_cylinder_reverse:
+                continue
+            try:
+                if rec._write_plc_register(4, 1):
+                    _logger.info("Onchange: D4=1 (reverse)")
+                    import time
+                    time.sleep(1)
+                    rec._write_plc_register(4, 0)
+                    _logger.info("Onchange: D4 reset to 0")
+                rec.manual_cylinder_reverse = False
+                rec.cylinder_reverse = False
+                rec.cylinder_forward = False
+            except Exception as e:
+                _logger.error(f"Onchange manual_cylinder_reverse error: {str(e)}")
+
+    @api.onchange('operation_mode')
+    def _onchange_operation_mode_sync_plc(self):
+        """When user changes mode in UI, also write D2 on PLC."""
+        for rec in self:
+            if rec.machine_type != 'final_station' or not rec.plc_ip_address or not rec.plc_port:
+                continue
+            try:
+                d2_value = 1 if rec.operation_mode == 'manual' else 0
+                ok = rec._write_plc_register(2, d2_value)
+                if ok:
+                    _logger.info(f"Onchange: Synced operation mode to PLC D2={d2_value} for {rec.machine_name}")
+                else:
+                    _logger.warning(f"Onchange: Failed syncing operation mode to PLC for {rec.machine_name}")
+            except Exception as e:
+                _logger.error(f"Onchange operation_mode PLC sync error: {str(e)}")
+
+    def write(self, vals):
+        """Ensure PLC D2 matches operation_mode when saved from form."""
+        res = super().write(vals)
+        try:
+            if 'operation_mode' in vals:
+                for rec in self:
+                    if rec.machine_type != 'final_station' or not rec.plc_ip_address or not rec.plc_port:
+                        continue
+                    d2_value = 1 if rec.operation_mode == 'manual' else 0
+                    ok = rec._write_plc_register(2, d2_value)
+                    if ok:
+                        _logger.info(f"Write: Synced operation mode to PLC D2={d2_value} for {rec.machine_name}")
+                    else:
+                        _logger.warning(f"Write: Failed syncing operation mode to PLC for {rec.machine_name}")
+        except Exception as e:
+            _logger.error(f"Write operation_mode PLC sync error: {str(e)}")
+        return res
+
+    @api.depends('last_plc_communication')
+    def _compute_plc_status(self):
+        """Compute PLC online status for final stations"""
+        for record in self:
+            if record.machine_type == 'final_station':
+                if record.last_plc_communication and (datetime.now() - record.last_plc_communication).total_seconds() < 60:
+                    record.plc_online = True
+                else:
+                    record.plc_online = False
+            else:
+                record.plc_online = False
 
     @api.depends('machine_type')
     def _compute_daily_stats(self):
@@ -868,8 +989,29 @@ class MachineConfig(models.Model):
                         continue
 
                     # Parse timestamp
-                    test_date = self._parse_aumann_timestamp(row.get('Timestamp', ''))
+                    timestamp_raw = row.get('Timestamp', '')
+                    _logger.debug(f"Raw timestamp from CSV: '{timestamp_raw}' for {serial_number}")
+                    
+                    # If no timestamp in 'Timestamp' field, try to extract from other possible fields
+                    if not timestamp_raw or timestamp_raw.strip() == '':
+                        # Try alternative timestamp field names
+                        alternative_fields = ['timestamp', 'Date', 'date', 'Time', 'time', 'TestDate', 'test_date']
+                        for field in alternative_fields:
+                            if field in row and row[field]:
+                                timestamp_raw = row[field]
+                                _logger.debug(f"Found timestamp in alternative field '{field}': '{timestamp_raw}'")
+                                break
+                    
+                    test_date = self._parse_aumann_timestamp(timestamp_raw)
                     _logger.debug(f"Parsed test date: {test_date} for {serial_number}")
+                    
+                    # Log if we're using current time instead of the actual timestamp
+                    if test_date == fields.Datetime.now():
+                        _logger.warning(f"Using current time instead of actual timestamp for {serial_number}. Raw timestamp was: '{timestamp_raw}'")
+                        # Try to extract timestamp from raw_data as last resort
+                        test_date = self._extract_timestamp_from_raw_data(str(row))
+                        if test_date != fields.Datetime.now():
+                            _logger.info(f"Successfully extracted timestamp from raw data: {test_date}")
 
                     # Create measurement record with all fields
                     create_vals = {
@@ -930,28 +1072,69 @@ class MachineConfig(models.Model):
         
         return None
 
+    def _extract_timestamp_from_raw_data(self, raw_data_str):
+        """Extract timestamp from raw data string as last resort"""
+        import re
+        
+        # Common timestamp patterns in raw data
+        timestamp_patterns = [
+            r"'Timestamp':\s*'([^']+)'",           # 'Timestamp': '2025-03-18 21:20:37'
+            r'"Timestamp":\s*"([^"]+)"',           # "Timestamp": "2025-03-18 21:20:37"
+            r"'timestamp':\s*'([^']+)'",           # 'timestamp': '2025-03-18 21:20:37'
+            r'"timestamp":\s*"([^"]+)"',           # "timestamp": "2025-03-18 21:20:37"
+            r"'Date':\s*'([^']+)'",                # 'Date': '2025-03-18 21:20:37'
+            r'"Date":\s*"([^"]+)"',                # "Date": "2025-03-18 21:20:37"
+            r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})',  # 2025-03-18 21:20:37
+            r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})',     # 2025-03-18T21:20:37
+        ]
+        
+        for pattern in timestamp_patterns:
+            matches = re.findall(pattern, raw_data_str)
+            if matches:
+                timestamp_str = matches[0]
+                _logger.debug(f"Found timestamp in raw data: '{timestamp_str}'")
+                return self._parse_aumann_timestamp(timestamp_str)
+        
+        _logger.debug("No timestamp found in raw data")
+        return fields.Datetime.now()
+
     def _parse_aumann_timestamp(self, timestamp_str):
         """Parse Aumann timestamp string"""
         if not timestamp_str:
+            _logger.warning("Empty timestamp string, using current time")
             return fields.Datetime.now()
         
+        # Clean the timestamp string
+        timestamp_str = str(timestamp_str).strip()
+        _logger.debug(f"Parsing Aumann timestamp: '{timestamp_str}'")
+        
         try:
-            # Try different timestamp formats
+            # Try different timestamp formats commonly used in Aumann data
             timestamp_formats = [
-                '%Y-%m-%d %H:%M:%S',
-                '%Y-%m-%d %H:%M:%S.%f',
-                '%d/%m/%Y %H:%M:%S',
-                '%m/%d/%Y %H:%M:%S',
+                '%Y-%m-%d %H:%M:%S',        # 2025-03-18 21:20:37
+                '%Y-%m-%d %H:%M:%S.%f',     # 2025-03-18 21:20:37.123456
+                '%Y-%m-%d %H:%M:%S.%fZ',    # 2025-03-18 21:20:37.123456Z
+                '%Y-%m-%d %H:%M:%SZ',       # 2025-03-18 21:20:37Z
+                '%d/%m/%Y %H:%M:%S',        # 18/03/2025 21:20:37
+                '%m/%d/%Y %H:%M:%S',        # 03/18/2025 21:20:37
+                '%d-%m-%Y %H:%M:%S',        # 18-03-2025 21:20:37
+                '%Y-%m-%dT%H:%M:%S',        # 2025-03-18T21:20:37
+                '%Y-%m-%dT%H:%M:%S.%f',    # 2025-03-18T21:20:37.123456
+                '%Y-%m-%dT%H:%M:%S.%fZ',   # 2025-03-18T21:20:37.123456Z
+                '%Y-%m-%dT%H:%M:%SZ',      # 2025-03-18T21:20:37Z
             ]
             
             for fmt in timestamp_formats:
                 try:
-                    return datetime.strptime(timestamp_str.strip(), fmt)
+                    parsed_date = datetime.strptime(timestamp_str, fmt)
+                    _logger.debug(f"Successfully parsed timestamp '{timestamp_str}' using format '{fmt}' -> {parsed_date}")
+                    return parsed_date
                 except ValueError:
                     continue
             
-            # If all formats failed, use current time
-            _logger.warning(f"Could not parse timestamp '{timestamp_str}', using current time")
+            # If all formats failed, log the issue and use current time
+            _logger.warning(f"Could not parse timestamp '{timestamp_str}' with any known format, using current time")
+            _logger.debug(f"Available formats tried: {timestamp_formats}")
             return fields.Datetime.now()
             
         except Exception as e:
@@ -1974,3 +2157,1004 @@ class MachineConfig(models.Model):
             })
 
         return daily_metrics
+
+    # Final Station Methods
+    def test_plc_connection(self):
+        """Test PLC connection for final station and read D0-D9 values"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {'success': False, 'message': 'Not a final station'}
+            
+        try:
+            import socket
+            import time
+            _logger.info(f"Testing PLC connection to {self.plc_ip_address}:{self.plc_port}")
+            
+            # Connect to PLC
+            with socket.create_connection((self.plc_ip_address, self.plc_port), timeout=10) as sock:
+                _logger.info("✅ PLC connection successful!")
+                
+                # Read D0-D9 values using Modbus TCP protocol
+                d_values = {}
+                for i in range(10):  # D0 to D9
+                    try:
+                        # Create Modbus TCP read holding registers request
+                        # Transaction ID, Protocol ID, Length, Unit ID, Function Code, Starting Address, Quantity
+                        import struct
+                        
+                        # Modbus TCP frame for reading holding registers (function code 0x03)
+                        transaction_id = 1
+                        protocol_id = 0
+                        length = 6  # Unit ID + Function Code + Starting Address + Quantity
+                        unit_id = 1
+                        function_code = 0x03  # Read Holding Registers
+                        starting_address = i  # D register address
+                        quantity = 1  # Read 1 register
+                        
+                        # Build Modbus TCP frame
+                        frame = struct.pack('>HHHBBHH', 
+                                          transaction_id, 
+                                          protocol_id, 
+                                          length, 
+                                          unit_id, 
+                                          function_code, 
+                                          starting_address, 
+                                          quantity)
+                        
+                        # Send Modbus request
+                        sock.sendall(frame)
+                        time.sleep(0.1)
+                        
+                        # Receive response
+                        response = sock.recv(1024)
+                        
+                        if len(response) >= 9:  # Minimum Modbus TCP response length
+                            # Parse response: Transaction ID, Protocol ID, Length, Unit ID, Function Code, Byte Count, Data
+                            transaction_id_resp, protocol_id_resp, length_resp, unit_id_resp, function_code_resp, byte_count = struct.unpack('>HHHBBB', response[:9])
+                            
+                            if function_code_resp == 0x03 and byte_count >= 2:
+                                # Extract register value (2 bytes)
+                                register_value = struct.unpack('>H', response[9:11])[0]
+                                d_values[f'D{i}'] = str(register_value)
+                                _logger.info(f"D{i} = {register_value}")
+                            else:
+                                d_values[f'D{i}'] = "INVALID_RESPONSE"
+                                _logger.warning(f"D{i} - Invalid Modbus response")
+                        else:
+                            d_values[f'D{i}'] = "SHORT_RESPONSE"
+                            _logger.warning(f"D{i} - Response too short: {len(response)} bytes")
+                            
+                    except Exception as e:
+                        _logger.warning(f"Failed to read D{i}: {str(e)}")
+                        d_values[f'D{i}'] = f"ERROR: {str(e)[:20]}"
+                
+                # Update PLC status
+                self.last_plc_communication = datetime.now()
+                self._compute_plc_status()
+                
+                # Prepare success message
+                success_message = f"PLC connection successful to {self.plc_ip_address}:{self.plc_port}\n"
+                success_message += "D0-D9 values:\n"
+                for i in range(10):
+                    success_message += f"D{i}: {d_values[f'D{i}']}\n"
+                
+                _logger.info(f"PLC test completed successfully")
+                
+                # Show success notification
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'PLC Connection Successful',
+                        'message': success_message,
+                        'type': 'success',
+                        'sticky': True,
+                    }
+                }
+                
+        except socket.timeout:
+            error_msg = f"PLC connection timeout to {self.plc_ip_address}:{self.plc_port}"
+            _logger.error(error_msg)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'PLC Connection Failed',
+                    'message': error_msg,
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+            
+        except socket.gaierror as e:
+            error_msg = f"PLC connection error - Invalid address {self.plc_ip_address}: {str(e)}"
+            _logger.error(error_msg)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'PLC Connection Failed',
+                    'message': error_msg,
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+            
+        except Exception as e:
+            error_msg = f"PLC connection error: {str(e)}"
+            _logger.error(error_msg)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'PLC Connection Failed',
+                    'message': error_msg,
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def toggle_operation_mode(self):
+        """Toggle operation mode for final station"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+            
+        try:
+            # Determine next mode and corresponding PLC D2 value
+            if self.operation_mode == 'auto':
+                next_mode = 'manual'
+                d2_value = 1  # manual
+            else:
+                next_mode = 'auto'
+                d2_value = 0  # auto
+
+            # Write D2 to PLC to reflect mode
+            plc_ok = self._write_plc_register(2, d2_value)
+
+            if plc_ok:
+                self.operation_mode = next_mode
+                _logger.info(f"Operation mode changed to {self.operation_mode} for {self.machine_name} (D2={d2_value})")
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Mode Toggled',
+                        'message': f"Mode set to {self.operation_mode.upper()} (D2={d2_value})",
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
+            else:
+                _logger.error("Failed to write D2 to PLC during mode toggle")
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Mode Toggle Failed',
+                        'message': 'Could not update PLC D2 register',
+                        'type': 'danger',
+                        'sticky': True,
+                    }
+                }
+        except Exception as e:
+            _logger.error(f"Toggle mode error: {str(e)}")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Mode Toggle Error',
+                    'message': f'Error: {str(e)}',
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def manual_trigger_camera(self):
+        """Manual camera trigger for final station"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+            
+        try:
+            _logger.info(f"Manual camera trigger for {self.machine_name}")
+            
+            # Trigger camera and get QR code data
+            camera_data = self._trigger_camera_and_get_data()
+            
+            if camera_data and camera_data.get('serial_number'):
+                # Get serial number from QR code scan
+                serial_number = camera_data.get('serial_number')
+                capture_time = datetime.now()
+                
+                # Check results from all previous stations
+                station_results = self._check_all_stations_result(serial_number)
+                final_result = station_results.get('final_result', 'nok')
+                
+                # Create measurement record with aggregated result
+                measurement = self.env['manufacturing.final.station.measurement'].create_measurement_record(
+                    machine_id=self.id,
+                    serial_number=serial_number,
+                    result=final_result,
+                    operation_mode=self.operation_mode,
+                    trigger_type='manual',
+                    raw_data=camera_data.get('raw_data', f"Manual QR scan at {capture_time.isoformat()}")
+                )
+                
+                if measurement:
+                    # Update machine status
+                    self.camera_triggered = True
+                    self.last_serial_number = serial_number
+                    self.last_capture_time = capture_time
+                    self.last_result = final_result
+                    self.manual_camera_trigger = True
+                    
+                    _logger.info(f"Manual camera triggered. Serial: {serial_number}, Final Result: {final_result}")
+                    _logger.info(f"Station results: {station_results.get('station_results', {})}")
+                    return True
+                else:
+                    _logger.error("Failed to create measurement record")
+                    return False
+            else:
+                _logger.error("Failed to get QR code from camera")
+                return False
+            
+        except Exception as e:
+            _logger.error(f"Camera trigger error: {str(e)}")
+            return False
+
+    def check_part_presence(self):
+        """Check for part presence via PLC sensor"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+            
+        try:
+            # This would typically read from PLC sensor
+            # For now, simulate part detection
+            part_detected = self._read_plc_sensor()
+            
+            if part_detected:
+                self.part_present = True
+                _logger.info(f"Part detected at {self.machine_name}")
+                return True
+            else:
+                self.part_present = False
+                return False
+                
+        except Exception as e:
+            _logger.error(f"Part presence check error: {str(e)}")
+            return False
+
+    def _read_plc_sensor(self):
+        """Read PLC sensor for part presence (D0 register)"""
+        try:
+            import socket
+            import struct
+            
+            # Connect to PLC and read D0 register
+            with socket.create_connection((self.plc_ip_address, self.plc_port), timeout=5) as sock:
+                # Create Modbus TCP read holding registers request for D0
+                transaction_id = 1
+                protocol_id = 0
+                length = 6
+                unit_id = 1
+                function_code = 0x03  # Read Holding Registers
+                starting_address = 0  # D0 register
+                quantity = 1
+                
+                # Build Modbus TCP frame
+                frame = struct.pack('>HHHBBHH', 
+                                  transaction_id, 
+                                  protocol_id, 
+                                  length, 
+                                  unit_id, 
+                                  function_code, 
+                                  starting_address, 
+                                  quantity)
+                
+                # Send request
+                sock.sendall(frame)
+                import time
+                time.sleep(0.1)
+                
+                # Receive response
+                response = sock.recv(1024)
+                
+                if len(response) >= 9:
+                    # Parse response
+                    transaction_id_resp, protocol_id_resp, length_resp, unit_id_resp, function_code_resp, byte_count = struct.unpack('>HHHBBB', response[:9])
+                    
+                    if function_code_resp == 0x03 and byte_count >= 2:
+                        # Extract D0 value
+                        d0_value = struct.unpack('>H', response[9:11])[0]
+                        part_present = (d0_value == 1)
+                        _logger.info(f"PLC D0 (part_present) = {d0_value} -> {part_present}")
+                        return part_present
+                    else:
+                        _logger.warning(f"Invalid PLC response for D0")
+                        return False
+                else:
+                    _logger.warning(f"Short PLC response for D0: {len(response)} bytes")
+                    return False
+                    
+        except Exception as e:
+            _logger.error(f"Error reading PLC D0 sensor: {str(e)}")
+            return False
+
+    def _write_plc_result(self, result_value):
+        """Write result to PLC D1 register (0=OK, 1=NOK)"""
+        try:
+            import socket
+            import struct
+            
+            # Connect to PLC and write D1 register
+            with socket.create_connection((self.plc_ip_address, self.plc_port), timeout=5) as sock:
+                # Create Modbus TCP write single register request for D1
+                transaction_id = 1
+                protocol_id = 0
+                length = 6
+                unit_id = 1
+                function_code = 0x06  # Write Single Register
+                starting_address = 1  # D1 register
+                value = result_value  # 0=OK, 1=NOK
+                
+                # Build Modbus TCP frame
+                frame = struct.pack('>HHHBBHH', 
+                                  transaction_id, 
+                                  protocol_id, 
+                                  length, 
+                                  unit_id, 
+                                  function_code, 
+                                  starting_address, 
+                                  value)
+                
+                # Send request
+                sock.sendall(frame)
+                import time
+                time.sleep(0.1)
+                
+                # Receive response
+                response = sock.recv(1024)
+                
+                if len(response) >= 12:
+                    # Parse response - Write Single Register response format
+                    transaction_id_resp, protocol_id_resp, length_resp, unit_id_resp, function_code_resp, address_resp, value_resp = struct.unpack('>HHHBBHH', response[:12])
+                    
+                    if function_code_resp == 0x06 and address_resp == 1 and value_resp == result_value:
+                        _logger.info(f"PLC D1 (result) written successfully: {result_value} ({'NOK' if result_value == 1 else 'OK'})")
+                        return True
+                    else:
+                        _logger.warning(f"Invalid PLC write response for D1: FC={function_code_resp}, Addr={address_resp}, Val={value_resp}")
+                        return False
+                else:
+                    _logger.warning(f"Short PLC write response for D1: {len(response)} bytes")
+                    return False
+                    
+        except Exception as e:
+            _logger.error(f"Error writing PLC D1 result: {str(e)}")
+            return False
+
+    def _reset_plc_result(self):
+        """Reset PLC D1 register to 0 when part is removed"""
+        try:
+            import socket
+            import struct
+            
+            # Connect to PLC and write D1=0
+            with socket.create_connection((self.plc_ip_address, self.plc_port), timeout=5) as sock:
+                # Create Modbus TCP write single register request for D1=0
+                transaction_id = 1
+                protocol_id = 0
+                length = 6
+                unit_id = 1
+                function_code = 0x06  # Write Single Register
+                starting_address = 1  # D1 register
+                value = 0  # Reset to 0
+                
+                # Build Modbus TCP frame
+                frame = struct.pack('>HHHBBHH', 
+                                  transaction_id, 
+                                  protocol_id, 
+                                  length, 
+                                  unit_id, 
+                                  function_code, 
+                                  starting_address, 
+                                  value)
+                
+                # Send request
+                sock.sendall(frame)
+                import time
+                time.sleep(0.1)
+                
+                # Receive response
+                response = sock.recv(1024)
+                
+                if len(response) >= 12:
+                    # Parse response
+                    transaction_id_resp, protocol_id_resp, length_resp, unit_id_resp, function_code_resp, address_resp, value_resp = struct.unpack('>HHHBBHH', response[:12])
+                    
+                    if function_code_resp == 0x06 and address_resp == 1 and value_resp == 0:
+                        _logger.info(f"PLC D1 reset to 0 (part removed)")
+                        return True
+                    else:
+                        _logger.warning(f"Invalid PLC reset response for D1: FC={function_code_resp}, Addr={address_resp}, Val={value_resp}")
+                        return False
+                else:
+                    _logger.warning(f"Short PLC reset response for D1: {len(response)} bytes")
+                    return False
+                    
+        except Exception as e:
+            _logger.error(f"Error resetting PLC D1: {str(e)}")
+            return False
+
+    def _write_plc_register(self, register, value):
+        """Write value to any PLC register (D0-D9)"""
+        try:
+            import socket
+            import struct
+            
+            # Connect to PLC and write to specified register
+            with socket.create_connection((self.plc_ip_address, self.plc_port), timeout=5) as sock:
+                # Create Modbus TCP write single register request
+                transaction_id = 1
+                protocol_id = 0
+                length = 6
+                unit_id = 1
+                function_code = 0x06  # Write Single Register
+                starting_address = register  # D register number
+                register_value = value  # Value to write
+                
+                # Build Modbus TCP frame
+                frame = struct.pack('>HHHBBHH', 
+                                  transaction_id, 
+                                  protocol_id, 
+                                  length, 
+                                  unit_id, 
+                                  function_code, 
+                                  starting_address, 
+                                  register_value)
+                
+                # Send request
+                sock.sendall(frame)
+                import time
+                time.sleep(0.1)
+                
+                # Receive response
+                response = sock.recv(1024)
+                
+                if len(response) >= 12:
+                    # Parse response
+                    transaction_id_resp, protocol_id_resp, length_resp, unit_id_resp, function_code_resp, address_resp, value_resp = struct.unpack('>HHHBBHH', response[:12])
+                    
+                    if function_code_resp == 0x06 and address_resp == register and value_resp == value:
+                        _logger.info(f"PLC D{register} written successfully: {value}")
+                        return True
+                    else:
+                        _logger.warning(f"Invalid PLC write response for D{register}: FC={function_code_resp}, Addr={address_resp}, Val={value_resp}")
+                        return False
+                else:
+                    _logger.warning(f"Short PLC write response for D{register}: {len(response)} bytes")
+                    return False
+                    
+        except Exception as e:
+            _logger.error(f"Error writing PLC D{register}: {str(e)}")
+            return False
+
+    def auto_trigger_camera(self):
+        """Auto camera trigger when part is detected (D0=1)"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+            
+        try:
+            _logger.info(f"Auto camera trigger for {self.machine_name}")
+            
+            # Check if already processing a part
+            if self.processing_part:
+                _logger.info("Already processing a part, skipping trigger")
+                return False
+            
+            # Check PLC D0 register for part presence
+            part_present = self._read_plc_sensor()
+            if not part_present:
+                _logger.info("PLC D0=0, no part present, skipping camera trigger")
+                return False
+            
+            # Set processing flag to prevent multiple triggers
+            self.processing_part = True
+            _logger.info("PLC D0=1, part present, triggering camera...")
+            
+            # Trigger camera and get QR code data
+            camera_data = self._trigger_camera_and_get_data()
+            
+            if camera_data and camera_data.get('serial_number'):
+                # Get serial number from QR code scan
+                serial_number = camera_data.get('serial_number')
+                capture_time = datetime.now()
+                
+                # Check results from all previous stations
+                station_results = self._check_all_stations_result(serial_number)
+                final_result = station_results.get('final_result', 'nok')
+                
+                # Create measurement record with aggregated result
+                measurement = self.env['manufacturing.final.station.measurement'].create_measurement_record(
+                    machine_id=self.id,
+                    serial_number=serial_number,
+                    result=final_result,
+                    operation_mode=self.operation_mode,
+                    trigger_type='auto',
+                    raw_data=camera_data.get('raw_data', f"QR scan at {capture_time.isoformat()}")
+                )
+                
+                if measurement:
+                    # Update machine status
+                    self.camera_triggered = True
+                    self.last_serial_number = serial_number
+                    self.last_capture_time = capture_time
+                    self.last_result = final_result
+                    self.part_present = False  # Reset part presence
+                    
+                    # Write result back to PLC D1 register (0=OK, 1=NOK)
+                    plc_result_value = 1 if final_result == 'nok' else 0
+                    plc_write_success = self._write_plc_result(plc_result_value)
+                    
+                    if plc_write_success:
+                        _logger.info(f"PLC D1 updated: {plc_result_value} ({'NOK' if plc_result_value == 1 else 'OK'})")
+                    else:
+                        _logger.warning("Failed to write result to PLC D1")
+                    
+                    _logger.info(f"Auto camera triggered. Serial: {serial_number}, Final Result: {final_result}")
+                    _logger.info(f"Station results: {station_results.get('station_results', {})}")
+                    
+                    # Reset processing flag after successful completion
+                    self.processing_part = False
+                    return True
+                else:
+                    _logger.error("Failed to create measurement record")
+                    # Reset processing flag on error
+                    self.processing_part = False
+                    return False
+            else:
+                _logger.error("Failed to get QR code from camera")
+                # Reset processing flag on error
+                self.processing_part = False
+                return False
+            
+        except Exception as e:
+            _logger.error(f"Auto camera trigger error: {str(e)}")
+            # Reset processing flag on error
+            self.processing_part = False
+            return False
+
+    def _trigger_camera_and_get_data(self):
+        """Trigger camera and get QR code data from Keyence camera"""
+        try:
+            import socket
+            import time
+            
+            _logger.info(f"Connecting to Keyence camera at {self.camera_ip_address}:{self.camera_port}")
+            
+            # Connect to Keyence camera
+            with socket.create_connection((self.camera_ip_address, self.camera_port), timeout=10) as sock:
+                _logger.info("✅ Connected to Keyence camera!")
+                
+                # Send LON command to get serial number
+                lon_response = self._send_camera_command(sock, "LON")
+                _logger.info(f"LON response: {lon_response}")
+                
+                # Extract serial number from LON response
+                serial_number = self._extract_serial_from_lon(lon_response)
+                
+                if serial_number:
+                    # Trigger camera read
+                    trg_response = self._send_camera_command(sock, "TRG")
+                    _logger.info(f"TRG response: {trg_response}")
+                    
+                    # Wait for processing
+                    time.sleep(0.5)
+                    
+                    # Read result
+                    rd_response = self._send_camera_command(sock, "RD")
+                    _logger.info(f"RD response: {rd_response}")
+                    
+                    # Unlock communication
+                    self._send_camera_command(sock, "LOFF")
+                    
+                    # Prepare camera data
+                    camera_data = {
+                        'serial_number': serial_number,
+                        'raw_data': f"Keyence camera data from {self.camera_ip_address} at {datetime.now().isoformat()}",
+                        'qr_code_data': {
+                            'scanned_text': serial_number,
+                            'lon_response': lon_response,
+                            'trg_response': trg_response,
+                            'rd_response': rd_response,
+                            'scan_time': datetime.now().isoformat()
+                        }
+                    }
+                    
+                    _logger.info(f"Camera data received: {camera_data}")
+                    return camera_data
+                else:
+                    _logger.error("Failed to extract serial number from LON response")
+                    return None
+                    
+        except Exception as e:
+            _logger.error(f"Camera trigger error: {str(e)}")
+            return None
+
+    def _send_camera_command(self, sock, cmd):
+        """Send a command to Keyence camera and return response"""
+        try:
+            import time
+            sock.sendall((cmd + '\r\n').encode('ascii'))
+            time.sleep(0.1)
+            data = sock.recv(1024).decode('ascii').strip()
+            return data
+        except Exception as e:
+            _logger.error(f"Error sending camera command {cmd}: {str(e)}")
+            return None
+
+    def _extract_serial_from_lon(self, lon_response):
+        """Extract serial number from LON response"""
+        try:
+            _logger.info(f"Raw LON response: '{lon_response}' (type: {type(lon_response)})")
+            
+            # Clean the response - remove any whitespace and quotes
+            if lon_response:
+                lon_response = lon_response.strip().strip("'\"")
+                _logger.info(f"Cleaned LON response: '{lon_response}'")
+            
+            # Check if response is numeric (expected format)
+            if lon_response and lon_response.isdigit():
+                # Use the LON response directly as serial number
+                serial_number = lon_response
+                _logger.info(f"Extracted serial number: {serial_number}")
+                return serial_number
+            elif lon_response and lon_response.lower() == "heartbeat":
+                # Camera is in heartbeat mode, generate a timestamp-based serial
+                import time
+                timestamp_serial = str(int(time.time() * 1000))[-12:]  # Last 12 digits of timestamp
+                serial_number = f"HB-{timestamp_serial}"
+                _logger.info(f"Camera in heartbeat mode, generated serial: {serial_number}")
+                return serial_number
+            else:
+                # Try to extract any numeric part from the response
+                import re
+                numbers = re.findall(r'\d+', lon_response)
+                if numbers:
+                    # Use the longest numeric sequence found
+                    serial_number = max(numbers, key=len)
+                    _logger.info(f"Extracted numeric serial from response: {serial_number}")
+                    return serial_number
+                else:
+                    _logger.warning(f"Invalid LON response format: '{lon_response}' (isdigit: {lon_response.isdigit() if lon_response else 'None'})")
+                    return None
+        except Exception as e:
+            _logger.error(f"Error extracting serial from LON: {str(e)}")
+            return None
+
+    def _check_all_stations_result(self, serial_number):
+        """Check result from all previous stations for a given serial number"""
+        try:
+            _logger.info(f"Checking all stations result for serial: {serial_number}")
+            
+            # Check VICI Vision results
+            vici_result = self._check_vici_vision_result(serial_number)
+            
+            # Check Ruhlamat Press results
+            ruhlamat_result = self._check_ruhlamat_result(serial_number)
+            
+            # Check Aumann Measurement results
+            aumann_result = self._check_aumann_result(serial_number)
+            
+            # Check Gauging results
+            gauging_result = self._check_gauging_result(serial_number)
+            
+            # Aggregate results
+            all_results = {
+                'vici_vision': vici_result,
+                'ruhlamat_press': ruhlamat_result,
+                'aumann_measurement': aumann_result,
+                'gauging': gauging_result
+            }
+            
+            # Determine final result - OK only if ALL stations are OK
+            final_result = 'ok' if all(result == 'ok' for result in all_results.values() if result is not None) else 'nok'
+            
+            _logger.info(f"All stations results: {all_results}")
+            _logger.info(f"Final result: {final_result}")
+            
+            return {
+                'final_result': final_result,
+                'station_results': all_results,
+                'serial_number': serial_number
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error checking all stations result: {str(e)}")
+            return {
+                'final_result': 'nok',
+                'station_results': {},
+                'serial_number': serial_number
+            }
+
+    def get_station_results_summary(self, serial_number):
+        """Get detailed summary of all station results for a serial number"""
+        try:
+            station_results = self._check_all_stations_result(serial_number)
+            
+            summary = {
+                'serial_number': serial_number,
+                'final_result': station_results.get('final_result', 'nok'),
+                'stations': []
+            }
+            
+            # Add detailed station information
+            for station_name, result in station_results.get('station_results', {}).items():
+                station_info = {
+                    'name': station_name.replace('_', ' ').title(),
+                    'result': result or 'Not Found',
+                    'status': 'ok' if result == 'ok' else 'nok' if result == 'nok' else 'unknown'
+                }
+                summary['stations'].append(station_info)
+            
+            return summary
+            
+        except Exception as e:
+            _logger.error(f"Error getting station results summary: {str(e)}")
+            return {
+                'serial_number': serial_number,
+                'final_result': 'nok',
+                'stations': []
+            }
+
+    def _check_vici_vision_result(self, serial_number):
+        """Check VICI Vision result for serial number"""
+        try:
+            vici_record = self.env['manufacturing.vici.vision'].search([
+                ('serial_number', '=', serial_number)
+            ], limit=1, order='test_date desc')
+            
+            if vici_record:
+                return vici_record.result
+            return None
+        except Exception as e:
+            _logger.error(f"Error checking VICI Vision result: {str(e)}")
+            return None
+
+    def _check_ruhlamat_result(self, serial_number):
+        """Check Ruhlamat Press result for serial number"""
+        try:
+            ruhlamat_record = self.env['manufacturing.ruhlamat.press'].search([
+                ('serial_number', '=', serial_number)
+            ], limit=1, order='test_date desc')
+            
+            if ruhlamat_record:
+                return ruhlamat_record.result
+            return None
+        except Exception as e:
+            _logger.error(f"Error checking Ruhlamat result: {str(e)}")
+            return None
+
+    def _check_aumann_result(self, serial_number):
+        """Check Aumann Measurement result for serial number"""
+        try:
+            aumann_record = self.env['manufacturing.aumann.measurement'].search([
+                ('serial_number', '=', serial_number)
+            ], limit=1, order='test_date desc')
+            
+            if aumann_record:
+                return aumann_record.result
+            return None
+        except Exception as e:
+            _logger.error(f"Error checking Aumann result: {str(e)}")
+            return None
+
+    def _check_gauging_result(self, serial_number):
+        """Check Gauging result for serial number"""
+        try:
+            gauging_record = self.env['manufacturing.gauging.measurement'].search([
+                ('serial_number', '=', serial_number)
+            ], limit=1, order='test_date desc')
+            
+            if gauging_record:
+                return gauging_record.result
+            return None
+        except Exception as e:
+            _logger.error(f"Error checking Gauging result: {str(e)}")
+            return None
+
+    def start_auto_monitoring(self):
+        """Start automatic monitoring for part presence and camera triggering"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+            
+        try:
+            _logger.info(f"Starting auto monitoring for {self.machine_name}")
+            
+            # Check for part presence
+            part_detected = self.check_part_presence()
+            
+            if part_detected:
+                # Part detected, trigger camera
+                return self.auto_trigger_camera()
+            else:
+                # No part present - check if we need to reset D1
+                if self.part_present:  # Part was present before, now removed
+                    _logger.info("Part removed, resetting PLC D1 to 0")
+                    self._reset_plc_result()
+                    self.part_present = False
+                    self.processing_part = False  # Reset processing flag
+                else:
+                    _logger.info("No part present, monitoring continues")
+                return True
+                
+        except Exception as e:
+            _logger.error(f"Auto monitoring error: {str(e)}")
+            return False
+
+    def manual_cylinder_forward_action(self):
+        """Manual cylinder forward for final station (D3=1)"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+            
+        try:
+            _logger.info(f"Manual cylinder forward for {self.machine_name}")
+            
+            # Write D3=1 to PLC (Cylinder Forward)
+            plc_success = self._write_plc_register(3, 1)  # D3=1 for forward
+            
+            if plc_success:
+                self.cylinder_forward = True
+                self.cylinder_reverse = False
+                self.manual_cylinder_forward = True
+                _logger.info("PLC D3 (Cylinder Forward) set to 1")
+                
+                # Pulse back to 0 after 1s
+                import time
+                time.sleep(1)
+                self._write_plc_register(3, 0)
+                _logger.info("PLC D3 (Cylinder Forward) reset to 0 after pulse")
+                # Reflect back in model state
+                self.cylinder_forward = False
+                self.manual_cylinder_forward = False
+                
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Cylinder Forward',
+                        'message': 'Cylinder forward pulse sent (D3: 1 -> 0)',
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
+            else:
+                _logger.error("Failed to write D3=1 to PLC")
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Cylinder Forward Failed',
+                        'message': 'Failed to write D3=1 to PLC',
+                        'type': 'danger',
+                        'sticky': True,
+                    }
+                }
+            
+        except Exception as e:
+            _logger.error(f"Cylinder forward error: {str(e)}")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Cylinder Forward Error',
+                    'message': f'Error: {str(e)}',
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def manual_cylinder_reverse_action(self):
+        """Manual cylinder reverse for final station (D4=1)"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+            
+        try:
+            _logger.info(f"Manual cylinder reverse for {self.machine_name}")
+            
+            # Write D4=1 to PLC (Cylinder Reverse)
+            plc_success = self._write_plc_register(4, 1)  # D4=1 for reverse
+            
+            if plc_success:
+                self.cylinder_reverse = True
+                self.cylinder_forward = False
+                self.manual_cylinder_reverse = True
+                _logger.info("PLC D4 (Cylinder Reverse) set to 1")
+                
+                # Pulse back to 0 after 1s
+                import time
+                time.sleep(1)
+                self._write_plc_register(4, 0)
+                _logger.info("PLC D4 (Cylinder Reverse) reset to 0 after pulse")
+                # Reflect back in model state
+                self.cylinder_reverse = False
+                self.manual_cylinder_reverse = False
+                
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Cylinder Reverse',
+                        'message': 'Cylinder reverse pulse sent (D4: 1 -> 0)',
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
+            else:
+                _logger.error("Failed to write D4=1 to PLC")
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Cylinder Reverse Failed',
+                        'message': 'Failed to write D4=1 to PLC',
+                        'type': 'danger',
+                        'sticky': True,
+                    }
+                }
+            
+        except Exception as e:
+            _logger.error(f"Cylinder reverse error: {str(e)}")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Cylinder Reverse Error',
+                    'message': f'Error: {str(e)}',
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def get_final_station_dashboard_data(self):
+        """Get dashboard data for final station"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {}
+            
+        try:
+            # Get today's statistics from measurement records
+            stats = self.env['manufacturing.final.station.measurement'].get_today_statistics(self.id)
+            
+            # Get recent measurements
+            recent_measurements = self.env['manufacturing.final.station.measurement'].get_recent_measurements(self.id, limit=5)
+            
+            return {
+                'station_name': self.machine_name,
+                'status': 'online' if self.plc_online else 'offline',
+                'operation_mode': self.operation_mode,
+                'plc_ip_address': self.plc_ip_address,
+                'camera_ip_address': self.camera_ip_address,
+                'statistics': {
+                    'total_parts': stats['total_measurements'],
+                    'ok_parts': stats['ok_measurements'],
+                    'nok_parts': stats['nok_measurements'],
+                    'pass_rate': stats['pass_rate']
+                },
+                'last_measurement': {
+                    'serial_number': self.last_serial_number,
+                    'capture_time': self.last_capture_time.isoformat() if self.last_capture_time else None,
+                    'result': self.last_result
+                },
+                'recent_measurements': recent_measurements
+            }
+            
+        except Exception as e:
+            _logger.error(f"Dashboard data error: {str(e)}")
+            return {}

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_vici_vision_tree" model="ir.ui.view">
+    <record id="view_vici_vision_list" model="ir.ui.view">
         <field name="name">vici.vision.list</field>
         <field name="model">manufacturing.vici.vision</field>
         <field name="arch" type="xml">

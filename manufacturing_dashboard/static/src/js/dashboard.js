@@ -287,7 +287,7 @@ export class ModernManufacturingDashboard extends Component {
             type: 'ir.actions.act_window',
             name: `${viewName} - ${machine.name}`,
             res_model: modelName,
-            view_mode: 'tree,form',
+            view_mode: 'list,form',
             views: [[false, 'list'], [false, 'form']],
             domain: [['machine_id', '=', machine.id]],
             context: {

@@ -37,3 +37,13 @@ env['manufacturing.vici.vision'].browse().import_vici_csv(machine_id=<ID>, filen
 - Duplicates prevented per `(machine_id, serial_number)`
 - `within_tolerance`: value in [nominal+low, nominal+high]
 - CSV encoding: utf-8-sig
+
+## Creditinals
+Postgres password: asd@admin
+
+login admin
+pass asd@admin
+
+
+
+

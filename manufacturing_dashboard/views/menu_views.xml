@@ -86,6 +86,12 @@
               parent="menu_stations"
               action="action_aumann_measurement"
               sequence="30"/>
+
+    <menuitem id="menu_final_station_measurements"
+              name="Final Station Measurements"
+              parent="menu_stations"
+              action="action_final_station_measurement"
+              sequence="50"/>
 <!--    -->
 <!--    &lt;!&ndash; Dashboard Menu &ndash;&gt;-->
 <!--    <menuitem id="menu_manufacturing_dashboard_main"-->
