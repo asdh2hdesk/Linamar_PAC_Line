@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Sample Final Station Configuration -->
+        <record id="machine_config_final_station_01" model="manufacturing.machine.config">
+            <field name="machine_name">Final Station 01</field>
+            <field name="machine_type">final_station</field>
+            <field name="csv_file_path">N/A - Camera Data</field>
+            <field name="is_active">True</field>
+            <field name="plc_ip_address">192.168.0.1</field>
+            <field name="plc_port">502</field>
+            <field name="camera_ip_address">192.168.0.100</field>
+            <field name="camera_port">9004</field>
+            <field name="operation_mode">auto</field>
+            <field name="status">stopped</field>
+        </record>
+    </data>
+</odoo>

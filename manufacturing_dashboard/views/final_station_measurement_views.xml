@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Final Station Measurement Tree View -->
+    <record id="view_final_station_measurement_list" model="ir.ui.view">
+        <field name="name">final.station.measurement.list</field>
+        <field name="model">manufacturing.final.station.measurement</field>
+        <field name="arch" type="xml">
+            <list decoration-success="result=='ok'" decoration-danger="result=='nok'" decoration-warning="result=='pending'">
+                <field name="machine_id"/>
+                <field name="serial_number"/>
+                <field name="capture_date"/>
+                <field name="result" widget="badge"/>
+                <field name="operation_mode"/>
+                <field name="trigger_type"/>
+                <field name="pass_rate" widget="percentage"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Final Station Measurement Form View -->
+    <record id="view_final_station_measurement_form" model="ir.ui.view">
+        <field name="name">final.station.measurement.form</field>
+        <field name="model">manufacturing.final.station.measurement</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_mark_ok" string="Mark OK" type="object" class="btn-success" icon="fa-check"/>
+                    <button name="action_mark_nok" string="Mark NOK" type="object" class="btn-danger" icon="fa-times"/>
+                    <button name="action_mark_pending" string="Mark Pending" type="object" class="btn-warning" icon="fa-clock-o"/>
+                    <field name="result" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="serial_number"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="machine_id"/>
+                            <field name="capture_date"/>
+                            <field name="result"/>
+                        </group>
+                        <group>
+                            <field name="operation_mode"/>
+                            <field name="trigger_type"/>
+                            <field name="pass_rate"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Raw Data" name="raw_data">
+                            <field name="raw_data" widget="text"/>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" widget="text"/>
+                        </page>
+                        <page string="Quality Details" name="quality">
+                            <group>
+                                <group>
+                                    <field name="is_quality_issue"/>
+                                    <field name="rejection_reason"/>
+                                </group>
+                                <group>
+                                    <field name="created_date" readonly="1"/>
+                                    <field name="modified_date" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Final Station Measurement Search View -->
+    <record id="view_final_station_measurement_search" model="ir.ui.view">
+        <field name="name">final.station.measurement.search</field>
+        <field name="model">manufacturing.final.station.measurement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="serial_number"/>
+                <field name="machine_id"/>
+                <separator/>
+                <filter name="today" string="Today" 
+                        domain="[('capture_date','&gt;=',datetime.datetime.combine(context_today(),datetime.time(0,0,0))),
+                                 ('capture_date','&lt;=',datetime.datetime.combine(context_today(),datetime.time(23,59,59)))]"/>
+                <filter name="this_week" string="This Week"
+                        domain="[('capture_date','&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                                 ('capture_date','&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="ok" string="OK" domain="[('result','=','ok')]"/>
+                <filter name="nok" string="NOK" domain="[('result','=','nok')]"/>
+                <filter name="pending" string="Pending" domain="[('result','=','pending')]"/>
+                <filter name="auto" string="Auto Mode" domain="[('operation_mode','=','auto')]"/>
+                <filter name="manual" string="Manual Mode" domain="[('operation_mode','=','manual')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_machine" string="Machine" context="{'group_by':'machine_id'}"/>
+                    <filter name="group_by_result" string="Result" context="{'group_by':'result'}"/>
+                    <filter name="group_by_date" string="Capture Date" context="{'group_by':'capture_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Final Station Measurement Action -->
+    <record id="action_final_station_measurement" model="ir.actions.act_window">
+        <field name="name">Final Station Measurements</field>
+        <field name="res_model">manufacturing.final.station.measurement</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_final_station_measurement_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Final Station Measurement!
+            </p>
+            <p>
+                Final station measurements are automatically created when cameras are triggered.
+            </p>
+        </field>
+    </record>
+
+</odoo>
