@@ -970,6 +970,13 @@ class MachineConfig(models.Model):
                 _logger.debug(f"Processing row {row_count} in {filename}")
                 
                 try:
+                    # Normalize row keys/values (trim and collapse spaces)
+                    import re as _re
+                    def _norm_key(k):
+                        return _re.sub(r"\s+", " ", (k or '').strip())
+                    def _norm_val(v):
+                        return v.strip() if isinstance(v, str) else v
+                    row = { _norm_key(k): _norm_val(v) for k, v in row.items() }
                     # Extract serial number from filename or row data
                     serial_number = self._extract_serial_number_from_filename(csv_path, row)
                     if not serial_number:
@@ -1022,16 +1029,21 @@ class MachineConfig(models.Model):
                         'raw_data': str(row)[:2000],  # Limit raw data size
                     }
 
-                    # Map all measurement fields from CSV to model fields
+                    # Map all measurement fields from CSV to model fields (with normalized keys)
                     field_mapping = self._get_aumann_field_mapping()
+                    norm_mapping = { _norm_key(k): v for k, v in field_mapping.items() }
                     mapped_fields = 0
-                    for csv_field, model_field in field_mapping.items():
-                        if csv_field in row and row[csv_field]:
-                            try:
-                                create_vals[model_field] = float(row[csv_field])
-                                mapped_fields += 1
-                            except (ValueError, TypeError):
-                                _logger.warning(f"Could not parse {csv_field} value: {row[csv_field]} in {filename}")
+                    for csv_key, raw_val in row.items():
+                        model_field = norm_mapping.get(_norm_key(csv_key))
+                        if not model_field:
+                            continue
+                        if raw_val in (None, ''):
+                            continue
+                        try:
+                            create_vals[model_field] = float(raw_val)
+                            mapped_fields += 1
+                        except (ValueError, TypeError):
+                            _logger.warning(f"Could not parse {csv_key} value: {raw_val} in {filename}")
 
                     _logger.debug(f"Mapped {mapped_fields} measurement fields for {serial_number}")
 
@@ -1257,6 +1269,66 @@ class MachineConfig(models.Model):
             'Runout Journal A3 A1-B1 - CTF 4': 'runout_journal_a3_a1_b1',
             'Runout Journal B1 A1-A3 - CTF 10': 'runout_journal_b1_a1_a3',
             'Runout Journal B2 A1-A3 - CTF 10': 'runout_journal_b2_a1_a3',
+            
+            # Profile Error Measurements (Zones)
+            'Profile Error Lobe E11  Zone 1 - CTF 12': 'profile_error_lobe_e11_zone_1',
+            'Profile Error Lobe E11  Zone 2 - CTF 13': 'profile_error_lobe_e11_zone_2',
+            'Profile Error Lobe E11 Zone 3 - CTF 13': 'profile_error_lobe_e11_zone_3',
+            'Profile Error Lobe E11 Zone 4 - CTF 12': 'profile_error_lobe_e11_zone_4',
+            'Profile Error Lobe E12  Zone 1 - CTF 12': 'profile_error_lobe_e12_zone_1',
+            'Profile Error Lobe E12  Zone 2 - CTF 13': 'profile_error_lobe_e12_zone_2',
+            'Profile Error Lobe E12 Zone 3 - CTF 13': 'profile_error_lobe_e12_zone_3',
+            'Profile Error Lobe E12 Zone 4 - CTF 12': 'profile_error_lobe_e12_zone_4',
+            'Profile Error Lobe E21  Zone 1 - CTF 12': 'profile_error_lobe_e21_zone_1',
+            'Profile Error Lobe E21  Zone 2 - CTF 13': 'profile_error_lobe_e21_zone_2',
+            'Profile Error Lobe E21 Zone 3 - CTF 13': 'profile_error_lobe_e21_zone_3',
+            'Profile Error Lobe E21 Zone 4 - CTF 12': 'profile_error_lobe_e21_zone_4',
+            'Profile Error Lobe E22  Zone 1 - CTF 12': 'profile_error_lobe_e22_zone_1',
+            'Profile Error Lobe E22  Zone 2 - CTF 13': 'profile_error_lobe_e22_zone_2',
+            'Profile Error Lobe E22 Zone 3 - CTF 13': 'profile_error_lobe_e22_zone_3',
+            'Profile Error Lobe E22 Zone 4 - CTF 12': 'profile_error_lobe_e22_zone_4',
+            'Profile Error Lobe E31  Zone 1 - CTF 12': 'profile_error_lobe_e31_zone_1',
+            'Profile Error Lobe E31  Zone 2 - CTF 13': 'profile_error_lobe_e31_zone_2',
+            'Profile Error Lobe E31 Zone 3 - CTF 13': 'profile_error_lobe_e31_zone_3',
+            'Profile Error Lobe E31 Zone 4 - CTF 12': 'profile_error_lobe_e31_zone_4',
+            'Profile Error Lobe E32  Zone 1 - CTF 12': 'profile_error_lobe_e32_zone_1',
+            'Profile Error Lobe E32  Zone 2 - CTF 13': 'profile_error_lobe_e32_zone_2',
+            'Profile Error Lobe E32 Zone 3 - CTF 13': 'profile_error_lobe_e32_zone_3',
+            'Profile Error Lobe E32 Zone 4 - CTF 12': 'profile_error_lobe_e32_zone_4',
+
+            # Velocity Error (1°) Zones
+            'Velocity Error Lobe E11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_1',
+            'Velocity Error Lobe E11 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_2',
+            'Velocity Error Lobe E11 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_3',
+            'Velocity Error Lobe E11 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_4',
+            'Velocity Error Lobe E12 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_1',
+            'Velocity Error Lobe E12 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_2',
+            'Velocity Error Lobe E12 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_3',
+            'Velocity Error Lobe E12 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_4',
+            'Velocity Error Lobe E21 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_1',
+            'Velocity Error Lobe E21 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_2',
+            'Velocity Error Lobe E21 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_3',
+            'Velocity Error Lobe E21 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_4',
+            'Velocity Error Lobe E22 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_1',
+            'Velocity Error Lobe E22 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_2',
+            'Velocity Error Lobe E22 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_3',
+            'Velocity Error Lobe E22 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_4',
+            'Velocity Error Lobe E31 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_1',
+            'Velocity Error Lobe E31 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_2',
+            'Velocity Error Lobe E31 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_3',
+            'Velocity Error Lobe E31 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_4',
+            'Velocity Error Lobe E32 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_1',
+            'Velocity Error Lobe E32 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_2',
+            'Velocity Error Lobe E32 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_3',
+            'Velocity Error Lobe E32 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_4',
+
+            # Widths
+            'Width Lobe E11 - CTF 207': 'width_lobe_e11',
+            'Width Lobe E12 - CTF 207': 'width_lobe_e12',
+            'Width Lobe E21 - CTF 207': 'width_lobe_e21',
+            'Width Lobe E22 - CTF 207': 'width_lobe_e22',
+            'Width Lobe E31 - CTF 207': 'width_lobe_e31',
+            'Width Lobe E32 - CTF 207': 'width_lobe_e32',
         }
 
     def _determine_aumann_result(self, create_vals):

@@ -38,6 +38,7 @@ Features:
         'views/final_station_measurement_views.xml',
         'views/dashboard_views.xml',
         'views/menu_views.xml',
+        'views/settings_views.xml',
         'data/cron_data.xml',
     ],
     'assets': {

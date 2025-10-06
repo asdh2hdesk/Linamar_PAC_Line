@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api
 import logging
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -32,8 +33,12 @@ class AumannMeasurement(models.Model):
     wheel_angle_left_120 = fields.Float('Wheel Angle Left 120 (deg)', digits=(10, 6))
     wheel_angle_left_150 = fields.Float('Wheel Angle Left 150 (deg)', digits=(10, 6))
     wheel_angle_left_180 = fields.Float('Wheel Angle Left 180 (deg)', digits=(10, 6))
+    wheel_angle_left_30 = fields.Float('Wheel Angle Left 30 (deg)', digits=(10, 6))
     wheel_angle_right_120 = fields.Float('Wheel Angle Right 120 (deg)', digits=(10, 6))
     wheel_angle_right_150 = fields.Float('Wheel Angle Right 150 (deg)', digits=(10, 6))
+    wheel_angle_right_90 = fields.Float('Wheel Angle Right 90 (deg)', digits=(10, 6))
+    wheel_angle_right_60 = fields.Float('Wheel Angle Right 60 (deg)', digits=(10, 6))
+    wheel_angle_right_30 = fields.Float('Wheel Angle Right 30 (deg)', digits=(10, 6))
     wheel_angle_to_reference = fields.Float('Wheel Angle to Reference (deg)', digits=(10, 6))
 
     # Angle Lobe Measurements
@@ -51,6 +56,7 @@ class AumannMeasurement(models.Model):
     base_circle_radius_lobe_e22 = fields.Float('Base Circle Radius Lobe E22 (mm)', digits=(10, 6))
     base_circle_radius_lobe_e31 = fields.Float('Base Circle Radius Lobe E31 (mm)', digits=(10, 6))
     base_circle_radius_lobe_e32 = fields.Float('Base Circle Radius Lobe E32 (mm)', digits=(10, 6))
+    base_circle_radius_pump_lobe = fields.Float('Base Circle Radius Pump Lobe (mm)', digits=(10, 6))
 
     # Base Circle Runout Measurements
     base_circle_runout_lobe_e11_adj = fields.Float('Base Circle Runout Lobe E11 adj (mm)', digits=(10, 6))
@@ -95,6 +101,7 @@ class AumannMeasurement(models.Model):
     distance_lobe_e22 = fields.Float('Distance Lobe E22 (mm)', digits=(10, 6))
     distance_lobe_e31 = fields.Float('Distance Lobe E31 (mm)', digits=(10, 6))
     distance_lobe_e32 = fields.Float('Distance Lobe E32 (mm)', digits=(10, 6))
+    distance_pump_lobe = fields.Float('Distance Pump Lobe (mm)', digits=(10, 6))
     distance_rear_end = fields.Float('Distance Rear End (mm)', digits=(10, 6))
     distance_step_length_front_face = fields.Float('Distance Step Length Front Face (mm)', digits=(10, 6))
     distance_trigger_length = fields.Float('Distance Trigger Length (mm)', digits=(10, 6))
@@ -148,6 +155,10 @@ class AumannMeasurement(models.Model):
     profile_error_lobe_e32_zone_2 = fields.Float('Profile Error Lobe E32 Zone 2 (mm)', digits=(10, 6))
     profile_error_lobe_e32_zone_3 = fields.Float('Profile Error Lobe E32 Zone 3 (mm)', digits=(10, 6))
     profile_error_lobe_e32_zone_4 = fields.Float('Profile Error Lobe E32 Zone 4 (mm)', digits=(10, 6))
+
+    # Profile Error Measurements (Pump Lobe)
+    profile_error_pumplobe_rising_side = fields.Float('Profile Error Pump Lobe Rising Side (mm)', digits=(10, 6))
+    profile_error_pumplobe_closing_side = fields.Float('Profile Error Pump Lobe Closing Side (mm)', digits=(10, 6))
 
     # Rear End Length
     rear_end_length = fields.Float('Rear End Length (mm)', digits=(10, 6))
@@ -214,6 +225,10 @@ class AumannMeasurement(models.Model):
     velocity_error_lobe_e32_zone_3 = fields.Float('Velocity Error Lobe E32 Zone 3 (deg)', digits=(10, 6))
     velocity_error_lobe_e32_zone_4 = fields.Float('Velocity Error Lobe E32 Zone 4 (deg)', digits=(10, 6))
 
+    # Velocity Error Measurements (Pump Lobe)
+    velocity_error_pumplobe_1_rising_side = fields.Float('Velocity Error Pump Lobe 1 Rising Side (deg)', digits=(10, 6))
+    velocity_error_pumplobe_1_closing_side = fields.Float('Velocity Error Pump Lobe 1 Closing Side (deg)', digits=(10, 6))
+
     # Width Lobe Measurements
     width_lobe_e11 = fields.Float('Width Lobe E11 (mm)', digits=(10, 6))
     width_lobe_e12 = fields.Float('Width Lobe E12 (mm)', digits=(10, 6))
@@ -221,6 +236,32 @@ class AumannMeasurement(models.Model):
     width_lobe_e22 = fields.Float('Width Lobe E22 (mm)', digits=(10, 6))
     width_lobe_e31 = fields.Float('Width Lobe E31 (mm)', digits=(10, 6))
     width_lobe_e32 = fields.Float('Width Lobe E32 (mm)', digits=(10, 6))
+    width_pump_lobe = fields.Float('Width Pump Lobe (mm)', digits=(10, 6))
+
+    # Straightness Journal Measurements
+    straightness_journal_a1 = fields.Float('Straightness Journal A1 (mm)', digits=(10, 6))
+    straightness_journal_a2 = fields.Float('Straightness Journal A2 (mm)', digits=(10, 6))
+    straightness_journal_a3 = fields.Float('Straightness Journal A3 (mm)', digits=(10, 6))
+    straightness_journal_b1 = fields.Float('Straightness Journal B1 (mm)', digits=(10, 6))
+    straightness_journal_b2 = fields.Float('Straightness Journal B2 (mm)', digits=(10, 6))
+
+    # Parallelism Measurements
+    parallelism_lobe_e11_a1_b1 = fields.Float('Parallelism Lobe E11 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_e12_a1_b1 = fields.Float('Parallelism Lobe E12 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_e21_a1_b1 = fields.Float('Parallelism Lobe E21 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_e22_a1_b1 = fields.Float('Parallelism Lobe E22 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_e31_a1_b1 = fields.Float('Parallelism Lobe E31 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_e32_a1_b1 = fields.Float('Parallelism Lobe E32 A1-B1 (mm)', digits=(10, 6))
+    parallelism_pump_lobe_a1_b1 = fields.Float('Parallelism Pump Lobe A1-B1 (mm)', digits=(10, 6))
+
+    # M PSA Lobing Notation
+    m_psa_lobing_notation_lobe_e11 = fields.Float('M PSA Lobing Notation Lobe E11', digits=(10, 6))
+    m_psa_lobing_notation_lobe_e12 = fields.Float('M PSA Lobing Notation Lobe E12', digits=(10, 6))
+    m_psa_lobing_notation_lobe_e21 = fields.Float('M PSA Lobing Notation Lobe E21', digits=(10, 6))
+    m_psa_lobing_notation_lobe_e22 = fields.Float('M PSA Lobing Notation Lobe E22', digits=(10, 6))
+    m_psa_lobing_notation_lobe_e31 = fields.Float('M PSA Lobing Notation Lobe E31', digits=(10, 6))
+    m_psa_lobing_notation_lobe_e32 = fields.Float('M PSA Lobing Notation Lobe E32', digits=(10, 6))
+    m_psa_lobing_notation_pumplobe = fields.Float('M PSA Lobing Notation Pump Lobe', digits=(10, 6))
 
     result = fields.Selection([
         ('pass', 'Pass'),
@@ -229,6 +270,9 @@ class AumannMeasurement(models.Model):
 
     rejection_reason = fields.Text('Rejection Reason')
     raw_data = fields.Text('Raw Data')
+
+    # Rendered tolerance table (read-only)
+    tolerance_table_html = fields.Html(string='Tolerance Summary', compute='_compute_tolerance_table', sanitize=False)
 
     # Quality indicators
     critical_measurements_ok = fields.Boolean('Critical Measurements OK', compute='_compute_critical_measurements')
@@ -287,13 +331,145 @@ class AumannMeasurement(models.Model):
             else:
                 record.dimensional_accuracy = 'poor'
 
+    # Tolerance handling by serial prefix
+    def _serial_prefix(self):
+        return str(self.serial_number or '')[:3]
+
+    def _normalize_tolerance_key(self, key):
+        """Normalize external JSON keys to model field names.
+        - Lowercase
+        - Strip trailing `_ctf` or `_ctf_###`
+        - Map A-lobe identifiers to existing E-lobe fields (intake uses same slots)
+        - Map known alias prefixes
+        """
+        k = str(key or '').strip().lower()
+        # Strip trailing _ctf or _ctf_123
+        if k.endswith('_ctf'):
+            k = k[:-4]
+        # Remove `_ctf_<num>` suffix
+        if '_ctf_' in k:
+            parts = k.split('_ctf_')
+            k = parts[0]
+
+        # Replace aXX with eXX for lobe identifiers used in field names
+        for ident in ['11', '12', '21', '22', '31', '32']:
+            k = k.replace(f'lobe_a{ident}', f'lobe_e{ident}')
+
+        # Known alias mappings
+        aliases = {
+            'concentricity_io_m_step_diameter': 'concentricity_io_step_diameter_32_5',
+            'concentricity_result_step_diameter': 'concentricity_result_step_diameter_32_5',
+            'concentricity_io_m_front_end': 'concentricity_io_front_end_dia_39',
+            'concentricity_result_front_end': 'concentricity_result_front_end_dia_39',
+            'concentricity_io_m_front_end_major': 'concentricity_io_front_end_major_dia_40',
+            'concentricity_io_m_front_end_major_dia': 'concentricity_io_front_end_major_dia_40',
+            'concentricity_result_front_end_major': 'concentricity_result_front_end_major_dia_40',
+            'concentricity_result_front_end_major_dia': 'concentricity_result_front_end_major_dia_40',
+            'face_total_runout_of_bearing_face_0': 'face_total_runout_bearing_face_0',
+            'face_total_runout_of_bearing_face_25': 'face_total_runout_bearing_face_25',
+            'trigger_wheel_diameter_ctf': 'trigger_wheel_diameter',
+            'trigger_wheel_width_ctf': 'trigger_wheel_width',
+        }
+        if k in aliases:
+            k = aliases[k]
+        return k
+
+    def _get_tolerances_for_serial(self):
+        """Fetch tolerances for current serial prefix from system parameters as JSON.
+        Prefix to parameter key mapping:
+          980 → manufacturing.aumann.intake_tolerances_json
+          480 → manufacturing.aumann.exhaust_tolerances_json
+        Expected format: {"field_name": [lower_limit, upper_limit], ...}
+        """
+        prefix = self._serial_prefix()
+        key_map = {
+            '980': 'manufacturing.aumann.intake_tolerances_json',
+            '480': 'manufacturing.aumann.exhaust_tolerances_json',
+        }
+        param_key = key_map.get(prefix)
+        if not param_key:
+            return {}
+        raw = self.env['ir.config_parameter'].sudo().get_param(param_key) or ''
+        try:
+            data = json.loads(raw) if raw else {}
+            # Normalize keys to strings and values to (lower, upper)
+            normalized = {}
+            for k, v in (data or {}).items():
+                if isinstance(v, (list, tuple)) and len(v) == 2:
+                    try:
+                        field_name = self._normalize_tolerance_key(k)
+                        normalized[str(field_name)] = (float(v[0]), float(v[1]))
+                    except Exception:
+                        continue
+            return normalized
+        except Exception as e:
+            _logger.warning(f"Invalid tolerance JSON for prefix {prefix}: {e}")
+            return {}
+
+    def _evaluate_against_tolerances(self, tolerance_map):
+        """Check all present fields against provided tolerances.
+        Returns tuple: (result_str, reason_str, total, passed, failed)
+        """
+        failures = []
+        total = 0
+        passed = 0
+        for field_name, (lower_limit, upper_limit) in (tolerance_map or {}).items():
+            # Skip unknown fields to avoid AttributeError
+            if not hasattr(self, field_name):
+                continue
+            value = getattr(self, field_name)
+            if value is None:
+                continue
+            total += 1
+            if lower_limit <= value <= upper_limit:
+                passed += 1
+            else:
+                label = self._fields.get(field_name).string if field_name in self._fields else field_name
+                failures.append(f"{label} ({field_name}) = {value} not in [{lower_limit}, {upper_limit}]")
+
+        failed = max(total - passed, 0)
+        if failures:
+            return 'reject', '; '.join(failures)[:2000], total, passed, failed
+        return 'pass', '', total, passed, failed
+
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
         for record in records:
+            # Auto-evaluate for supported serial prefixes when tolerances exist
+            tol = record._get_tolerances_for_serial()
+            if tol:
+                result, reason, total, passed, failed = record._evaluate_against_tolerances(tol)
+                record.write({
+                    'result': result,
+                    'rejection_reason': reason,
+                    'total_measurements': total,
+                    'measurements_passed': passed,
+                })
             # Update or create part quality record
             self._update_part_quality(record)
         return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        for record in self:
+            tol = record._get_tolerances_for_serial()
+            if tol:
+                result, reason, total, passed, failed = record._evaluate_against_tolerances(tol)
+                updates = {}
+                if record.result != result:
+                    updates['result'] = result
+                if (record.rejection_reason or '') != (reason or ''):
+                    updates['rejection_reason'] = reason
+                if record.total_measurements != total:
+                    updates['total_measurements'] = total
+                if record.measurements_passed != passed:
+                    updates['measurements_passed'] = passed
+                if updates:
+                    super(AumannMeasurement, record).write(updates)
+            # Keep part quality in sync
+            self._update_part_quality(record)
+        return res
 
     def _update_part_quality(self, record):
         """Update the corresponding part quality record"""
@@ -308,3 +484,32 @@ class AumannMeasurement(models.Model):
             })
 
         part_quality.aumann_result = record.result
+
+    def _compute_tolerance_table(self):
+        for record in self:
+            tol = record._get_tolerances_for_serial()
+            if not tol:
+                record.tolerance_table_html = '<div class="text-muted">No tolerances configured for this serial prefix.</div>'
+                continue
+            # Build HTML table
+            rows = []
+            header = (
+                '<table class="o_table table table-sm table-striped">'
+                '<thead><tr>'
+                '<th>Field</th><th>Label</th><th>LTL</th><th>UTL</th><th>Actual</th><th>Result</th>'
+                '</tr></thead><tbody>'
+            )
+            for field_name, (ltl, utl) in tol.items():
+                if not hasattr(record, field_name):
+                    continue
+                value = getattr(record, field_name)
+                if value is None:
+                    continue
+                label = record._fields.get(field_name).string if field_name in record._fields else field_name
+                ok = (ltl <= value <= utl)
+                result_badge = '<span class="badge text-bg-success">OK</span>' if ok else '<span class="badge text-bg-danger">NOK</span>'
+                rows.append(
+                    f"<tr><td>{field_name}</td><td>{label}</td><td>{ltl}</td><td>{utl}</td><td>{value}</td><td>{result_badge}</td></tr>"
+                )
+            footer = '</tbody></table>'
+            record.tolerance_table_html = header + ''.join(rows) + footer
