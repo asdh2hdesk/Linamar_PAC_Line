@@ -18,6 +18,10 @@
               </group>
             </group>
           </sheet>
+          <footer>
+            <button name="execute" type="object" string="Save" class="btn btn-primary oe_highlight" groups="base.group_system"/>
+            <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+          </footer>
         </form>
       </field>
     </record>
@@ -28,7 +32,6 @@
       <field name="view_mode">form</field>
       <field name="view_id" ref="view_manufacturing_dashboard_settings"/>
       <field name="target">new</field>
-      <field name="context">{"default_aumann_intake_tolerances_json": "{}", "default_aumann_exhaust_tolerances_json": "{}"}</field>
     </record>
     <menuitem id="menu_aumann_tolerances" name="Aumann Tolerances" parent="menu_configuration" action="manufacturing_dashboard_settings_action" sequence="30"/>
   </data>
