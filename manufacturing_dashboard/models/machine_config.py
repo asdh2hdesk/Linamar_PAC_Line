@@ -67,6 +67,15 @@ class MachineConfig(models.Model):
     cylinder_forward = fields.Boolean('Cylinder Forward', readonly=True)
     cylinder_reverse = fields.Boolean('Cylinder Reverse', readonly=True)
     processing_part = fields.Boolean('Processing Part', default=False, help='Flag to prevent multiple triggers')
+    
+    # Dynamic final station fields
+    auto_cycle_home = fields.Boolean('Auto Cycle Home', default=True, help='Auto cycle in home condition for next part')
+    plc_ready_condition = fields.Boolean('PLC Ready Condition', compute='_compute_plc_ready', store=True)
+    all_stations_passing = fields.Boolean('All Stations Passing', compute='_compute_all_stations_status', store=True)
+    dashboard_data_available = fields.Boolean('Dashboard Data Available', compute='_compute_dashboard_data_status', store=True)
+    auto_monitoring_active = fields.Boolean('Auto Monitoring Active', default=False)
+    last_part_processed = fields.Datetime('Last Part Processed')
+    cycle_count = fields.Integer('Cycle Count', default=0)
 
     # Final Station measurement fields
     last_serial_number = fields.Char('Last Serial Number')
@@ -168,6 +177,55 @@ class MachineConfig(models.Model):
                     record.plc_online = False
             else:
                 record.plc_online = False
+
+    @api.depends('plc_online', 'auto_cycle_home', 'processing_part')
+    def _compute_plc_ready(self):
+        """Compute PLC ready condition for dynamic operation"""
+        for record in self:
+            if record.machine_type != 'final_station':
+                record.plc_ready_condition = False
+                continue
+                
+            # PLC is ready when: online, auto cycle home enabled, and not processing a part
+            record.plc_ready_condition = (
+                record.plc_online and 
+                record.auto_cycle_home and 
+                not record.processing_part
+            )
+
+    @api.depends('measurement_ids', 'measurement_ids.result')
+    def _compute_all_stations_status(self):
+        """Compute if all stations are passing (green status)"""
+        for record in self:
+            if record.machine_type != 'final_station':
+                record.all_stations_passing = False
+                continue
+                
+            # Get recent measurements (last 10)
+            recent_measurements = record.measurement_ids.sorted('capture_date', reverse=True)[:10]
+            
+            if not recent_measurements:
+                record.all_stations_passing = False
+                continue
+                
+            # Check if all recent measurements are OK
+            all_ok = all(m.result == 'ok' for m in recent_measurements)
+            record.all_stations_passing = all_ok
+
+    @api.depends('measurement_ids', 'last_capture_time')
+    def _compute_dashboard_data_status(self):
+        """Compute if dashboard data is available and up-to-date"""
+        for record in self:
+            if record.machine_type != 'final_station':
+                record.dashboard_data_available = False
+                continue
+                
+            # Dashboard data is available if we have recent measurements
+            if record.last_capture_time:
+                time_diff = (fields.Datetime.now() - record.last_capture_time).total_seconds()
+                record.dashboard_data_available = time_diff < 300  # 5 minutes
+            else:
+                record.dashboard_data_available = False
 
     @api.depends('machine_type')
     def _compute_daily_stats(self):
@@ -3230,3 +3288,284 @@ class MachineConfig(models.Model):
         except Exception as e:
             _logger.error(f"Dashboard data error: {str(e)}")
             return {}
+
+    def start_dynamic_final_station(self):
+        """Start dynamic final station with auto monitoring"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {'success': False, 'message': 'Not a final station'}
+            
+        try:
+            _logger.info(f"Starting dynamic final station: {self.machine_name}")
+            
+            # Enable auto monitoring
+            self.auto_monitoring_active = True
+            self.auto_cycle_home = True
+            
+            # Reset cycle count
+            self.cycle_count = 0
+            
+            # Start the monitoring loop
+            self._start_auto_monitoring_loop()
+            
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Dynamic Final Station Started',
+                    'message': f'Dynamic monitoring started for {self.machine_name}',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error starting dynamic final station: {str(e)}")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Dynamic Final Station Error',
+                    'message': f'Error: {str(e)}',
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def _start_auto_monitoring_loop(self):
+        """Start the auto monitoring loop for dynamic operation"""
+        try:
+            _logger.info(f"Starting auto monitoring loop for {self.machine_name}")
+            
+            # Check PLC ready condition
+            if not self.plc_ready_condition:
+                _logger.warning(f"PLC not ready for {self.machine_name}")
+                return False
+            
+            # Monitor for part presence
+            part_detected = self._monitor_part_presence()
+            
+            if part_detected:
+                _logger.info(f"Part detected for {self.machine_name}, starting auto cycle")
+                self._execute_auto_cycle()
+            
+            return True
+            
+        except Exception as e:
+            _logger.error(f"Auto monitoring loop error: {str(e)}")
+            return False
+
+    def _monitor_part_presence(self):
+        """Monitor for part presence using PLC sensor"""
+        try:
+            # Read PLC D0 register for part presence
+            part_present = self._read_plc_sensor()
+            
+            if part_present and not self.processing_part:
+                _logger.info(f"Part presence detected for {self.machine_name}")
+                self.part_present = True
+                return True
+            else:
+                self.part_present = False
+                return False
+                
+        except Exception as e:
+            _logger.error(f"Error monitoring part presence: {str(e)}")
+            return False
+
+    def _execute_auto_cycle(self):
+        """Execute the complete auto cycle for dynamic final station"""
+        try:
+            _logger.info(f"Executing auto cycle for {self.machine_name}")
+            
+            # Set processing flag
+            self.processing_part = True
+            
+            # Step 1: Trigger camera and get QR code
+            camera_data = self._trigger_camera_and_get_data()
+            
+            if not camera_data or not camera_data.get('serial_number'):
+                _logger.error("No camera data or serial number received")
+                self.processing_part = False
+                return False
+            
+            serial_number = camera_data.get('serial_number')
+            _logger.info(f"Processing part: {serial_number}")
+            
+            # Step 2: Check all stations results
+            station_results = self._check_all_stations_result(serial_number)
+            final_result = station_results.get('final_result', 'nok')
+            
+            # Step 3: Create measurement record
+            measurement = self.env['manufacturing.final.station.measurement'].create_measurement_record(
+                machine_id=self.id,
+                serial_number=serial_number,
+                result=final_result,
+                operation_mode='auto',
+                trigger_type='sensor',
+                raw_data=camera_data.get('raw_data', f"Auto cycle at {datetime.now().isoformat()}")
+            )
+            
+            # Step 4: Update machine status
+            self.last_serial_number = serial_number
+            self.last_capture_time = datetime.now()
+            self.last_result = final_result
+            self.last_part_processed = datetime.now()
+            self.cycle_count += 1
+            
+            # Step 5: Show results on dashboard
+            self._update_dashboard_results(station_results)
+            
+            # Step 6: Reset for next part
+            self._reset_for_next_part()
+            
+            _logger.info(f"Auto cycle completed for {serial_number} - Result: {final_result}")
+            return True
+            
+        except Exception as e:
+            _logger.error(f"Error executing auto cycle: {str(e)}")
+            self.processing_part = False
+            return False
+
+    def _update_dashboard_results(self, station_results):
+        """Update dashboard with all stations results (green status)"""
+        try:
+            _logger.info(f"Updating dashboard results for {self.machine_name}")
+            
+            # Update the all_stations_passing field
+            self.all_stations_passing = station_results.get('all_passing', False)
+            
+            # Update dashboard data availability
+            self.dashboard_data_available = True
+            
+            # Log the results
+            for station, result in station_results.get('station_results', {}).items():
+                status = "✅ PASS" if result == 'ok' else "❌ FAIL"
+                _logger.info(f"Station {station}: {status}")
+            
+            return True
+            
+        except Exception as e:
+            _logger.error(f"Error updating dashboard results: {str(e)}")
+            return False
+
+    def _reset_for_next_part(self):
+        """Reset final station for next part processing"""
+        try:
+            _logger.info(f"Resetting {self.machine_name} for next part")
+            
+            # Reset processing flag
+            self.processing_part = False
+            
+            # Reset part presence
+            self.part_present = False
+            
+            # Reset camera trigger
+            self.camera_triggered = False
+            
+            # Ensure auto cycle home is enabled
+            self.auto_cycle_home = True
+            
+            _logger.info(f"{self.machine_name} ready for next part")
+            return True
+            
+        except Exception as e:
+            _logger.error(f"Error resetting for next part: {str(e)}")
+            return False
+
+    def get_dynamic_dashboard_data(self):
+        """Get enhanced dashboard data for dynamic final station"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {}
+            
+        try:
+            # Get basic dashboard data
+            basic_data = self.get_final_station_dashboard_data()
+            
+            # Add dynamic status information
+            dynamic_data = {
+                'plc_ready_condition': self.plc_ready_condition,
+                'auto_cycle_home': self.auto_cycle_home,
+                'all_stations_passing': self.all_stations_passing,
+                'dashboard_data_available': self.dashboard_data_available,
+                'auto_monitoring_active': self.auto_monitoring_active,
+                'cycle_count': self.cycle_count,
+                'last_part_processed': self.last_part_processed.isoformat() if self.last_part_processed else None,
+                'processing_part': self.processing_part,
+                'part_present': self.part_present,
+                'camera_triggered': self.camera_triggered
+            }
+            
+            # Merge basic and dynamic data
+            enhanced_data = {**basic_data, **dynamic_data}
+            
+            return enhanced_data
+            
+        except Exception as e:
+            _logger.error(f"Error getting dynamic dashboard data: {str(e)}")
+            return basic_data if 'basic_data' in locals() else {}
+
+    def stop_auto_monitoring(self):
+        """Stop auto monitoring for dynamic final station"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {'success': False, 'message': 'Not a final station'}
+            
+        try:
+            _logger.info(f"Stopping auto monitoring for: {self.machine_name}")
+            
+            # Disable auto monitoring
+            self.auto_monitoring_active = False
+            
+            # Reset processing flag
+            self.processing_part = False
+            
+            # Reset part presence
+            self.part_present = False
+            
+            # Reset camera trigger
+            self.camera_triggered = False
+            
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Auto Monitoring Stopped',
+                    'message': f'Auto monitoring stopped for {self.machine_name}',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error stopping auto monitoring: {str(e)}")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Stop Auto Monitoring Error',
+                    'message': f'Error: {str(e)}',
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    @api.model
+    def monitor_dynamic_final_stations(self):
+        """Cron job method to monitor dynamic final stations"""
+        try:
+            # Find all active dynamic final stations
+            final_stations = self.search([
+                ('machine_type', '=', 'final_station'), 
+                ('auto_monitoring_active', '=', True)
+            ])
+            
+            for station in final_stations:
+                try:
+                    station._start_auto_monitoring_loop()
+                except Exception as e:
+                    _logger.error(f"Dynamic final station monitoring error for {station.machine_name}: {str(e)}")
+                    
+        except Exception as e:
+            _logger.error(f"Error in monitor_dynamic_final_stations: {str(e)}")

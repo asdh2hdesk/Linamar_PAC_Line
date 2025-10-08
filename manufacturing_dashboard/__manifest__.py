@@ -36,6 +36,7 @@ Features:
         'views/aumann_measurement_views.xml',
         'views/gauging_measurement_views.xml',
         'views/final_station_measurement_views.xml',
+        'views/dynamic_final_station_views.xml',
         'views/dashboard_views.xml',
         'views/menu_views.xml',
         'views/settings_views.xml',

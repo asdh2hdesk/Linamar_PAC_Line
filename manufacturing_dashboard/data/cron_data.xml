@@ -22,5 +22,6 @@
             <field name="interval_type">days</field>
             <field name="active">True</field>
         </record>
+
     </data>
 </odoo>

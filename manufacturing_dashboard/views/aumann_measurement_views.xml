@@ -50,8 +50,16 @@
                             <field name="critical_measurements_ok"/>
                         </group>
                     </group>
+                    <group>
+                        <field name="rejection_reason" nolabel="1"/>
+                    </group>
 
                     <notebook>
+                        <page string="Tolerance Table">
+                            <group>
+                                <field name="tolerance_table_html" nolabel="1" readonly="1"/>
+                            </group>
+                        </page>
                         <page string="Journal Measurements">
                             <group>
                                 <group string="Journal A Diameters">
@@ -110,15 +118,10 @@
 
                         <page string="Raw Data">
                             <group>
-                                <field name="rejection_reason" nolabel="1"/>
                                 <field name="raw_data" widget="text" nolabel="1"/>
                             </group>
                         </page>
-                        <page string="Tolerance Table">
-                            <group>
-                                <field name="tolerance_table_html" nolabel="1" readonly="1"/>
-                            </group>
-                        </page>
+
                     </notebook>
                 </sheet>
             </form>

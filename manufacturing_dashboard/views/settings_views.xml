@@ -8,7 +8,7 @@
       <field name="type">form</field>
       <field name="arch" type="xml">
         <form string="Aumann Tolerances" create="false" edit="true" delete="false">
-          <sheet>
+          <sheet>`
             <group string="Aumann Tolerances" groups="base.group_system">
               <group>
                 <field name="aumann_intake_tolerances_json" placeholder='{"diameter_journal_a1": [23.959, 23.98]}'/>

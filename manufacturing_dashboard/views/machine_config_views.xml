@@ -52,6 +52,10 @@
                             class="btn-success"
                             icon="fa-play" invisible="machine_type != 'final_station'"/>
 
+                    <button name="start_dynamic_final_station" type="object" string="Start Dynamic Final Station"
+                            class="btn-primary"
+                            icon="fa-cogs" invisible="machine_type != 'final_station'"/>
+
                     <button name="check_part_presence" type="object" string="Check Part Presence" class="btn-info"
                             icon="fa-search" invisible="machine_type != 'final_station'"/>
 
@@ -140,6 +144,21 @@
                                     <field name="last_serial_number" readonly="1"/>
                                     <field name="last_capture_time" readonly="1"/>
                                     <field name="last_result" readonly="1"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Dynamic Status">
+                                    <field name="plc_ready_condition" readonly="1"/>
+                                    <field name="auto_cycle_home"/>
+                                    <field name="all_stations_passing" readonly="1"/>
+                                    <field name="dashboard_data_available" readonly="1"/>
+                                </group>
+                                <group string="Auto Monitoring">
+                                    <field name="auto_monitoring_active"/>
+                                    <field name="cycle_count" readonly="1"/>
+                                    <field name="last_part_processed" readonly="1"/>
+                                    <field name="processing_part" readonly="1"/>
                                 </group>
                             </group>
 
