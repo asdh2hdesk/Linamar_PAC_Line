@@ -107,6 +107,25 @@ export class ModernManufacturingDashboard extends Component {
                 };
             }
             
+            // Enhance data for dynamic final stations
+            if (data.machines) {
+                for (let machine of data.machines) {
+                    if (machine.machine_type === 'final_station') {
+                        try {
+                            const dynamicData = await this.orm.call(
+                                "manufacturing.machine.config",
+                                "get_dynamic_dashboard_data",
+                                [machine.id]
+                            );
+                            machine.dynamic_status = dynamicData;
+                        } catch (e) {
+                            console.warn('Could not load dynamic data for final station:', e);
+                            machine.dynamic_status = {};
+                        }
+                    }
+                }
+            }
+            
             console.log('Dashboard data received:', data);
             
             this.state.machines = data.machines || [];
