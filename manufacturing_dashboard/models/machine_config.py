@@ -6,8 +6,14 @@ import csv
 import logging
 import pyodbc  # or pypyodbc
 from datetime import datetime, timedelta
+import threading
+import queue
+import time
+from .plc_monitor_service import get_plc_monitor_service
 
 _logger = logging.getLogger(__name__)
+
+# Simple PLC callback system - direct method calls
 
 
 class MachineConfig(models.Model):
@@ -84,6 +90,174 @@ class MachineConfig(models.Model):
     
     # Final Station Measurements
     measurement_ids = fields.One2many('manufacturing.final.station.measurement', 'machine_id', string='Measurements')
+    
+    # PLC Monitoring Service fields
+    plc_monitoring_active = fields.Boolean('PLC Monitoring Active', default=False, help='Indicates if continuous PLC monitoring is active')
+    plc_scan_rate = fields.Float('PLC Scan Rate (seconds)', default=0.1, help='Scan rate for PLC monitoring in seconds')
+    last_plc_scan = fields.Datetime('Last PLC Scan', readonly=True)
+    plc_monitoring_errors = fields.Integer('PLC Monitoring Errors', default=0, help='Number of consecutive PLC monitoring errors')
+    
+    # Gauging System Tolerance fields (DMS format)
+    gauging_utl_degrees = fields.Integer('UTL Degrees', default=1)
+    gauging_utl_minutes = fields.Integer('UTL Minutes', default=30)
+    gauging_utl_seconds = fields.Integer('UTL Seconds', default=0)
+    gauging_ltl_degrees = fields.Integer('LTL Degrees', default=-1)
+    gauging_ltl_minutes = fields.Integer('LTL Minutes', default=30)
+    gauging_ltl_seconds = fields.Integer('LTL Seconds', default=0)
+    gauging_nominal_degrees = fields.Integer('Nominal Degrees', default=0)
+    gauging_nominal_minutes = fields.Integer('Nominal Minutes', default=0)
+    gauging_nominal_seconds = fields.Integer('Nominal Seconds', default=0)
+    
+    # Computed decimal values for internal calculations
+    gauging_upper_tolerance = fields.Float('Upper Tolerance Limit (UTL)', digits=(10, 6), 
+                                         compute='_compute_gauging_tolerance_decimal', store=True,
+                                         help='Upper tolerance limit for gauging measurements in decimal degrees')
+    gauging_lower_tolerance = fields.Float('Lower Tolerance Limit (LTL)', digits=(10, 6), 
+                                         compute='_compute_gauging_tolerance_decimal', store=True,
+                                         help='Lower tolerance limit for gauging measurements in decimal degrees')
+    gauging_nominal_value = fields.Float('Nominal Value', digits=(10, 6), 
+                                       compute='_compute_gauging_tolerance_decimal', store=True,
+                                       help='Nominal value for gauging measurements in decimal degrees')
+    
+    # Aumann System Tolerance fields (JSON format)
+    aumann_intake_tolerances_json = fields.Text('Intake Tolerances JSON (980)', 
+                                               help='JSON mapping of field name to [lower, upper] limits for serial prefix 980. Example: {"diameter_journal_a1": [23.959, 23.98]}')
+    aumann_exhaust_tolerances_json = fields.Text('Exhaust Tolerances JSON (480)', 
+                                                help='JSON mapping of field name to [lower, upper] limits for serial prefix 480. Example: {"diameter_journal_a1": [23.959, 23.98]}')
+
+    @api.depends('gauging_utl_degrees', 'gauging_utl_minutes', 'gauging_utl_seconds',
+                 'gauging_ltl_degrees', 'gauging_ltl_minutes', 'gauging_ltl_seconds',
+                 'gauging_nominal_degrees', 'gauging_nominal_minutes', 'gauging_nominal_seconds')
+    def _compute_gauging_tolerance_decimal(self):
+        """Convert DMS values to decimal degrees for tolerance calculations"""
+        for record in self:
+            # Convert UTL to decimal degrees
+            record.gauging_upper_tolerance = record._dms_to_decimal(
+                record.gauging_utl_degrees, record.gauging_utl_minutes, record.gauging_utl_seconds
+            )
+            
+            # Convert LTL to decimal degrees
+            record.gauging_lower_tolerance = record._dms_to_decimal(
+                record.gauging_ltl_degrees, record.gauging_ltl_minutes, record.gauging_ltl_seconds
+            )
+            
+            # Convert Nominal to decimal degrees
+            record.gauging_nominal_value = record._dms_to_decimal(
+                record.gauging_nominal_degrees, record.gauging_nominal_minutes, record.gauging_nominal_seconds
+            )
+    
+    def _dms_to_decimal(self, degrees, minutes, seconds):
+        """Convert degrees, minutes, seconds to decimal degrees"""
+        if degrees is None:
+            degrees = 0
+        if minutes is None:
+            minutes = 0
+        if seconds is None:
+            seconds = 0
+            
+        # Convert to decimal degrees
+        decimal_degrees = abs(degrees) + minutes/60.0 + seconds/3600.0
+        if degrees < 0:
+            decimal_degrees = -decimal_degrees
+            
+        return decimal_degrees
+    
+    def save_aumann_tolerances(self):
+        """Save Aumann tolerance JSON to ir.config_parameter"""
+        for record in self:
+            if record.machine_type == 'aumann':
+                try:
+                    # Validate and save intake tolerances (980 prefix)
+                    if record.aumann_intake_tolerances_json:
+                        import json
+                        # Validate JSON format
+                        json.loads(record.aumann_intake_tolerances_json)
+                        # Save to ir.config_parameter
+                        self.env['ir.config_parameter'].sudo().set_param(
+                            'manufacturing.aumann.intake_tolerances_json',
+                            record.aumann_intake_tolerances_json
+                        )
+                        _logger.info(f"Saved intake tolerances for machine {record.machine_name}")
+                    
+                    # Validate and save exhaust tolerances (480 prefix)
+                    if record.aumann_exhaust_tolerances_json:
+                        import json
+                        # Validate JSON format
+                        json.loads(record.aumann_exhaust_tolerances_json)
+                        # Save to ir.config_parameter
+                        self.env['ir.config_parameter'].sudo().set_param(
+                            'manufacturing.aumann.exhaust_tolerances_json',
+                            record.aumann_exhaust_tolerances_json
+                        )
+                        _logger.info(f"Saved exhaust tolerances for machine {record.machine_name}")
+                    
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Success',
+                            'message': 'Aumann tolerances saved successfully!',
+                            'type': 'success',
+                        }
+                    }
+                    
+                except json.JSONDecodeError as e:
+                    _logger.error(f"Invalid JSON format in Aumann tolerances: {e}")
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Error',
+                            'message': f'Invalid JSON format: {str(e)}',
+                            'type': 'danger',
+                        }
+                    }
+                except Exception as e:
+                    _logger.error(f"Error saving Aumann tolerances: {e}")
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Error',
+                            'message': f'Error saving tolerances: {str(e)}',
+                            'type': 'danger',
+                        }
+                    }
+    
+    def load_aumann_tolerances(self):
+        """Load Aumann tolerance JSON from ir.config_parameter"""
+        for record in self:
+            if record.machine_type == 'aumann':
+                # Load intake tolerances (980 prefix)
+                intake_tolerances = self.env['ir.config_parameter'].sudo().get_param(
+                    'manufacturing.aumann.intake_tolerances_json', ''
+                )
+                record.aumann_intake_tolerances_json = intake_tolerances
+                
+                # Load exhaust tolerances (480 prefix)
+                exhaust_tolerances = self.env['ir.config_parameter'].sudo().get_param(
+                    'manufacturing.aumann.exhaust_tolerances_json', ''
+                )
+                record.aumann_exhaust_tolerances_json = exhaust_tolerances
+                
+                _logger.info(f"Loaded Aumann tolerances for machine {record.machine_name}")
+    
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Override create to load tolerances for Aumann machines"""
+        records = super().create(vals_list)
+        for record in records:
+            if record.machine_type == 'aumann':
+                record.load_aumann_tolerances()
+        return records
+    
+    def write(self, vals):
+        """Override write to load tolerances for Aumann machines"""
+        result = super().write(vals)
+        for record in self:
+            if record.machine_type == 'aumann' and 'machine_type' in vals:
+                record.load_aumann_tolerances()
+        return result
 
     @api.onchange('manual_cylinder_forward')
     def _onchange_manual_cylinder_forward(self):
@@ -342,9 +516,20 @@ class MachineConfig(models.Model):
                     return (n + lo) <= val <= (n + hi)
 
                 def parse_dt(date_str_val, time_str_val):
+                    import pytz
                     for fmt in ("%d-%m-%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S"):
                         try:
-                            return datetime.strptime(f"{date_str_val} {time_str_val}", fmt)
+                            # Parse the datetime string
+                            parsed_dt = datetime.strptime(f"{date_str_val} {time_str_val}", fmt)
+                            
+                            # Since CSV contains IST time, we need to treat it as IST and convert to UTC
+                            # for Odoo to store correctly, then it will display back as IST
+                            ist = pytz.timezone('Asia/Kolkata')
+                            ist_dt = ist.localize(parsed_dt)
+                            utc_dt = ist_dt.astimezone(pytz.UTC)
+                            
+                            # Return in UTC format for Odoo storage
+                            return utc_dt.strftime('%Y-%m-%d %H:%M:%S')
                         except Exception:
                             continue
                     return None
@@ -1138,9 +1323,20 @@ class MachineConfig(models.Model):
             
             for fmt in timestamp_formats:
                 try:
-                    parsed_date = datetime.strptime(timestamp_str, fmt)
-                    _logger.debug(f"Successfully parsed timestamp '{timestamp_str}' using format '{fmt}' -> {parsed_date}")
-                    return parsed_date
+                    # Parse the datetime string
+                    parsed_dt = datetime.strptime(timestamp_str, fmt)
+                    
+                    # Since CSV contains IST time, we need to treat it as IST and convert to UTC
+                    # for Odoo to store correctly, then it will display back as IST
+                    import pytz
+                    ist = pytz.timezone('Asia/Kolkata')
+                    ist_dt = ist.localize(parsed_dt)
+                    utc_dt = ist_dt.astimezone(pytz.UTC)
+                    
+                    # Return in UTC format for Odoo storage
+                    result = utc_dt.strftime('%Y-%m-%d %H:%M:%S')
+                    _logger.debug(f"Successfully parsed timestamp '{timestamp_str}' using format '{fmt}' -> {result}")
+                    return result
                 except ValueError:
                     continue
             
@@ -1351,251 +1547,191 @@ class MachineConfig(models.Model):
         return 'pass'
 
     def _sync_gauging_data(self):
-        """Sync Gauging system data from Excel file"""
+        """Sync Gauging system data from CSV file"""
         _logger.info(f"Starting Gauging data sync for machine: {self.machine_name} from {self.csv_file_path}")
         
         try:
             # Check file existence and readability
             if not os.path.exists(self.csv_file_path):
-                _logger.error(f"Gauging Excel file not found: {self.csv_file_path}")
+                _logger.error(f"Gauging CSV file not found: {self.csv_file_path}")
                 self.status = 'error'
                 return
             if not os.access(self.csv_file_path, os.R_OK):
-                _logger.error(f"Gauging Excel file not readable: {self.csv_file_path}. Check permissions.")
+                _logger.error(f"Gauging CSV file not readable: {self.csv_file_path}. Check permissions.")
                 self.status = 'error'
                 return
 
             # Try to import required libraries
             try:
-                import pandas as pd
+                import csv
                 from datetime import datetime
             except ImportError:
-                _logger.error("pandas is required for Excel file processing. Please install it: pip install pandas openpyxl")
+                _logger.error("csv module is required for CSV file processing.")
                 self.status = 'error'
-                return
-
-            # Read Excel file without header to preserve all rows
-            try:
-                df = pd.read_excel(self.csv_file_path, engine='openpyxl', header=None)
-                _logger.info(f"Gauging Excel file loaded successfully. Shape: {df.shape}")
-            except Exception as e:
-                _logger.error(f"Failed to read Excel file: {str(e)}")
-                self.status = 'error'
-                return
-
-            if df.empty:
-                _logger.warning("Gauging Excel file is empty")
                 return
 
             records_created = 0
             
-            # Find the header row that contains "Sr No."
-            header_row_index = None
-            column_mapping = {}  # Map column indices to names
-            
-            for i in range(len(df)):
-                row = df.iloc[i]
-                # Check if this row contains "Sr No." in any column
-                if any('Sr No' in str(val) for val in row.values if pd.notna(val)):
-                    header_row_index = i
-                    _logger.info(f"Found header row at index {i}")
+            # Read CSV file
+            try:
+                with open(self.csv_file_path, 'r', encoding='utf-8') as csvfile:
+                    # Detect delimiter
+                    sample = csvfile.read(1024)
+                    csvfile.seek(0)
+                    sniffer = csv.Sniffer()
+                    delimiter = sniffer.sniff(sample).delimiter
                     
-                    # Create column mapping from this header row
-                    for col_idx, col_name in enumerate(row.values):
-                        if pd.notna(col_name):
-                            column_mapping[col_idx] = str(col_name).strip()
+                    reader = csv.DictReader(csvfile, delimiter=delimiter)
+                    _logger.info(f"Gauging CSV file loaded successfully with delimiter: '{delimiter}'")
                     
-                    _logger.info(f"Column mapping: {column_mapping}")
-                    break
-            
-            if header_row_index is None:
-                _logger.error("Could not find header row containing 'Sr No.' in the Excel file")
-                return
-            
-            # Check if we have enough rows after header for tolerance data and actual data
-            if len(df) < header_row_index + 6:  # header + 4 tolerance rows + at least 1 data row
-                _logger.warning(f"Gauging Excel file has insufficient rows after header row {header_row_index}")
-                return
-
-            # Get the rows based on header position
-            header_row = df.iloc[header_row_index]
-            utl_row = df.iloc[header_row_index + 1]  # Upper Tolerance Limit
-            ucl_row = df.iloc[header_row_index + 2]  # Upper Control Limit  
-            lcl_row = df.iloc[header_row_index + 3]  # Lower Control Limit
-            ltl_row = df.iloc[header_row_index + 4]  # Lower Tolerance Limit
-            
-            # Log the structure for debugging
-            _logger.info(f"Header row (index {header_row_index}): {header_row.values}")
-            
-            # Build tolerance dictionaries by column index and name
-            tolerance_data = {}
-            for col_idx, col_name in column_mapping.items():
-                if col_name not in ['Sr No.', 'Job Number', 'Date/Time', 'Machine', 'Status']:
-                    # For angle measurements, convert from degrees/minutes/seconds to decimal
-                    utl_val = utl_row.iloc[col_idx] if col_idx < len(utl_row) else None
-                    ucl_val = ucl_row.iloc[col_idx] if col_idx < len(ucl_row) else None
-                    lcl_val = lcl_row.iloc[col_idx] if col_idx < len(lcl_row) else None
-                    ltl_val = ltl_row.iloc[col_idx] if col_idx < len(ltl_row) else None
-                    
-                    # Convert angle values to decimal degrees if they are in DMS format
-                    if 'ANGIE' in col_name.upper():
-                        utl_val = self._parse_angle_to_decimal(utl_val) if pd.notna(utl_val) else None
-                        ucl_val = self._parse_angle_to_decimal(ucl_val) if pd.notna(ucl_val) else None
-                        lcl_val = self._parse_angle_to_decimal(lcl_val) if pd.notna(lcl_val) else None
-                        ltl_val = self._parse_angle_to_decimal(ltl_val) if pd.notna(ltl_val) else None
-                    else:
-                        utl_val = self._safe_float(utl_val)
-                        ucl_val = self._safe_float(ucl_val)
-                        lcl_val = self._safe_float(lcl_val)
-                        ltl_val = self._safe_float(ltl_val)
-                    
-                    tolerance_data[col_name] = {
-                        'utl': utl_val,
-                        'ucl': ucl_val,
-                        'lcl': lcl_val,
-                        'ltl': ltl_val
-                    }
-            
-            # Log parsed tolerance data
-            _logger.info(f"Parsed tolerance data: {tolerance_data}")
-            
-            # Process actual data rows (starting 5 rows after header)
-            data_start_index = header_row_index + 5
-            for index in range(data_start_index, len(df)):
-                try:
-                    row = df.iloc[index]
-                    
-                    # Helper function to get value by column name
-                    def get_value_by_column_name(column_name, default=''):
-                        for col_idx, col_name in column_mapping.items():
-                            if column_name.lower() in col_name.lower() or col_name.lower() in column_name.lower():
-                                return row.iloc[col_idx] if col_idx < len(row) else default
-                        return default
-                    
-                    # Extract data based on the Excel structure using column mapping
-                    sr_no = str(get_value_by_column_name('Sr No')).strip()
-                    job_number = str(get_value_by_column_name('Job Number')).strip()
-                    date_time = get_value_by_column_name('Date/Time')
-                    machine_code = str(get_value_by_column_name('Machine')).strip()
-                    angle_measurement = str(get_value_by_column_name('1-ANGIE')).strip()
-                    status = str(get_value_by_column_name('Status', 'ACCEPT')).strip().upper()
-                    
-                    # Skip empty rows
-                    if not job_number or job_number == 'nan':
-                        continue
-                    
-                    serial_number = job_number
-                    
-                    # Check if record already exists to prevent duplicates
-                    existing = self.env['manufacturing.gauging.measurement'].search([
-                        ('serial_number', '=', serial_number),
-                        ('machine_id', '=', self.id)
-                    ], limit=1)
-                    
-                    if existing:
-                        _logger.debug(f"Gauging record for Serial Number {serial_number} already exists. Skipping.")
-                        continue
-                    
-                    # Parse test date
-                    test_date = fields.Datetime.now()
-                    if pd.notna(date_time):
+                    for row_index, row in enumerate(reader):
                         try:
-                            if isinstance(date_time, str):
-                                # Try different date formats for US format with AM/PM
-                                date_formats = [
-                                    '%m/%d/%Y %I:%M:%S %p',  # US format with AM/PM
-                                    '%d/%m/%Y %H:%M:%S',     # European format 24h
-                                    '%Y-%m-%d %H:%M:%S',     # ISO format
-                                    '%m/%d/%Y %H:%M:%S',     # US format 24h
-                                ]
-                                
-                                for fmt in date_formats:
-                                    try:
-                                        test_date = datetime.strptime(date_time.strip(), fmt)
-                                        break
-                                    except ValueError:
-                                        continue
-                                else:
-                                    # If all formats failed, log and use current time
-                                    _logger.warning(f"Could not parse date '{date_time}' with any known format. Using current time.")
-                            else:
-                                test_date = pd.to_datetime(date_time)
+                            # Extract data from CSV row
+                            component_name = row.get('COMPONENT_NAME', '').strip()
+                            serial_number = row.get('SERIAL_NUMBER', '').strip()
+                            date_time_str = row.get('DATE_TIME', '').strip()
+                            result_str = row.get('RESULT', '').strip()
+                            
+                            # Skip empty rows, calibration master entries, or invalid serial numbers
+                            if not serial_number or serial_number.lower() == 'calibration master':
+                                continue
+                            
+                            # Only process serial numbers that start with 480 or 980
+                            if not (serial_number.startswith('480') or serial_number.startswith('980')):
+                                _logger.debug(f"Skipping serial number {serial_number} - does not start with 480 or 980")
+                                continue
+                            
+                            # Check if record already exists to prevent duplicates
+                            existing = self.env['manufacturing.gauging.measurement'].search([
+                                ('serial_number', '=', serial_number),
+                                ('machine_id', '=', self.id),
+                                ('test_date', '=', self._parse_csv_datetime(date_time_str))
+                            ], limit=1)
+                            
+                            if existing:
+                                _logger.debug(f"Gauging record for Serial Number {serial_number} already exists. Skipping.")
+                                continue
+                            
+                            # Parse test date
+                            test_date = self._parse_csv_datetime(date_time_str)
+                            
+                            # Parse angle measurement and determine status
+                            angle_measurement = result_str
+                            status_mapped, angle_within_tolerance, rejection_reason = self._evaluate_gauging_result(result_str)
+                            
+                            # Prepare data for creation
+                            create_vals = {
+                                'machine_id': self.id,
+                                'test_date': test_date,
+                                'component_name': component_name,
+                                'serial_number': serial_number,
+                                'job_number': serial_number,  # Using serial number as job number
+                                'angle_measurement': angle_measurement,
+                                'status': status_mapped,
+                                'within_tolerance': angle_within_tolerance,
+                                'raw_data': str(row)[:2000]  # Limit raw data size
+                            }
+                            
+                            if rejection_reason:
+                                create_vals['rejection_reason'] = rejection_reason
+                            
+                            # Add tolerance data from machine config
+                            if self.gauging_upper_tolerance is not None and self.gauging_lower_tolerance is not None:
+                                create_vals.update({
+                                    'upper_tolerance': self.gauging_upper_tolerance,
+                                    'lower_tolerance': self.gauging_lower_tolerance,
+                                    'nominal_value': self.gauging_nominal_value or 0.0
+                                })
+                            
+                            # Create the record
+                            new_record = self.env['manufacturing.gauging.measurement'].create(create_vals)
+                            records_created += 1
+                            _logger.debug(f"Successfully created Gauging record for Serial Number: {serial_number}")
+                            
                         except Exception as e:
-                            _logger.warning(f"Could not parse date '{date_time}': {e}. Using current time.")
+                            _logger.error(f"Failed to process Gauging row {row_index}: {e}")
+                            continue
                     
-                    # Map status
-                    if status in ['ACCEPT', 'ACCEPTED']:
-                        status_mapped = 'accept'
-                    elif status in ['REJECT', 'REJECTED']:
-                        status_mapped = 'reject'
-                    else:
-                        status_mapped = 'accept'  # Default
-                    
-                    # Check tolerance for angle measurement
-                    angle_within_tolerance = True
-                    rejection_reason = None
-                    
-                    if angle_measurement and angle_measurement != 'nan':
-                        # Get tolerance data for 1-ANGIE column
-                        angie_tolerance = tolerance_data.get('1-ANGIE', {})
-                        if angie_tolerance:
-                            # Parse angle to decimal degrees for tolerance checking
-                            try:
-                                decimal_degrees = self._parse_angle_to_decimal(angle_measurement)
-                                utl = angie_tolerance.get('utl')
-                                ltl = angie_tolerance.get('ltl')
-                                
-                                if utl is not None and ltl is not None:
-                                    if not (ltl <= decimal_degrees <= utl):
-                                        angle_within_tolerance = False
-                                        status_mapped = 'reject'  # Override status if out of tolerance
-                                        rejection_reason = f"Angle {decimal_degrees:.4f}° out of tolerance ({ltl:.4f}° - {utl:.4f}°)"
-                            except Exception as e:
-                                _logger.warning(f"Failed to check tolerance for angle '{angle_measurement}': {e}")
-                    
-                    # Prepare data for creation
-                    create_vals = {
-                        # 'sr_no': sr_no,
-                        'machine_id': self.id,
-                        'test_date': test_date,
-                        'job_number': job_number if job_number != 'nan' else '',
-                        'serial_number': job_number if job_number != 'nan' else '',
-                        'machine_code': machine_code if machine_code != 'nan' else '',
-                        'angle_measurement': angle_measurement if angle_measurement != 'nan' else '',
-                        'status': status_mapped,
-                        'within_tolerance': angle_within_tolerance,
-                        'raw_data': str(row.to_dict())[:2000]  # Limit raw data size
-                    }
-                    
-                    if rejection_reason:
-                        create_vals['rejection_reason'] = rejection_reason
-                    
-                    # Add tolerance data if available
-                    angie_tolerance = tolerance_data.get('1-ANGIE', {})
-                    if angie_tolerance:
-                        create_vals.update({
-                            'upper_tolerance': angie_tolerance.get('utl'),
-                            'lower_tolerance': angie_tolerance.get('ltl'),
-                            'nominal_value': angie_tolerance.get('ucl')  # Using UCL as nominal
-                        })
-                    
-                    # Create the record
-                    new_record = self.env['manufacturing.gauging.measurement'].create(create_vals)
-                    records_created += 1
-                    _logger.debug(f"Successfully created Gauging record for Serial Number: {serial_number}")
-                    
-                except Exception as e:
-                    _logger.error(f"Failed to process Gauging row {index}: {e}")
-                    continue
+            except Exception as e:
+                _logger.error(f"Failed to read CSV file: {str(e)}")
+                self.status = 'error'
+                return
             
             _logger.info(f"Gauging data sync completed. Total records created: {records_created}")
             
         except FileNotFoundError:
-            _logger.error(f"Gauging Excel file not found at {self.csv_file_path}. Please check the path.")
+            _logger.error(f"Gauging CSV file not found at {self.csv_file_path}. Please check the path.")
             self.status = 'error'
         except Exception as e:
             _logger.error(f"An unexpected error occurred during Gauging data sync: {e}", exc_info=True)
             self.status = 'error'
+
+    def _parse_csv_datetime(self, date_time_str):
+        """Parse datetime from CSV format like '10/06/2025 01:21:09 PM' and preserve exact time"""
+        if not date_time_str:
+            return fields.Datetime.now()
+            
+        try:
+            from datetime import datetime
+            import pytz
+            
+            # Try different date formats for US format with AM/PM
+            date_formats = [
+                '%m/%d/%Y %I:%M:%S %p',  # US format with AM/PM
+                '%d/%m/%Y %H:%M:%S',     # European format 24h
+                '%Y-%m-%d %H:%M:%S',     # ISO format
+                '%m/%d/%Y %H:%M:%S',     # US format 24h
+            ]
+            
+            for fmt in date_formats:
+                try:
+                    # Parse the datetime string
+                    parsed_dt = datetime.strptime(date_time_str.strip(), fmt)
+                    
+                    # Since CSV contains IST time, we need to treat it as IST and convert to UTC
+                    # for Odoo to store correctly, then it will display back as IST
+                    ist = pytz.timezone('Asia/Kolkata')
+                    ist_dt = ist.localize(parsed_dt)
+                    utc_dt = ist_dt.astimezone(pytz.UTC)
+                    
+                    # Return in UTC format for Odoo storage
+                    return utc_dt.strftime('%Y-%m-%d %H:%M:%S')
+                    
+                except ValueError:
+                    continue
+            
+            # If all formats failed, log and use current time
+            _logger.warning(f"Could not parse date '{date_time_str}' with any known format. Using current time.")
+            return fields.Datetime.now()
+            
+        except Exception as e:
+            _logger.warning(f"Could not parse date '{date_time_str}': {e}. Using current time.")
+            return fields.Datetime.now()
+    
+    def _evaluate_gauging_result(self, result_str):
+        """Evaluate gauging result and determine status, tolerance, and rejection reason"""
+        if not result_str:
+            return 'accept', True, None
+            
+        try:
+            # Parse angle to decimal degrees
+            decimal_degrees = self._parse_angle_to_decimal(result_str)
+            
+            # Check against machine tolerance settings
+            if (self.gauging_upper_tolerance is not None and 
+                self.gauging_lower_tolerance is not None):
+                
+                if not (self.gauging_lower_tolerance <= decimal_degrees <= self.gauging_upper_tolerance):
+                    rejection_reason = (f"Angle {decimal_degrees:.4f}° out of tolerance "
+                                      f"({self.gauging_lower_tolerance:.4f}° - {self.gauging_upper_tolerance:.4f}°)")
+                    return 'reject', False, rejection_reason
+            
+            # Default to accept if within tolerance or no tolerance set
+            return 'accept', True, None
+            
+        except Exception as e:
+            _logger.warning(f"Failed to evaluate gauging result '{result_str}': {e}")
+            return 'accept', True, None
 
     def _safe_float(self, value):
         """Safely convert value to float"""
@@ -2870,39 +3006,63 @@ class MachineConfig(models.Model):
 
     def _extract_serial_from_lon(self, lon_response):
         """Extract serial number from LON response"""
+        import time, re
+
         try:
             _logger.info(f"Raw LON response: '{lon_response}' (type: {type(lon_response)})")
-            
+
             # Clean the response - remove any whitespace and quotes
             if lon_response:
                 lon_response = lon_response.strip().strip("'\"")
                 _logger.info(f"Cleaned LON response: '{lon_response}'")
-            
-            # Check if response is numeric (expected format)
+
+            # Case 1: Response is numeric → use directly
             if lon_response and lon_response.isdigit():
-                # Use the LON response directly as serial number
                 serial_number = lon_response
                 _logger.info(f"Extracted serial number: {serial_number}")
                 return serial_number
+
+            # Case 2: Heartbeat mode → try fetching serial for up to 5 seconds
             elif lon_response and lon_response.lower() == "heartbeat":
-                # Camera is in heartbeat mode, generate a timestamp-based serial
-                import time
-                timestamp_serial = str(int(time.time() * 1000))[-12:]  # Last 12 digits of timestamp
-                serial_number = f"HB-{timestamp_serial}"
-                _logger.info(f"Camera in heartbeat mode, generated serial: {serial_number}")
+                _logger.info("Camera in heartbeat mode, attempting to fetch serial for up to 5 seconds...")
+
+                start_time = time.time()
+                serial_number = None
+
+                while (time.time() - start_time) < 5:
+                    # Try to get a valid LON response again
+                    new_response = self._get_lon_response_safe()  # <-- replace this with your actual method call
+                    if not new_response:
+                        time.sleep(0.5)
+                        continue
+
+                    new_response = new_response.strip().strip("'\"")
+                    if new_response.isdigit():
+                        serial_number = new_response
+                        _logger.info(f"Successfully fetched serial number after heartbeat: {serial_number}")
+                        break
+                    else:
+                        _logger.debug(f"Retrying... received: {new_response}")
+                        time.sleep(0.5)
+
+                if not serial_number:
+                    _logger.error("Failed to fetch serial number within 5 seconds (heartbeat mode).")
+                    return None
+
                 return serial_number
+
+            # Case 3: Try to extract any numeric part
             else:
-                # Try to extract any numeric part from the response
-                import re
                 numbers = re.findall(r'\d+', lon_response)
                 if numbers:
-                    # Use the longest numeric sequence found
                     serial_number = max(numbers, key=len)
                     _logger.info(f"Extracted numeric serial from response: {serial_number}")
                     return serial_number
                 else:
-                    _logger.warning(f"Invalid LON response format: '{lon_response}' (isdigit: {lon_response.isdigit() if lon_response else 'None'})")
+                    _logger.warning(f"Invalid LON response format: '{lon_response}' "
+                                    f"(isdigit: {lon_response.isdigit() if lon_response else 'None'})")
                     return None
+
         except Exception as e:
             _logger.error(f"Error extracting serial from LON: {str(e)}")
             return None
@@ -3193,6 +3353,299 @@ class MachineConfig(models.Model):
                     'sticky': True,
                 }
             }
+
+    def start_plc_monitoring_service(self):
+        """Start continuous PLC monitoring service for this machine"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            _logger.warning(f"Cannot start PLC monitoring for non-final station: {self.machine_name}")
+            return False
+            
+        if not self.plc_ip_address:
+            _logger.error(f"Cannot start PLC monitoring - no IP address configured for {self.machine_name}")
+            return False
+            
+        try:
+            # Get the PLC monitor service
+            plc_service = get_plc_monitor_service()
+            
+            # Create thread-safe callback function for part presence changes
+            def part_presence_callback(machine_id, part_present, previous_state):
+                """Simple callback function - just log the event"""
+                try:
+                    if part_present:
+                        _logger.info(f"Part detected on machine {machine_id} - cron job will handle auto monitoring")
+                        # Just log the event - the cron job will check PLC directly
+                except Exception as e:
+                    _logger.error(f"Error in PLC callback for machine {machine_id}: {str(e)}")
+            
+            # Configure monitoring
+            config = {
+                'plc_ip': self.plc_ip_address,
+                'plc_port': self.plc_port,
+                'scan_rate': self.plc_scan_rate,
+                'callback': part_presence_callback
+            }
+            
+            # Start monitoring
+            success = plc_service.start_monitoring(self.id, config)
+            
+            if success:
+                self.plc_monitoring_active = True
+                self.plc_monitoring_errors = 0
+                _logger.info(f"Started PLC monitoring service for {self.machine_name}")
+                return True
+            else:
+                _logger.error(f"Failed to start PLC monitoring service for {self.machine_name}")
+                return False
+                
+        except Exception as e:
+            _logger.error(f"Error starting PLC monitoring service for {self.machine_name}: {str(e)}")
+            return False
+    
+    def stop_plc_monitoring_service(self):
+        """Stop continuous PLC monitoring service for this machine"""
+        self.ensure_one()
+        
+        try:
+            plc_service = get_plc_monitor_service()
+            success = plc_service.stop_monitoring(self.id)
+            
+            if success:
+                self.plc_monitoring_active = False
+                _logger.info(f"Stopped PLC monitoring service for {self.machine_name}")
+                return True
+            else:
+                _logger.warning(f"PLC monitoring service was not running for {self.machine_name}")
+                return False
+                
+        except Exception as e:
+            _logger.error(f"Error stopping PLC monitoring service for {self.machine_name}: {str(e)}")
+            return False
+    
+    def get_plc_monitoring_status(self):
+        """Get the current status of PLC monitoring service"""
+        self.ensure_one()
+        
+        try:
+            plc_service = get_plc_monitor_service()
+            status = plc_service.get_monitor_status(self.id)
+            
+            return {
+                'monitoring': status.get('monitoring', False),
+                'thread_name': status.get('thread_name', ''),
+                'machine_id': self.id,
+                'machine_name': self.machine_name,
+                'plc_ip': self.plc_ip_address,
+                'plc_port': self.plc_port,
+                'scan_rate': self.plc_scan_rate,
+                'last_scan': self.last_plc_scan,
+                'errors': self.plc_monitoring_errors
+            }
+        except Exception as e:
+            _logger.error(f"Error getting PLC monitoring status for {self.machine_name}: {str(e)}")
+            return {
+                'monitoring': False,
+                'error': str(e)
+            }
+    
+    def start_all_plc_monitoring(self):
+        """Start PLC monitoring for all active final stations"""
+        _logger.info("Starting PLC monitoring for all final stations")
+        
+        final_stations = self.search([
+            ('machine_type', '=', 'final_station'),
+            ('is_active', '=', True),
+            ('plc_ip_address', '!=', False)
+        ])
+        
+        started_count = 0
+        for station in final_stations:
+            if station.start_plc_monitoring_service():
+                started_count += 1
+        
+        _logger.info(f"Started PLC monitoring for {started_count}/{len(final_stations)} final stations")
+        return started_count
+    
+    def stop_all_plc_monitoring(self):
+        """Stop PLC monitoring for all final stations"""
+        _logger.info("Stopping all PLC monitoring")
+        
+        try:
+            plc_service = get_plc_monitor_service()
+            plc_service.stop_all()
+            
+            # Update all final stations to reflect stopped state
+            final_stations = self.search([
+                ('machine_type', '=', 'final_station'),
+                ('plc_monitoring_active', '=', True)
+            ])
+            final_stations.write({'plc_monitoring_active': False})
+            
+            _logger.info("Stopped all PLC monitoring services")
+            return True
+            
+        except Exception as e:
+            _logger.error(f"Error stopping all PLC monitoring: {str(e)}")
+            return False
+
+    def continuous_final_station_monitoring(self):
+        """Continuous monitoring method for final stations - called by cron jobs"""
+        _logger.info("Starting continuous final station monitoring")
+        
+        # Get all active final station machines
+        final_stations = self.search([
+            ('machine_type', '=', 'final_station'),
+            ('is_active', '=', True),
+            ('status', 'in', ['running', 'stopped'])
+        ])
+        
+        if not final_stations:
+            _logger.info("No active final stations found for monitoring")
+            return True
+            
+        _logger.info(f"Monitoring {len(final_stations)} final station(s)")
+        
+        # Start PLC monitoring service for all stations that don't have it running
+        plc_service = get_plc_monitor_service()
+        monitoring_started = 0
+        
+        for station in final_stations:
+            try:
+                _logger.info(f"Checking final station: {station.machine_name}")
+                
+                # Check if PLC monitoring is already active
+                if not station.plc_monitoring_active and station.plc_ip_address:
+                    _logger.info(f"Starting PLC monitoring service for {station.machine_name}")
+                    if station.start_plc_monitoring_service():
+                        monitoring_started += 1
+                elif station.plc_monitoring_active:
+                    _logger.info(f"PLC monitoring already active for {station.machine_name}")
+                    
+                    # Check PLC directly for part presence and trigger auto monitoring
+                    if station.operation_mode == 'auto' and not station.processing_part:
+                        try:
+                            part_detected = station.check_part_presence()
+                            if part_detected:
+                                _logger.info(f"Part detected on {station.machine_name}, starting auto monitoring")
+                                station.start_auto_monitoring()
+                        except Exception as plc_error:
+                            _logger.error(f"Error checking part presence for {station.machine_name}: {str(plc_error)}")
+                else:
+                    _logger.warning(f"No PLC IP configured for {station.machine_name}, using fallback monitoring")
+                    # Fallback to original monitoring method if no PLC service
+                    if station.operation_mode == 'auto':
+                        result = station.start_auto_monitoring()
+                        if result:
+                            _logger.info(f"Fallback monitoring completed for {station.machine_name}")
+                        else:
+                            _logger.warning(f"Fallback monitoring failed for {station.machine_name}")
+                    
+            except Exception as e:
+                _logger.error(f"Error monitoring final station {station.machine_name}: {str(e)}")
+                # Continue with other stations even if one fails
+                continue
+        
+        _logger.info(f"Continuous final station monitoring completed - started {monitoring_started} PLC monitoring services")
+        return True
+
+    def final_station_status_update(self):
+        """Update status for all final stations - called by cron jobs"""
+        _logger.info("Starting final station status update")
+        
+        # Get all final station machines
+        final_stations = self.search([
+            ('machine_type', '=', 'final_station'),
+            ('is_active', '=', True)
+        ])
+        
+        if not final_stations:
+            _logger.info("No active final stations found for status update")
+            return True
+            
+        _logger.info(f"Updating status for {len(final_stations)} final station(s)")
+        
+        for station in final_stations:
+            try:
+                _logger.info(f"Updating status for final station: {station.machine_name}")
+                
+                # Test PLC connection to update online status
+                plc_online = station.test_plc_connection()
+                
+                if plc_online:
+                    station.status = 'running'
+                    _logger.info(f"Station {station.machine_name} is online and running")
+                else:
+                    station.status = 'error'
+                    _logger.warning(f"Station {station.machine_name} is offline or has connection issues")
+                    
+            except Exception as e:
+                _logger.error(f"Error updating status for final station {station.machine_name}: {str(e)}")
+                station.status = 'error'
+                continue
+        
+        _logger.info("Final station status update completed")
+        return True
+
+    def initialize_plc_monitoring_on_startup(self):
+        """Initialize PLC monitoring for all final stations on module startup"""
+        _logger.info("Initializing PLC monitoring on startup")
+        
+        final_stations = self.search([
+            ('machine_type', '=', 'final_station'),
+            ('is_active', '=', True),
+            ('plc_ip_address', '!=', False),
+            ('operation_mode', '=', 'auto')
+        ])
+        
+        initialized_count = 0
+        for station in final_stations:
+            try:
+                if station.start_plc_monitoring_service():
+                    initialized_count += 1
+                    _logger.info(f"Initialized PLC monitoring for {station.machine_name}")
+            except Exception as e:
+                _logger.error(f"Failed to initialize PLC monitoring for {station.machine_name}: {str(e)}")
+        
+        _logger.info(f"Initialized PLC monitoring for {initialized_count}/{len(final_stations)} final stations")
+        return initialized_count
+
+    def get_plc_monitoring_summary(self):
+        """Get a summary of all PLC monitoring statuses"""
+        final_stations = self.search([
+            ('machine_type', '=', 'final_station'),
+            ('is_active', '=', True)
+        ])
+        
+        summary = {
+            'total_stations': len(final_stations),
+            'monitoring_active': 0,
+            'monitoring_inactive': 0,
+            'no_plc_config': 0,
+            'stations': []
+        }
+        
+        for station in final_stations:
+            status = station.get_plc_monitoring_status()
+            station_info = {
+                'id': station.id,
+                'name': station.machine_name,
+                'plc_ip': station.plc_ip_address,
+                'monitoring': status.get('monitoring', False),
+                'last_scan': station.last_plc_scan,
+                'errors': station.plc_monitoring_errors
+            }
+            summary['stations'].append(station_info)
+            
+            if station.plc_ip_address:
+                if status.get('monitoring', False):
+                    summary['monitoring_active'] += 1
+                else:
+                    summary['monitoring_inactive'] += 1
+            else:
+                summary['no_plc_config'] += 1
+        
+        return summary
 
     def get_final_station_dashboard_data(self):
         """Get dashboard data for final station"""

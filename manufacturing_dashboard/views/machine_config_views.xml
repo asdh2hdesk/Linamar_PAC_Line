@@ -165,6 +165,58 @@
                                 </list>
                             </field>
                         </page>
+
+                        <page string="Gauging Configuration" name="gauging_config"
+                              invisible="machine_type != 'gauging'">
+                            <group>
+                                <group string="Upper Tolerance Limit (UTL)">
+                                    <field name="gauging_utl_degrees" string="Degrees"/>
+                                    <field name="gauging_utl_minutes" string="Minutes"/>
+                                    <field name="gauging_utl_seconds" string="Seconds"/>
+                                </group>
+                                <group string="Lower Tolerance Limit (LTL)">
+                                    <field name="gauging_ltl_degrees" string="Degrees"/>
+                                    <field name="gauging_ltl_minutes" string="Minutes"/>
+                                    <field name="gauging_ltl_seconds" string="Seconds"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Nominal Value">
+                                    <field name="gauging_nominal_degrees" string="Degrees"/>
+                                    <field name="gauging_nominal_minutes" string="Minutes"/>
+                                    <field name="gauging_nominal_seconds" string="Seconds"/>
+                                </group>
+                                <group string="Decimal Values (Auto-calculated)">
+                                    <field name="gauging_upper_tolerance" string="UTL (Decimal)" readonly="1"/>
+                                    <field name="gauging_lower_tolerance" string="LTL (Decimal)" readonly="1"/>
+                                    <field name="gauging_nominal_value" string="Nominal (Decimal)" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Aumann Configuration" name="aumann_config"
+                              invisible="machine_type != 'aumann'">
+                            <header>
+                                <button name="save_aumann_tolerances" type="object" string="Save Tolerances" 
+                                        class="btn-primary" icon="fa-save"/>
+                                <button name="load_aumann_tolerances" type="object" string="Load Tolerances" 
+                                        class="btn-secondary" icon="fa-refresh"/>
+                            </header>
+                            <group>
+                                <group string="Intake Tolerances (Serial Prefix: 980)">
+                                    <field name="aumann_intake_tolerances_json" widget="text" 
+                                           placeholder='{"diameter_journal_a1": [23.959, 23.98], "diameter_journal_a2": [23.959, 23.98]}'/>
+                                </group>
+                                <group string="Exhaust Tolerances (Serial Prefix: 480)">
+                                    <field name="aumann_exhaust_tolerances_json" widget="text" 
+                                           placeholder='{"diameter_journal_a1": [23.959, 23.98], "diameter_journal_a2": [23.959, 23.98]}'/>
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <strong>JSON Format:</strong> Each field should have [lower_limit, upper_limit] values.<br/>
+                                <strong>Example:</strong> {"diameter_journal_a1": [23.959, 23.98], "diameter_journal_a2": [23.959, 23.98]}
+                            </div>
+                        </page>
                     </notebook>
                 </sheet>
                 <!--                <div class="oe_chatter">-->

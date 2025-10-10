@@ -1,40 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-  <data>
-    <record id="view_manufacturing_dashboard_settings" model="ir.ui.view">
-      <field name="name">manufacturing.dashboard.settings</field>
-      <field name="model">res.config.settings</field>
-      <field name="inherit_id" eval="False"/>
-      <field name="type">form</field>
-      <field name="arch" type="xml">
-        <form string="Aumann Tolerances" create="false" edit="true" delete="false">
-          <sheet>
-            <group string="Aumann Tolerances" groups="base.group_system">
-              <group>
-                <field name="aumann_intake_tolerances_json" placeholder='{"diameter_journal_a1": [23.959, 23.98]}'/>
-              </group>
-              <group>
-                <field name="aumann_exhaust_tolerances_json" placeholder='{"diameter_journal_a1": [23.959, 23.98]}'/>
-              </group>
-            </group>
-          </sheet>
-          <footer>
-            <button name="execute" type="object" string="Save" class="btn btn-primary oe_highlight" groups="base.group_system"/>
-            <button string="Cancel" class="btn btn-secondary" special="cancel"/>
-          </footer>
-        </form>
-      </field>
-    </record>
-
-    <record id="manufacturing_dashboard_settings_action" model="ir.actions.act_window">
-      <field name="name">Aumann Tolerances</field>
-      <field name="res_model">res.config.settings</field>
-      <field name="view_mode">form</field>
-      <field name="view_id" ref="view_manufacturing_dashboard_settings"/>
-      <field name="target">new</field>
-    </record>
-    <menuitem id="menu_aumann_tolerances" name="Aumann Tolerances" parent="menu_configuration" action="manufacturing_dashboard_settings_action" sequence="30"/>
-  </data>
+  <!-- Aumann tolerance settings removed from main Odoo settings menu -->
+  <!-- Tolerances are now managed directly through ir.config_parameter -->
+  <!-- This prevents interference with main Odoo settings functionality -->
 </odoo>
 
 

@@ -110,8 +110,8 @@
                             <field name="gauging_measurement_ids" readonly="1">
                                 <list>
                                     <field name="test_date"/>
+                                    <field name="component_name"/>
                                     <field name="job_number"/>
-                                    <field name="machine_code"/>
                                     <field name="angle_measurement"/>
                                     <field name="angle_degrees"/>
                                     <field name="status"/>

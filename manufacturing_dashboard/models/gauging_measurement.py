@@ -18,11 +18,11 @@ class GaugingMeasurement(models.Model):
     machine_id = fields.Many2one('manufacturing.machine.config', 'Machine', required=True)
     test_date = fields.Datetime('Test Date', default=fields.Datetime.now, required=True)
     
-    # Fields based on Excel structure
+    # Fields based on CSV structure
+    component_name = fields.Char('Component Name', index=True)
     job_number = fields.Char('Job Number', index=True)
-    machine_code = fields.Char('Machine Code')  # YYY in the Excel
     
-    # Angular measurement (1-ANGIE column)
+    # Angular measurement (RESULT column)
     angle_measurement = fields.Char('Angle Measurement')  # Store as text initially (e.g., "1°30'0"")
     angle_degrees = fields.Float('Angle (Degrees)', digits=(10, 4))  # Converted to decimal degrees
     angle_minutes = fields.Integer('Minutes')

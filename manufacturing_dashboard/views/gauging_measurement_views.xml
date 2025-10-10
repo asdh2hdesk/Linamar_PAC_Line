@@ -7,14 +7,18 @@
         <field name="arch" type="xml">
             <list decoration-success="result=='pass'" decoration-danger="result=='reject'">
                 <field name="serial_number"/>
+                <field name="component_name"/>
                 <field name="machine_id"/>
                 <field name="test_date"/>
                 <field name="job_number"/>
-                <field name="machine_code"/>
                 <field name="angle_measurement"/>
                 <field name="angle_degrees"/>
+                <field name="upper_tolerance"/>
+                <field name="lower_tolerance"/>
                 <field name="status" widget="badge"/>
-                <field name="result" widget="badge"/>
+                <field name="result" widget="badge" decoration-success="result=='pass'"
+                       decoration-danger="result=='reject'"/>
+                <field name="rejection_reason" nolabel="1"/>
                 <field name="within_tolerance" widget="boolean_toggle"/>
             </list>
         </field>
@@ -31,14 +35,16 @@
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <h1><field name="serial_number"/></h1>
+                        <h1>
+                            <field name="serial_number"/>
+                        </h1>
                     </div>
                     <group>
                         <group>
                             <field name="machine_id"/>
                             <field name="test_date"/>
+                            <field name="component_name"/>
                             <field name="job_number"/>
-                            <field name="machine_code"/>
                             <field name="status"/>
                         </group>
                         <group>
@@ -46,15 +52,18 @@
                             <field name="deviation"/>
                         </group>
                     </group>
+                    <group>
+                        <field name="rejection_reason" nolabel="1"/>
+                    </group>
 
                     <notebook>
                         <page string="Angle Measurements">
                             <group>
                                 <group string="Angle Data">
                                     <field name="angle_measurement"/>
-                                    <field name="angle_degrees"/>
                                     <field name="angle_minutes"/>
                                     <field name="angle_seconds"/>
+                                    <field name="angle_degrees"/>
                                 </group>
                             </group>
                         </page>
@@ -89,11 +98,11 @@
         <field name="arch" type="xml">
             <search>
                 <field name="serial_number"/>
+                <field name="component_name"/>
                 <field name="job_number"/>
                 <field name="machine_id"/>
-                <field name="machine_code"/>
                 <separator/>
-                <filter name="today" string="Today" 
+                <filter name="today" string="Today"
                         domain="[('test_date','&gt;=',datetime.datetime.combine(context_today(),datetime.time(0,0,0))),
                                  ('test_date','&lt;=',datetime.datetime.combine(context_today(),datetime.time(23,59,59)))]"/>
                 <filter name="this_week" string="This Week"
