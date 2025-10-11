@@ -533,8 +533,27 @@ class FinalStationService:
                 else:  # pending
                     converted_results[station] = 'pending'
             
-            # Determine final result - OK only if ALL stations are OK
-            final_result = 'ok' if all(result == 'ok' for result in converted_results.values() if result != 'pending') else 'nok'
+            # Determine final result logic:
+            # - If ALL stations are pending -> NOK (reject)
+            # - If ANY station is NOK -> NOK (reject)  
+            # - If ALL stations are OK -> OK (pass)
+            all_pending = all(result == 'pending' for result in converted_results.values())
+            any_nok = any(result == 'nok' for result in converted_results.values())
+            all_ok = all(result == 'ok' for result in converted_results.values())
+            
+            if all_pending:
+                final_result = 'nok'  # Reject if all stations are pending
+            elif any_nok:
+                final_result = 'nok'  # Reject if any station failed
+            elif all_ok:
+                final_result = 'ok'   # Pass only if all stations passed
+            else:
+                final_result = 'nok'  # Default to reject
+            
+            # Update the part_quality record with the calculated final result
+            if part_quality.final_result != final_result:
+                part_quality.final_result = final_result
+                _logger.info(f"Updated final_result in part_quality record: {final_result}")
             
             _logger.info(f"All stations results: {converted_results}")
             _logger.info(f"Final result: {final_result}")
@@ -892,21 +911,32 @@ class FinalStationService:
                 }
             ]
             
-            # Determine overall status
+            # Determine overall status using same logic as check_all_stations_result
             results = [part_quality.vici_result, part_quality.ruhlamat_result, 
                       part_quality.aumann_result, part_quality.gauging_result]
             
-            if 'reject' in results:
-                overall_status = 'reject'
-            elif all(result == 'pass' for result in results):
-                overall_status = 'pass'
+            all_pending = all(result == 'pending' for result in results)
+            any_reject = any(result == 'reject' for result in results)
+            all_pass = all(result == 'pass' for result in results)
+            
+            if all_pending:
+                overall_status = 'reject'  # Reject if all stations are pending
+            elif any_reject:
+                overall_status = 'reject'  # Reject if any station failed
+            elif all_pass:
+                overall_status = 'pass'    # Pass only if all stations passed
             else:
-                overall_status = 'pending'
+                overall_status = 'reject'  # Default to reject
+            
+            # Update the part_quality record with the calculated overall status
+            if part_quality.final_result != overall_status:
+                part_quality.final_result = overall_status
+                _logger.info(f"Updated final_result in part_quality record: {overall_status}")
             
             return {
                 'serial_number': serial_number,
                 'stations': stations,
-                'final_result': part_quality.final_result,
+                'final_result': overall_status,  # Use calculated status
                 'overall_status': overall_status,
                 'test_date': part_quality.test_date.isoformat() if part_quality.test_date else None,
                 'qe_override': part_quality.qe_override,

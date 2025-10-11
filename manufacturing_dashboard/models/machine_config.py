@@ -3657,3 +3657,61 @@ class MachineConfig(models.Model):
         except Exception as e:
             _logger.error(f"Error getting or creating part quality for serial {serial_number}: {str(e)}")
             return None
+    
+    def get_final_station_statistics(self):
+        """Get statistics for final station (total parts, passed, rejected, rates)"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {
+                'error': 'This method is only available for final stations',
+                'total_parts': 0,
+                'passed_parts': 0,
+                'rejected_parts': 0,
+                'pass_rate': 0,
+                'reject_rate': 0,
+                'last_updated': 'Never'
+            }
+        
+        try:
+            # Get all final station measurement records for this machine
+            measurement_records = self.env['manufacturing.final.station.measurement'].search([
+                ('machine_id', '=', self.id)
+            ])
+            
+            total_parts = len(measurement_records)
+            passed_parts = len(measurement_records.filtered(lambda r: r.result == 'ok'))
+            rejected_parts = len(measurement_records.filtered(lambda r: r.result == 'nok'))
+            
+            # Calculate rates
+            pass_rate = round((passed_parts / total_parts * 100), 1) if total_parts > 0 else 0
+            reject_rate = round((rejected_parts / total_parts * 100), 1) if total_parts > 0 else 0
+            
+            # Get last updated timestamp
+            last_updated = 'Never'
+            if measurement_records:
+                latest_record = measurement_records.sorted('capture_date', reverse=True)[0]
+                if latest_record.capture_date:
+                    last_updated = latest_record.capture_date.strftime('%Y-%m-%d %H:%M:%S')
+            
+            _logger.info(f"Final station statistics from measurements - Total: {total_parts}, Passed: {passed_parts}, Rejected: {rejected_parts}")
+            
+            return {
+                'total_parts': total_parts,
+                'passed_parts': passed_parts,
+                'rejected_parts': rejected_parts,
+                'pass_rate': pass_rate,
+                'reject_rate': reject_rate,
+                'last_updated': last_updated
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error getting final station statistics: {str(e)}")
+            return {
+                'error': str(e),
+                'total_parts': 0,
+                'passed_parts': 0,
+                'rejected_parts': 0,
+                'pass_rate': 0,
+                'reject_rate': 0,
+                'last_updated': 'Never'
+            }

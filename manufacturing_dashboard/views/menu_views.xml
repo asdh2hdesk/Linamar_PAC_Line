@@ -62,7 +62,7 @@
     <menuitem id="menu_quality_control"
               name="Quality Control"
               parent="menu_manufacturing_main"
-              sequence="20"/>
+              sequence="40"/>
 
     <menuitem id="menu_part_quality"
               name="Part Quality"

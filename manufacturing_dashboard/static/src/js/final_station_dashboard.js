@@ -14,6 +14,14 @@ export class FinalStationDashboard extends Component {
         this.state = useState({
             final_station: null,
             station_results: null,
+            final_station_statistics: {
+                total_parts: 0,
+                passed_parts: 0,
+                rejected_parts: 0,
+                pass_rate: 0,
+                reject_rate: 0,
+                last_updated: 'Never'
+            },
             loading: true,
             error: null
         });
@@ -23,6 +31,7 @@ export class FinalStationDashboard extends Component {
         onMounted(async () => {
             try {
                 await this.loadFinalStation();
+                await this.loadFinalStationStatistics();
             } catch (error) {
                 console.error('Error in final station dashboard initialization:', error);
                 this.state.error = 'Dashboard initialization failed: ' + error.message;
@@ -35,6 +44,7 @@ export class FinalStationDashboard extends Component {
                 try {
                     if (this.state.final_station) {
                         await this.loadFinalStationData();
+                        await this.loadFinalStationStatistics();
                     }
                 } catch (error) {
                     console.error('Error in auto refresh:', error);
@@ -143,6 +153,39 @@ export class FinalStationDashboard extends Component {
             }
         } catch (error) {
             console.error("Error loading station results:", error);
+        }
+    }
+
+    async loadFinalStationStatistics() {
+        try {
+            if (!this.state.final_station) {
+                return;
+            }
+
+            console.log('Loading final station statistics for machine:', this.state.final_station.id);
+            const data = await this.orm.call(
+                "manufacturing.machine.config",
+                "get_final_station_statistics",
+                [this.state.final_station.id]
+            );
+
+            console.log('Final station statistics received:', data);
+            
+            if (data && !data.error) {
+                this.state.final_station_statistics = {
+                    total_parts: data.total_parts || 0,
+                    passed_parts: data.passed_parts || 0,
+                    rejected_parts: data.rejected_parts || 0,
+                    pass_rate: data.pass_rate || 0,
+                    reject_rate: data.reject_rate || 0,
+                    last_updated: data.last_updated || 'Never'
+                };
+                console.log('Final station statistics updated:', this.state.final_station_statistics);
+            } else {
+                console.warn('No statistics data received or error occurred:', data);
+            }
+        } catch (error) {
+            console.error("Error loading final station statistics:", error);
         }
     }
 
