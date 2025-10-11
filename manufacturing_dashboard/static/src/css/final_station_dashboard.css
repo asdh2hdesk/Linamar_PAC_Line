@@ -1,0 +1,741 @@
+/* Final Station Dashboard Styles */
+
+/* Ensure Odoo containers can scroll */
+.o_action_manager,
+.o_view_controller,
+.o_content {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.final-station-dashboard {
+    min-height: 100vh;
+    background: url('/manufacturing_dashboard/static/src/img/dashboard_bg.png') no-repeat center center fixed;
+    background-size: cover;
+    padding: 0px;
+    overflow-y: auto;
+    max-height: 100vh;
+    position: relative;
+}
+
+.final-station-dashboard::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 80%, rgba(253, 186, 116, 0.3) 0%, transparent 50%),  /* light orange */
+        radial-gradient(circle at 80% 20%, rgba(134, 239, 172, 0.25) 0%, transparent 50%), /* light green */
+        radial-gradient(circle at 40% 40%, rgba(255, 213, 128, 0.25) 0%, transparent 50%); /* pale golden */
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+    33% { transform: translate(30px, -30px) rotate(120deg); }
+    66% { transform: translate(-20px, 20px) rotate(240deg); }
+}
+
+.final-station-dashboard .section-header {
+    position: relative;
+    z-index: 1;
+    padding: 0.2rem 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgb(252 252 252 / 20%);
+    box-shadow: 2px 3px 10px rgb(0 0 0 / 50%);
+    border-radius: 8px !important;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.final-station-dashboard .section-header h2 {
+    color: black;
+    font-size: 2.0rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.final-station-dashboard .section-header p {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 1.1rem;
+    font-weight: 300;
+}
+
+/* Final Station Cards */
+.final-station-card {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.final-station-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.final-station-card .card-header {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    color: black;
+    border-radius: 15px 15px 0 0;
+    padding: 15px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: -1.5rem -1.5rem 1rem -1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.final-station-card .card-header h5 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 18px;
+    color: black;
+}
+
+/* Status Sections */
+.status-section {
+    margin-bottom: 20px;
+}
+
+.status-section h6 {
+    color: black;
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.mode-section {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 15px;
+}
+
+.part-section {
+    margin-top: 15px;
+}
+
+/* Manual Controls Card */
+.manual-controls-card .card-header {
+    background: rgba(255, 193, 7, 0.2);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.manual-controls-card .btn {
+    margin-bottom: 10px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: black;
+    transition: all 0.3s ease;
+}
+
+.manual-controls-card .btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Auto Monitoring Card */
+.auto-monitoring-card .card-header {
+    background: rgba(40, 167, 69, 0.2);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.auto-monitoring-card .auto-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.auto-monitoring-card .auto-info {
+    flex: 1;
+}
+
+.auto-monitoring-card .auto-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auto-monitoring-card .btn {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: black;
+    transition: all 0.3s ease;
+}
+
+.auto-monitoring-card .btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.final-station-card .card-header i {
+    margin-right: 8px;
+    font-size: 18px;
+    color: black;
+}
+
+.final-station-card .card-body {
+    padding: 0;
+    background: transparent;
+    color: black;
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-indicator i {
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.status-indicator span {
+    color: black;
+}
+
+.status-indicator.plc-online i {
+    color: #27ae60;
+}
+
+.status-indicator.plc-offline i {
+    color: #e74c3c;
+}
+
+.status-indicator.camera-active i {
+    color: #f39c12;
+}
+
+.status-indicator.camera-inactive i {
+    color: #95a5a6;
+}
+
+.status-indicator.part-present i {
+    color: #27ae60;
+}
+
+.status-indicator.part-absent i {
+    color: #e74c3c;
+}
+
+.status-indicator.auto-active i {
+    color: #3498db;
+}
+
+.status-indicator.auto-inactive i {
+    color: #95a5a6;
+}
+
+/* Mode Display */
+.mode-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 18px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: black;
+}
+
+.mode-display.mode-auto {
+    background: rgba(40, 167, 69, 0.2);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.mode-display.mode-manual {
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.mode-display i {
+    margin-right: 10px;
+    font-size: 24px;
+    color: black;
+}
+
+/* Control Buttons */
+.final-station-card .btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 15px;
+    margin: 5px;
+    transition: all 0.3s ease;
+}
+
+.final-station-card .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-mode-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: white;
+}
+
+.manual-camera-btn {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    border: none;
+    color: white;
+}
+
+.check-part-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    color: white;
+}
+
+.cylinder-forward-btn {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border: none;
+    color: white;
+}
+
+.cylinder-reverse-btn {
+    background: linear-gradient(135deg, #e67e22, #f39c12);
+    border: none;
+    color: white;
+}
+
+.start-monitoring-btn {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border: none;
+    color: white;
+}
+
+.stop-monitoring-btn {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border: none;
+    color: white;
+}
+
+.test-plc-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    color: white;
+}
+
+/* Info Details */
+.info-details {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-details small {
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+/* Auto Info */
+.auto-info {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auto-info small {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* PLC Registers */
+.register-grid {
+    margin-bottom: 20px;
+}
+
+.register-item {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.register-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.register-value {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    padding: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 16px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.register-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    color: #6c757d;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Measurements Table */
+.measurements-table {
+    font-size: 14px;
+}
+
+.measurements-table th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    border: none;
+    padding: 12px 8px;
+}
+
+.measurements-table td {
+    padding: 10px 8px;
+    border-top: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.badge-success {
+    background-color: #27ae60;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f39c12;
+    color: white;
+}
+
+.badge-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+/* Result Badge */
+.result-badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Machine Selection */
+#machine-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 10px 15px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+#machine-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .final-station-card .card-body {
+        padding: 15px;
+    }
+    
+    .register-item {
+        margin-bottom: 15px;
+    }
+    
+    .final-station-card .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .mode-display {
+        font-size: 16px;
+        padding: 12px;
+    }
+    
+    .status-indicator {
+        font-size: 14px;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Error States */
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 1px solid #f5c6cb;
+}
+
+/* Success States */
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 1px solid #c3e6cb;
+}
+
+/* Station Results Styles */
+.station-results {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.overall-status {
+    font-weight: bold;
+    text-align: center;
+}
+
+.overall-status.bg-success {
+    background-color: #d4edda !important;
+    border-color: #c3e6cb !important;
+    color: #155724;
+}
+
+.overall-status.bg-danger {
+    background-color: #f8d7da !important;
+    border-color: #f5c6cb !important;
+    color: #721c24;
+}
+
+.overall-status.bg-warning {
+    background-color: #fff3cd !important;
+    border-color: #ffeaa7 !important;
+    color: #856404;
+}
+
+.station-item {
+    transition: all 0.3s ease;
+    background-color: #ffffff;
+}
+
+.station-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.station-item .fa-check-circle {
+    color: #28a745;
+}
+
+.station-item .fa-times-circle {
+    color: #dc3545;
+}
+
+.station-item .fa-clock-o {
+    color: #ffc107;
+}
+
+.qe-override {
+    background-color: #d1ecf1 !important;
+    border-color: #bee5eb !important;
+    color: #0c5460;
+}
+
+.badge {
+    font-size: 0.75em;
+    padding: 0.375rem 0.75rem;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+}
+
+/* Processing Part Popup */
+.processing-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-in-out;
+    pointer-events: auto;
+}
+
+.processing-popup {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: 400px;
+    width: 90%;
+    animation: slideIn 0.3s ease-out;
+}
+
+.processing-popup-header {
+    background: rgba(52, 152, 219, 0.2);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    color: black;
+    padding: 20px;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+}
+
+.processing-popup-header h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.processing-popup-header .fa-spin {
+    margin-right: 10px;
+}
+
+.processing-popup-body {
+    padding: 30px 20px;
+    text-align: center;
+    color: black;
+}
+
+.processing-info {
+    margin-bottom: 20px;
+}
+
+.processing-info p {
+    margin-bottom: 10px;
+    color: black;
+}
+
+.processing-info strong {
+    color: black;
+}
+
+.processing-animation {
+    margin: 20px 0;
+}
+
+.processing-popup-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0 0 20px 20px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .processing-popup {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .processing-popup-body {
+        padding: 20px 15px;
+    }
+    
+    .manual-controls-card .btn,
+    .auto-monitoring-card .btn {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+    
+    .status-section {
+        margin-bottom: 15px;
+    }
+}

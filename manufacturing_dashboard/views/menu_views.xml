@@ -14,6 +14,13 @@
 <!--        <field name="target">fullscreen</field>-->
     </record>
 
+    <!-- Final Station Dashboard Action -->
+    <record id="action_final_station_dashboard" model="ir.actions.client">
+        <field name="name">Final Station Dashboard</field>
+        <field name="tag">final_station_dashboard</field>
+<!--        <field name="target">fullscreen</field>-->
+    </record>
+
     <!-- Main Menu -->
     <menuitem id="menu_manufacturing_main"
               name="Manufacturing Dashboard"
@@ -32,6 +39,12 @@
               parent="menu_manufacturing_main"
               action="action_manufacturing_dashboard_2"
               sequence="10"/>
+
+    <menuitem id="menu_final_station_dashboard"
+              name="Final Station Control"
+              parent="menu_manufacturing_main"
+              action="action_final_station_dashboard"
+              sequence="20"/>
 
     <!-- Configuration Menu -->
     <menuitem id="menu_configuration"
@@ -92,6 +105,13 @@
               parent="menu_stations"
               action="action_final_station_measurement"
               sequence="50"/>
+
+              <!-- Final Station Dashboard Menu Item -->
+    <menuitem id="menu_final_station_dashboard"
+              name="Final Station Dashboard"
+              parent="menu_manufacturing_main"
+              action="action_final_station_dashboard"
+              sequence="20"/>
 <!--    -->
 <!--    &lt;!&ndash; Dashboard Menu &ndash;&gt;-->
 <!--    <menuitem id="menu_manufacturing_dashboard_main"-->

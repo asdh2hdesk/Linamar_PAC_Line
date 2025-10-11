@@ -1819,7 +1819,7 @@ class MachineConfig(models.Model):
             machine_data = {
                 'id': machine.id,
                 'name': machine.machine_name,
-                'type': machine.machine_type,
+                'machine_type': machine.machine_type,
                 'status': machine.status,
                 'parts_today': machine.parts_processed_today,
                 'rejection_rate': round(machine.rejection_rate, 2),
@@ -1880,7 +1880,7 @@ class MachineConfig(models.Model):
             machine_info = {
                 'id': machine.id,
                 'name': machine.machine_name,
-                'type': machine.machine_type,
+                'machine_type': machine.machine_type,
                 'status': machine.status,
                 'parts_today': machine_stats['total_count'],
                 'ok_count': machine_stats['ok_count'],
@@ -2060,7 +2060,7 @@ class MachineConfig(models.Model):
                 'machine_info': {
                     'id': machine.id,
                     'name': machine.machine_name,
-                    'type': machine.machine_type,
+                    'machine_type': machine.machine_type,
                     'status': machine.status,
                     'last_sync': machine.last_sync.isoformat() if machine.last_sync else None,
                 },
@@ -2372,131 +2372,29 @@ class MachineConfig(models.Model):
         self.ensure_one()
         if self.machine_type != 'final_station':
             return {'success': False, 'message': 'Not a final station'}
-            
-        try:
-            import socket
-            import time
-            _logger.info(f"Testing PLC connection to {self.plc_ip_address}:{self.plc_port}")
-            
-            # Connect to PLC
-            with socket.create_connection((self.plc_ip_address, self.plc_port), timeout=10) as sock:
-                _logger.info("✅ PLC connection successful!")
-                
-                # Read D0-D9 values using Modbus TCP protocol
-                d_values = {}
-                for i in range(10):  # D0 to D9
-                    try:
-                        # Create Modbus TCP read holding registers request
-                        # Transaction ID, Protocol ID, Length, Unit ID, Function Code, Starting Address, Quantity
-                        import struct
-                        
-                        # Modbus TCP frame for reading holding registers (function code 0x03)
-                        transaction_id = 1
-                        protocol_id = 0
-                        length = 6  # Unit ID + Function Code + Starting Address + Quantity
-                        unit_id = 1
-                        function_code = 0x03  # Read Holding Registers
-                        starting_address = i  # D register address
-                        quantity = 1  # Read 1 register
-                        
-                        # Build Modbus TCP frame
-                        frame = struct.pack('>HHHBBHH', 
-                                          transaction_id, 
-                                          protocol_id, 
-                                          length, 
-                                          unit_id, 
-                                          function_code, 
-                                          starting_address, 
-                                          quantity)
-                        
-                        # Send Modbus request
-                        sock.sendall(frame)
-                        time.sleep(0.1)
-                        
-                        # Receive response
-                        response = sock.recv(1024)
-                        
-                        if len(response) >= 9:  # Minimum Modbus TCP response length
-                            # Parse response: Transaction ID, Protocol ID, Length, Unit ID, Function Code, Byte Count, Data
-                            transaction_id_resp, protocol_id_resp, length_resp, unit_id_resp, function_code_resp, byte_count = struct.unpack('>HHHBBB', response[:9])
-                            
-                            if function_code_resp == 0x03 and byte_count >= 2:
-                                # Extract register value (2 bytes)
-                                register_value = struct.unpack('>H', response[9:11])[0]
-                                d_values[f'D{i}'] = str(register_value)
-                                _logger.info(f"D{i} = {register_value}")
-                            else:
-                                d_values[f'D{i}'] = "INVALID_RESPONSE"
-                                _logger.warning(f"D{i} - Invalid Modbus response")
-                        else:
-                            d_values[f'D{i}'] = "SHORT_RESPONSE"
-                            _logger.warning(f"D{i} - Response too short: {len(response)} bytes")
-                            
-                    except Exception as e:
-                        _logger.warning(f"Failed to read D{i}: {str(e)}")
-                        d_values[f'D{i}'] = f"ERROR: {str(e)[:20]}"
-                
-                # Update PLC status
-                self.last_plc_communication = datetime.now()
-                self._compute_plc_status()
-                
-                # Prepare success message
-                success_message = f"PLC connection successful to {self.plc_ip_address}:{self.plc_port}\n"
-                success_message += "D0-D9 values:\n"
-                for i in range(10):
-                    success_message += f"D{i}: {d_values[f'D{i}']}\n"
-                
-                _logger.info(f"PLC test completed successfully")
-                
-                # Show success notification
-                return {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': 'PLC Connection Successful',
-                        'message': success_message,
-                        'type': 'success',
-                        'sticky': True,
-                    }
-                }
-                
-        except socket.timeout:
-            error_msg = f"PLC connection timeout to {self.plc_ip_address}:{self.plc_port}"
-            _logger.error(error_msg)
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        result = service.test_plc_connection()
+        
+        if result['success']:
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': 'PLC Connection Failed',
-                    'message': error_msg,
-                    'type': 'danger',
+                    'title': 'PLC Connection Successful',
+                    'message': result['message'],
+                    'type': 'success',
                     'sticky': True,
                 }
             }
-            
-        except socket.gaierror as e:
-            error_msg = f"PLC connection error - Invalid address {self.plc_ip_address}: {str(e)}"
-            _logger.error(error_msg)
+        else:
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': 'PLC Connection Failed',
-                    'message': error_msg,
-                    'type': 'danger',
-                    'sticky': True,
-                }
-            }
-            
-        except Exception as e:
-            error_msg = f"PLC connection error: {str(e)}"
-            _logger.error(error_msg)
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'PLC Connection Failed',
-                    'message': error_msg,
+                    'message': result['message'],
                     'type': 'danger',
                     'sticky': True,
                 }
@@ -2507,34 +2405,24 @@ class MachineConfig(models.Model):
         self.ensure_one()
         if self.machine_type != 'final_station':
             return False
-            
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
         try:
-            # Determine next mode and corresponding PLC D2 value
-            if self.operation_mode == 'auto':
-                next_mode = 'manual'
-                d2_value = 1  # manual
-            else:
-                next_mode = 'auto'
-                d2_value = 0  # auto
-
-            # Write D2 to PLC to reflect mode
-            plc_ok = self._write_plc_register(2, d2_value)
-
-            if plc_ok:
-                self.operation_mode = next_mode
-                _logger.info(f"Operation mode changed to {self.operation_mode} for {self.machine_name} (D2={d2_value})")
+            success = service.toggle_operation_mode()
+            if success:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
                         'title': 'Mode Toggled',
-                        'message': f"Mode set to {self.operation_mode.upper()} (D2={d2_value})",
+                        'message': f"Mode set to {self.operation_mode.upper()}",
                         'type': 'success',
                         'sticky': False,
                     }
                 }
             else:
-                _logger.error("Failed to write D2 to PLC during mode toggle")
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -2563,76 +2451,94 @@ class MachineConfig(models.Model):
         self.ensure_one()
         if self.machine_type != 'final_station':
             return False
-            
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
         try:
-            _logger.info(f"Manual camera trigger for {self.machine_name}")
-            
-            # Trigger camera and get QR code data
-            camera_data = self._trigger_camera_and_get_data()
-            
-            if camera_data and camera_data.get('serial_number'):
-                # Get serial number from QR code scan
-                serial_number = camera_data.get('serial_number')
-                capture_time = datetime.now()
-                
-                # Check results from all previous stations
-                station_results = self._check_all_stations_result(serial_number)
-                final_result = station_results.get('final_result', 'nok')
-                
-                # Create measurement record with aggregated result
-                measurement = self.env['manufacturing.final.station.measurement'].create_measurement_record(
-                    machine_id=self.id,
-                    serial_number=serial_number,
-                    result=final_result,
-                    operation_mode=self.operation_mode,
-                    trigger_type='manual',
-                    raw_data=camera_data.get('raw_data', f"Manual QR scan at {capture_time.isoformat()}")
-                )
-                
-                if measurement:
-                    # Update machine status
-                    self.camera_triggered = True
-                    self.last_serial_number = serial_number
-                    self.last_capture_time = capture_time
-                    self.last_result = final_result
-                    self.manual_camera_trigger = True
-                    
-                    _logger.info(f"Manual camera triggered. Serial: {serial_number}, Final Result: {final_result}")
-                    _logger.info(f"Station results: {station_results.get('station_results', {})}")
-                    return True
-                else:
-                    _logger.error("Failed to create measurement record")
-                    return False
+            success = service.manual_trigger_camera()
+            if success:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Camera Triggered',
+                        'message': f"Manual camera trigger successful for {self.machine_name}",
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
             else:
-                _logger.error("Failed to get QR code from camera")
-                return False
-            
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Camera Trigger Failed',
+                        'message': 'Failed to trigger camera or get QR code',
+                        'type': 'danger',
+                        'sticky': True,
+                    }
+                }
         except Exception as e:
-            _logger.error(f"Camera trigger error: {str(e)}")
-            return False
+            _logger.error(f"Manual camera trigger error: {str(e)}")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Camera Trigger Error',
+                    'message': f'Error: {str(e)}',
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
 
     def check_part_presence(self):
         """Check for part presence via PLC sensor"""
         self.ensure_one()
         if self.machine_type != 'final_station':
             return False
-            
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
         try:
-            # This would typically read from PLC sensor
-            # For now, simulate part detection
-            part_detected = self._read_plc_sensor()
-            
+            part_detected = service.check_part_presence()
             if part_detected:
-                self.part_present = True
                 _logger.info(f"Part detected at {self.machine_name}")
-                return True
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Part Detected',
+                        'message': f"Part present at {self.machine_name}",
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
             else:
-                self.part_present = False
-                return False
-                
+                _logger.info(f"No part detected at {self.machine_name}")
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'No Part',
+                        'message': f"No part present at {self.machine_name}",
+                        'type': 'info',
+                        'sticky': False,
+                    }
+                }
         except Exception as e:
             _logger.error(f"Part presence check error: {str(e)}")
-            return False
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Part Check Error',
+                    'message': f'Error: {str(e)}',
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
 
     def _read_plc_sensor(self):
         """Read PLC sensor for part presence (D0 register)"""
@@ -2854,85 +2760,20 @@ class MachineConfig(models.Model):
         self.ensure_one()
         if self.machine_type != 'final_station':
             return False
-            
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
         try:
-            _logger.info(f"Auto camera trigger for {self.machine_name}")
-            
-            # Check if already processing a part
-            if self.processing_part:
-                _logger.info("Already processing a part, skipping trigger")
-                return False
-            
-            # Check PLC D0 register for part presence
-            part_present = self._read_plc_sensor()
-            if not part_present:
-                _logger.info("PLC D0=0, no part present, skipping camera trigger")
-                return False
-            
-            # Set processing flag to prevent multiple triggers
-            self.processing_part = True
-            _logger.info("PLC D0=1, part present, triggering camera...")
-            
-            # Trigger camera and get QR code data
-            camera_data = self._trigger_camera_and_get_data()
-            
-            if camera_data and camera_data.get('serial_number'):
-                # Get serial number from QR code scan
-                serial_number = camera_data.get('serial_number')
-                capture_time = datetime.now()
-                
-                # Check results from all previous stations
-                station_results = self._check_all_stations_result(serial_number)
-                final_result = station_results.get('final_result', 'nok')
-                
-                # Create measurement record with aggregated result
-                measurement = self.env['manufacturing.final.station.measurement'].create_measurement_record(
-                    machine_id=self.id,
-                    serial_number=serial_number,
-                    result=final_result,
-                    operation_mode=self.operation_mode,
-                    trigger_type='auto',
-                    raw_data=camera_data.get('raw_data', f"QR scan at {capture_time.isoformat()}")
-                )
-                
-                if measurement:
-                    # Update machine status
-                    self.camera_triggered = True
-                    self.last_serial_number = serial_number
-                    self.last_capture_time = capture_time
-                    self.last_result = final_result
-                    self.part_present = False  # Reset part presence
-                    
-                    # Write result back to PLC D1 register (0=OK, 1=NOK)
-                    plc_result_value = 1 if final_result == 'nok' else 0
-                    plc_write_success = self._write_plc_result(plc_result_value)
-                    
-                    if plc_write_success:
-                        _logger.info(f"PLC D1 updated: {plc_result_value} ({'NOK' if plc_result_value == 1 else 'OK'})")
-                    else:
-                        _logger.warning("Failed to write result to PLC D1")
-                    
-                    _logger.info(f"Auto camera triggered. Serial: {serial_number}, Final Result: {final_result}")
-                    _logger.info(f"Station results: {station_results.get('station_results', {})}")
-                    
-                    # Reset processing flag after successful completion
-                    self.processing_part = False
-                    return True
-                else:
-                    _logger.error("Failed to create measurement record")
-                    # Reset processing flag on error
-                    self.processing_part = False
-                    return False
+            success = service.auto_trigger_camera()
+            if success:
+                _logger.info(f"Auto camera trigger successful for {self.machine_name}")
+                return True
             else:
-                _logger.error("Failed to get QR code from camera")
-                # Reset processing flag on error
-                self.processing_part = False
+                _logger.warning(f"Auto camera trigger failed for {self.machine_name}")
                 return False
-            
         except Exception as e:
             _logger.error(f"Auto camera trigger error: {str(e)}")
-            # Reset processing flag on error
-            self.processing_part = False
             return False
 
     def _trigger_camera_and_get_data(self):
@@ -3203,21 +3044,24 @@ class MachineConfig(models.Model):
         self.ensure_one()
         if self.machine_type != 'final_station':
             return False
-            
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
         try:
             _logger.info(f"Starting auto monitoring for {self.machine_name}")
             
             # Check for part presence
-            part_detected = self.check_part_presence()
+            part_detected = service.check_part_presence()
             
             if part_detected:
                 # Part detected, trigger camera
-                return self.auto_trigger_camera()
+                return service.auto_trigger_camera()
             else:
                 # No part present - check if we need to reset D1
                 if self.part_present:  # Part was present before, now removed
                     _logger.info("Part removed, resetting PLC D1 to 0")
-                    self._reset_plc_result()
+                    service.reset_plc_result()
                     self.part_present = False
                     self.processing_part = False  # Reset processing flag
                 else:
@@ -3233,28 +3077,13 @@ class MachineConfig(models.Model):
         self.ensure_one()
         if self.machine_type != 'final_station':
             return False
-            
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
         try:
-            _logger.info(f"Manual cylinder forward for {self.machine_name}")
-            
-            # Write D3=1 to PLC (Cylinder Forward)
-            plc_success = self._write_plc_register(3, 1)  # D3=1 for forward
-            
-            if plc_success:
-                self.cylinder_forward = True
-                self.cylinder_reverse = False
-                self.manual_cylinder_forward = True
-                _logger.info("PLC D3 (Cylinder Forward) set to 1")
-                
-                # Pulse back to 0 after 1s
-                import time
-                time.sleep(1)
-                self._write_plc_register(3, 0)
-                _logger.info("PLC D3 (Cylinder Forward) reset to 0 after pulse")
-                # Reflect back in model state
-                self.cylinder_forward = False
-                self.manual_cylinder_forward = False
-                
+            success = service.cylinder_forward_pulse()
+            if success:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -3266,18 +3095,16 @@ class MachineConfig(models.Model):
                     }
                 }
             else:
-                _logger.error("Failed to write D3=1 to PLC")
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
                         'title': 'Cylinder Forward Failed',
-                        'message': 'Failed to write D3=1 to PLC',
+                        'message': 'Failed to control cylinder forward',
                         'type': 'danger',
                         'sticky': True,
                     }
                 }
-            
         except Exception as e:
             _logger.error(f"Cylinder forward error: {str(e)}")
             return {
@@ -3296,28 +3123,13 @@ class MachineConfig(models.Model):
         self.ensure_one()
         if self.machine_type != 'final_station':
             return False
-            
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
         try:
-            _logger.info(f"Manual cylinder reverse for {self.machine_name}")
-            
-            # Write D4=1 to PLC (Cylinder Reverse)
-            plc_success = self._write_plc_register(4, 1)  # D4=1 for reverse
-            
-            if plc_success:
-                self.cylinder_reverse = True
-                self.cylinder_forward = False
-                self.manual_cylinder_reverse = True
-                _logger.info("PLC D4 (Cylinder Reverse) set to 1")
-                
-                # Pulse back to 0 after 1s
-                import time
-                time.sleep(1)
-                self._write_plc_register(4, 0)
-                _logger.info("PLC D4 (Cylinder Reverse) reset to 0 after pulse")
-                # Reflect back in model state
-                self.cylinder_reverse = False
-                self.manual_cylinder_reverse = False
-                
+            success = service.cylinder_reverse_pulse()
+            if success:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -3329,18 +3141,16 @@ class MachineConfig(models.Model):
                     }
                 }
             else:
-                _logger.error("Failed to write D4=1 to PLC")
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
                         'title': 'Cylinder Reverse Failed',
-                        'message': 'Failed to write D4=1 to PLC',
+                        'message': 'Failed to control cylinder reverse',
                         'type': 'danger',
                         'sticky': True,
                     }
                 }
-            
         except Exception as e:
             _logger.error(f"Cylinder reverse error: {str(e)}")
             return {
@@ -3371,20 +3181,63 @@ class MachineConfig(models.Model):
             
             # Create thread-safe callback function for part presence changes
             def part_presence_callback(machine_id, part_present, previous_state):
-                """Simple callback function - just log the event"""
+                """Direct callback function - immediately start auto monitoring"""
                 try:
+                    _logger.info(f"PLC Callback triggered: Machine {machine_id}, Part present: {previous_state} -> {part_present}")
                     if part_present:
-                        _logger.info(f"Part detected on machine {machine_id} - cron job will handle auto monitoring")
-                        # Just log the event - the cron job will check PLC directly
+                        _logger.info(f"Part detected on machine {machine_id} - starting direct auto monitoring")
+                        # Use a new database cursor for thread safety
+                        with self.env.registry.cursor() as new_cr:
+                            new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                            machine = new_env['manufacturing.machine.config'].browse(machine_id)
+                            if machine.exists():
+                                # Import FinalStationService in the callback scope
+                                from .final_station_service import FinalStationService
+                                service = FinalStationService(machine)
+                                service.direct_auto_start_monitoring()
+                                new_cr.commit()
+                    else:
+                        _logger.info(f"Part removed from machine {machine_id}")
+                        # Reset processing flag when part is removed
+                        with self.env.registry.cursor() as new_cr:
+                            new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                            machine = new_env['manufacturing.machine.config'].browse(machine_id)
+                            if machine.exists():
+                                machine.processing_part = False
+                                _logger.info(f"Reset processing_part flag for machine {machine_id}")
+                                new_cr.commit()
                 except Exception as e:
                     _logger.error(f"Error in PLC callback for machine {machine_id}: {str(e)}")
+            
+            # Create thread-safe callback function for connection status changes
+            def connection_status_callback(machine_id, is_connected):
+                """Update PLC connection status in real-time"""
+                try:
+                    _logger.info(f"PLC Connection status changed: Machine {machine_id}, Connected: {is_connected}")
+                    # Use a new database cursor for thread safety
+                    with self.env.registry.cursor() as new_cr:
+                        new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                        machine = new_env['manufacturing.machine.config'].browse(machine_id)
+                        if machine.exists():
+                            machine.plc_online = is_connected
+                            if is_connected:
+                                machine.last_plc_communication = fields.Datetime.now()
+                                machine.status = 'running'
+                                _logger.info(f"PLC connection restored for machine {machine_id}")
+                            else:
+                                machine.status = 'error'
+                                _logger.warning(f"PLC connection lost for machine {machine_id}")
+                            new_cr.commit()
+                except Exception as e:
+                    _logger.error(f"Error in connection status callback for machine {machine_id}: {str(e)}")
             
             # Configure monitoring
             config = {
                 'plc_ip': self.plc_ip_address,
                 'plc_port': self.plc_port,
                 'scan_rate': self.plc_scan_rate,
-                'callback': part_presence_callback
+                'callback': part_presence_callback,
+                'connection_callback': connection_status_callback
             }
             
             # Start monitoring
@@ -3683,3 +3536,124 @@ class MachineConfig(models.Model):
         except Exception as e:
             _logger.error(f"Dashboard data error: {str(e)}")
             return {}
+
+    def get_final_station_live_data(self):
+        """Get live data for final station dashboard"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {}
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
+        # Auto-start PLC monitoring service if not already running
+        _logger.info(f"Checking PLC monitoring status for {self.machine_name}: active={self.plc_monitoring_active}, ip={self.plc_ip_address}")
+        if not self.plc_monitoring_active and self.plc_ip_address:
+            _logger.info(f"Auto-starting PLC monitoring service for {self.machine_name}")
+            if self.start_plc_monitoring_service():
+                _logger.info(f"PLC monitoring service started successfully for {self.machine_name}")
+            else:
+                _logger.warning(f"Failed to start PLC monitoring service for {self.machine_name}")
+        elif self.plc_monitoring_active:
+            _logger.info(f"PLC monitoring service already active for {self.machine_name}")
+        else:
+            _logger.warning(f"Cannot start PLC monitoring - no IP address configured for {self.machine_name}")
+        
+        try:
+            # Get current PLC register values
+            registers = service.read_all_plc_registers()
+            
+            # Get recent measurements
+            recent_measurements = self.env['manufacturing.final.station.measurement'].search_read(
+                [['machine_id', '=', self.id]],
+                ['serial_number', 'capture_date', 'result', 'operation_mode', 'trigger_type'],
+                limit=10,
+                order='capture_date desc'
+            )
+            
+            # Get station results if we have a serial number
+            station_results = None
+            if self.last_serial_number:
+                station_results = service.get_station_results_for_dashboard(self.last_serial_number)
+            
+            return {
+                'machine_id': self.id,
+                'machine_name': self.machine_name,
+                'status': self.status,
+                'operation_mode': self.operation_mode,
+                'plc_online': self.plc_online,
+                'plc_ip_address': self.plc_ip_address,
+                'plc_port': self.plc_port,
+                'last_plc_communication': self.last_plc_communication.isoformat() if self.last_plc_communication else None,
+                'camera_ip_address': self.camera_ip_address,
+                'camera_port': self.camera_port,
+                'camera_triggered': self.camera_triggered,
+                'last_capture_time': self.last_capture_time.isoformat() if self.last_capture_time else None,
+                'part_present': self.part_present,
+                'processing_part': self.processing_part,
+                'last_serial_number': self.last_serial_number,
+                'last_result': self.last_result,
+                'plc_monitoring_active': self.plc_monitoring_active,
+                'plc_scan_rate': self.plc_scan_rate,
+                'last_plc_scan': self.last_plc_scan.isoformat() if self.last_plc_scan else None,
+                'plc_monitoring_errors': self.plc_monitoring_errors,
+                'plc_registers': registers,
+                'recent_measurements': recent_measurements,
+                'station_results': station_results,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error getting live data: {str(e)}")
+            return {
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    def get_station_results_by_serial(self, serial_number):
+        """Get station results for a specific serial number"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return {}
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
+        try:
+            return service.get_station_results_for_dashboard(serial_number)
+        except Exception as e:
+            _logger.error(f"Error getting station results for serial {serial_number}: {str(e)}")
+            return {
+                'error': str(e),
+                'serial_number': serial_number
+            }
+    
+    def update_station_result(self, serial_number, station_type, result):
+        """Update a specific station result for a serial number"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return False
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
+        try:
+            return service.update_station_result(serial_number, station_type, result)
+        except Exception as e:
+            _logger.error(f"Error updating station result for serial {serial_number}: {str(e)}")
+            return False
+    
+    def get_or_create_part_quality(self, serial_number):
+        """Get existing part quality record or create new one"""
+        self.ensure_one()
+        if self.machine_type != 'final_station':
+            return None
+        
+        from .final_station_service import FinalStationService
+        service = FinalStationService(self)
+        
+        try:
+            return service.get_or_create_part_quality(serial_number)
+        except Exception as e:
+            _logger.error(f"Error getting or creating part quality for serial {serial_number}: {str(e)}")
+            return None

@@ -48,6 +48,10 @@ Features:
             'manufacturing_dashboard/static/src/css/dashboard.css',
             'manufacturing_dashboard/static/src/js/dashboard.js',
             'manufacturing_dashboard/static/src/xml/dashboard.xml',
+            # Final Station Dashboard assets
+            'manufacturing_dashboard/static/src/css/final_station_dashboard.css',
+            'manufacturing_dashboard/static/src/js/final_station_dashboard.js',
+            'manufacturing_dashboard/static/src/xml/final_station_dashboard.xml',
         ],
     },
     'installable': True,

@@ -48,12 +48,14 @@ export class ModernManufacturingDashboard extends Component {
             if (!this.state.error) {
                 this.refreshInterval = setInterval(async () => {
                     try {
-                        await this.loadDashboardData();
+                        await this.refreshDashboardData();
                         this.updateCharts();
                     } catch (error) {
                         console.error('Error in auto refresh:', error);
                     }
                 }, 30000);
+                
+                // Final station data refresh removed - now handled by separate dashboard
             }
         });
 
@@ -134,10 +136,82 @@ export class ModernManufacturingDashboard extends Component {
         }
     }
 
+    async refreshDashboardData() {
+        try {
+            console.log('Refreshing dashboard data...');
+            
+            // Add timeout to prevent hanging
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Request timeout')), 10000)
+            );
+            
+            let data;
+            try {
+                // Try the enhanced dashboard data method first
+                const dataPromise = this.orm.call(
+                    "manufacturing.machine.config",
+                    "get_enhanced_dashboard_data",
+                    [this.state.tableFilter || 'today']
+                );
+                data = await Promise.race([dataPromise, timeoutPromise]);
+            } catch (methodError) {
+                console.warn('Enhanced dashboard method not available, trying fallback:', methodError.message);
+                // Fallback to basic search if enhanced method doesn't exist
+                const machines = await this.orm.searchRead(
+                    "manufacturing.machine.config",
+                    [],
+                    ["id", "name", "machine_type", "status", "last_sync"]
+                );
+                data = {
+                    machines: machines,
+                    statistics: {
+                        total_parts: 0,
+                        passed_parts: 0,
+                        rejected_parts: 0,
+                        pending_parts: 0
+                    }
+                };
+            }
+            
+            console.log('Dashboard refresh data received:', data);
+            
+            // Store current selection
+            const currentSelection = this.state.selectedMachine;
+            
+            // Update machines and statistics
+            this.state.machines = data.machines || [];
+            this.state.statistics = data.statistics || {};
+            this.state.error = null;
+
+            console.log('Machines refreshed:', this.state.machines.length);
+            console.log('Statistics refreshed:', this.state.statistics);
+
+            // Restore selection if it still exists in the updated machines list
+            if (currentSelection && this.state.machines.length > 0) {
+                const updatedMachine = this.state.machines.find(m => m.id === currentSelection.id);
+                if (updatedMachine) {
+                    console.log('Restoring selection to:', updatedMachine.name);
+                    this.state.selectedMachine = updatedMachine;
+                } else {
+                    console.log('Previously selected machine no longer exists, selecting first machine');
+                    await this.selectMachine(this.state.machines[0]);
+                }
+            } else if (this.state.machines.length > 0 && !currentSelection) {
+                console.log('No previous selection, selecting first machine');
+                await this.selectMachine(this.state.machines[0]);
+            }
+        } catch (error) {
+            console.error("Error refreshing dashboard data:", error);
+            this.state.error = "Failed to refresh dashboard data: " + error.message;
+        }
+    }
+
     async selectMachine(machine) {
         this.state.selectedMachine = machine;
         this.state.machineDetailData = null;
         await this.loadMachineDetail(machine.id);
+        
+        // Final station specific data loading removed - now handled by separate dashboard
     }
 
     async loadMachineDetail(machineId) {
@@ -165,11 +239,12 @@ export class ModernManufacturingDashboard extends Component {
         }
     }
 
+
     async onFilterChange(filter) {
         console.log('Filter changed to:', filter);
         this.state.tableFilter = filter;
         
-        await this.loadDashboardData();
+        await this.refreshDashboardData();
         
         if (this.state.selectedMachine) {
             console.log('Reloading machine detail with filter:', filter);
@@ -333,6 +408,39 @@ export class ModernManufacturingDashboard extends Component {
             return '0.000';
         }
         return parseFloat(value || 0).toFixed(3);
+    }
+
+
+
+    getResultClass(result) {
+        switch (result) {
+            case 'ok': return 'badge-success';
+            case 'nok': return 'badge-danger';
+            case 'pending': return 'badge-warning';
+            default: return 'badge-secondary';
+        }
+    }
+
+    showNotification(message, type = "info") {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div style="padding: 15px;">
+                <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br>
+                ${message}
+            </div>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 5000);
     }
 
     // Chart Creation Methods

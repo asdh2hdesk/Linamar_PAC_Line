@@ -78,7 +78,14 @@ class PLCMonitorService:
     def is_monitoring(self, machine_id):
         """Check if monitoring is active for a machine"""
         with self.lock:
-            return machine_id in self.monitors and self.monitors[machine_id].is_alive()
+            if machine_id in self.monitors:
+                thread = self.monitors[machine_id]
+                is_alive = thread.is_alive()
+                _logger.info(f"PLC monitoring thread for machine {machine_id}: exists={True}, is_alive={is_alive}, name={thread.name}")
+                return is_alive
+            else:
+                _logger.info(f"PLC monitoring thread for machine {machine_id}: exists={False}")
+                return False
     
     def stop_all(self):
         """Stop all monitoring threads"""
@@ -98,14 +105,17 @@ class PLCMonitorService:
         plc_port = config.get('plc_port', 502)
         scan_rate = config.get('scan_rate', 0.1)  # 100ms default
         callback = config.get('callback')
+        connection_callback = config.get('connection_callback')
         
         _logger.info(f"PLC Monitor loop started for machine {machine_id} - {plc_ip}:{plc_port}")
+        _logger.info(f"PLC Monitor configuration: scan_rate={scan_rate}, callback={'provided' if callback else 'None'}")
         
         # State tracking
         previous_part_present = None
         consecutive_errors = 0
         max_consecutive_errors = 10
         reconnect_delay = 5
+        last_connection_status = None  # Track connection status changes
         
         # Performance tracking
         scan_times = deque(maxlen=100)  # Track last 100 scan times
@@ -117,9 +127,31 @@ class PLCMonitorService:
                 # Read part presence from PLC D0 register
                 part_present = self._read_plc_register(plc_ip, plc_port, register=0)
                 
+                # Check connection status
+                current_connection_status = part_present is not None
+                
+                # Notify connection status change
+                if current_connection_status != last_connection_status:
+                    _logger.info(f"Machine {machine_id}: Connection status changed: {last_connection_status} -> {current_connection_status}")
+                    if connection_callback:
+                        try:
+                            connection_callback(machine_id, current_connection_status)
+                        except Exception as cb_error:
+                            _logger.error(f"Connection callback error for machine {machine_id}: {str(cb_error)}")
+                    last_connection_status = current_connection_status
+                
                 # Reset error counter on successful read
                 if part_present is not None:
                     consecutive_errors = 0
+                    
+                    # Log current state every 10 scans (for debugging)
+                    if hasattr(self, '_scan_count'):
+                        self._scan_count += 1
+                    else:
+                        self._scan_count = 1
+                    
+                    if self._scan_count % 10 == 0:  # Log every 10th scan
+                        _logger.info(f"Machine {machine_id}: D0={part_present} (scan #{self._scan_count})")
                     
                     # Detect state change
                     if part_present != previous_part_present:
@@ -128,12 +160,16 @@ class PLCMonitorService:
                         # Call callback function with state change
                         if callback:
                             try:
+                                _logger.info(f"Machine {machine_id}: Calling callback function...")
                                 callback(machine_id, part_present, previous_part_present)
+                                _logger.info(f"Machine {machine_id}: Callback function completed")
                             except Exception as cb_error:
                                 _logger.error(f"Callback error for machine {machine_id}: {str(cb_error)}")
+                        else:
+                            _logger.warning(f"Machine {machine_id}: No callback function provided")
                         
                         previous_part_present = part_present
-                    
+                
                 else:
                     consecutive_errors += 1
                     _logger.warning(f"Machine {machine_id}: Failed to read PLC (error {consecutive_errors}/{max_consecutive_errors})")
@@ -165,9 +201,9 @@ class PLCMonitorService:
         
         _logger.info(f"PLC Monitor loop stopped for machine {machine_id}")
     
-    def _read_plc_register(self, plc_ip, plc_port, register=0, timeout=2):
+    def _read_plc_register(self, plc_ip, plc_port, register=0, timeout=3):
         """
-        Read a single holding register from PLC using Modbus TCP
+        Read a single holding register from PLC using Modbus TCP with improved reliability
         
         Args:
             plc_ip: PLC IP address
@@ -180,6 +216,10 @@ class PLCMonitorService:
         """
         try:
             with socket.create_connection((plc_ip, plc_port), timeout=timeout) as sock:
+                # Set socket options for better reliability
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                
                 # Create Modbus TCP read holding registers request
                 transaction_id = 1
                 protocol_id = 0
@@ -201,6 +241,7 @@ class PLCMonitorService:
                 
                 # Send request
                 sock.sendall(frame)
+                time.sleep(0.05)  # Small delay for stability
                 
                 # Receive response
                 response = sock.recv(1024)

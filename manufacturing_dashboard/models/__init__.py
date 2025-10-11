@@ -6,3 +6,4 @@ from . import aumann_measurement
 from . import gauging_measurement
 from . import final_station_measurement
 from . import plc_monitor_service
+from . import final_station_service

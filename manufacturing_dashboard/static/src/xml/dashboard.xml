@@ -135,9 +135,9 @@
                                     <div class="machine-header">
                                         <div class="machine-status">
                                             <div class="status-dot" t-att-class="getStatusClass(machine.status)"></div>
-                                            <span class="status-text" t-esc="machine.status.toUpperCase()"/>
+                                            <span class="status-text" t-esc="machine.status and machine.status.toUpperCase() or 'UNKNOWN'"/>
                                         </div>
-                                        <div class="machine-type clickable" t-esc="machine.type" t-on-click="() => this.openMachineListView(machine)"/>
+                                        <div class="machine-type clickable" t-esc="machine.machine_type" t-on-click="() => this.openMachineListView(machine)"/>
                                     </div>
                                     <div class="machine-name" t-esc="machine.name" />
 
@@ -180,6 +180,7 @@
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Charts & Analytics Section -->
                 <div t-if="state.selectedMachine" class="analytics-section">
