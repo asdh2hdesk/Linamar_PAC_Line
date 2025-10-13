@@ -1,16 +1,28 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class PartQuality(models.Model):
     _name = 'manufacturing.part.quality'
     _description = 'Part Quality Control'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'test_date desc'
     _rec_name = 'serial_number'
 
     serial_number = fields.Char('Serial Number', required=True, index=True)
     test_date = fields.Datetime('Test Date', default=fields.Datetime.now, index=True)
+    
+    # Part variant information
+    part_variant = fields.Selection([
+        ('exhaust', 'Exhaust'),
+        ('intake', 'Intake')
+    ], compute='_compute_part_variant', string='Part Variant', store=True)
+    
+    part_description = fields.Char('Part Description', compute='_compute_part_description', store=True)
 
     # Station results
     vici_result = fields.Selection([
@@ -47,6 +59,7 @@ class PartQuality(models.Model):
     # Box tracking
     box_number = fields.Char('Box Number')
     box_position = fields.Integer('Position in Box')
+    box_id = fields.Many2one('manufacturing.box.management', string='Box')
 
     # Quality Engineer Override
     qe_override = fields.Boolean('QE Override')
@@ -75,6 +88,31 @@ class PartQuality(models.Model):
         string='Gauging Tests'
     )
 
+    @api.depends('serial_number')
+    def _compute_part_variant(self):
+        """Detect part variant based on serial number prefix"""
+        for record in self:
+            if record.serial_number:
+                if record.serial_number.startswith('480'):
+                    record.part_variant = 'exhaust'
+                elif record.serial_number.startswith('980'):
+                    record.part_variant = 'intake'
+                else:
+                    record.part_variant = False
+            else:
+                record.part_variant = False
+
+    @api.depends('part_variant')
+    def _compute_part_description(self):
+        """Set part description based on variant"""
+        for record in self:
+            if record.part_variant == 'exhaust':
+                record.part_description = 'Exhaust Camshaft'
+            elif record.part_variant == 'intake':
+                record.part_description = 'Intake Camshaft'
+            else:
+                record.part_description = 'Unknown Part'
+
     @api.depends('vici_result', 'ruhlamat_result', 'aumann_result', 'gauging_result', 'qe_override')
     def _compute_final_result(self):
         for record in self:
@@ -88,20 +126,50 @@ class PartQuality(models.Model):
                 record.final_result = 'reject'
             elif all(result == 'pass' for result in results):
                 record.final_result = 'pass'
+                # Automatically assign to box when part passes
+                record._assign_to_box_if_passed()
             else:
                 record.final_result = 'pending'
+    
+    def _assign_to_box_if_passed(self):
+        """Assign part to box if it passes all tests"""
+        self.ensure_one()
+        
+        # Only assign if not already assigned to a box and has a valid variant
+        if not self.box_id and self.final_result == 'pass' and self.part_variant:
+            try:
+                box_management = self.env['manufacturing.box.management']
+                current_box = box_management.get_or_create_current_box(self.part_variant)
+                position = current_box.add_part_to_box(self.id)
+                
+                _logger.info(f"Assigned {self.part_variant} part {self.serial_number} to box {current_box.box_number} at position {position}")
+                
+            except Exception as e:
+                _logger.error(f"Error assigning part {self.serial_number} to box: {str(e)}")
 
-    def qe_override_result(self, new_result, comments):
+    def qe_override_result(self, new_result=None, comments=None):
         """Allow Quality Engineer to override the result"""
         self.ensure_one()
+        
+        # If no parameters provided, open the wizard
+        if new_result is None or comments is None:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'QE Override',
+                'res_model': 'manufacturing.qe.override.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {'default_part_quality_id': self.id}
+            }
+        
         self.write({
             'final_result': new_result,
             'qe_override': True,
             'qe_comments': comments
         })
 
-        # Log the override
-        self.message_post(
-            body=f"QE Override: Result changed to {new_result}. Comments: {comments}",
-            message_type='notification'
-        )
+        # Log the override (temporarily disabled chatter)
+        # self.message_post(
+        #     body=f"QE Override: Result changed to {new_result}. Comments: {comments}",
+        #     message_type='notification'
+        # )

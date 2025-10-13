@@ -7,6 +7,9 @@
         <field name="arch" type="xml">
             <list decoration-success="final_result=='pass'" decoration-danger="final_result=='reject'" decoration-warning="final_result=='pending'">
                 <field name="serial_number"/>
+                <field name="part_variant" widget="badge"
+                       decoration-info="part_variant=='exhaust'"
+                       decoration-success="part_variant=='intake'"/>
                 <field name="test_date" widget="datetime"/>
                 <field name="vici_result" widget="badge"
                        decoration-success="vici_result=='pass'"
@@ -57,6 +60,8 @@
                     <group>
                         <group name="basic_info" string="Basic Information">
                             <field name="test_date"/>
+                            <field name="part_variant" readonly="1"/>
+                            <field name="part_description" readonly="1"/>
                             <field name="box_number"/>
                             <field name="box_position"/>
                         </group>
@@ -128,10 +133,11 @@
                         <field name="qe_comments" readonly="1"/>
                     </group>
                 </sheet>
-<!--                <div class="oe_chatter">-->
-<!--                    <field name="message_follower_ids"/>-->
-<!--                    <field name="message_ids"/>-->
-<!--                </div>-->
+                <!-- Chatter temporarily disabled to fix form layout -->
+                <!-- <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div> -->
             </form>
         </field>
     </record>

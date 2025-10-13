@@ -70,6 +70,12 @@
               action="action_part_quality"
               sequence="10"/>
 
+    <menuitem id="menu_box_management"
+              name="Box Management"
+              parent="menu_quality_control"
+              action="action_box_management"
+              sequence="20"/>
+
     <!-- Stations Menu -->
     <menuitem id="menu_stations"
               name="Stations"

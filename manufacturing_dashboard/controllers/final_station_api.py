@@ -318,6 +318,78 @@ class FinalStationAPIController(http.Controller):
             _logger.error(f"Error creating test station results for machine {machine_id}: {str(e)}")
             return {'error': str(e)}
 
+    @http.route('/manufacturing/final_station/<int:machine_id>/print_box_barcode', 
+                type='json', auth='user', methods=['POST'], csrf=False)
+    def print_box_barcode(self, machine_id, box_id):
+        """Print barcode for a completed box"""
+        try:
+            machine = request.env['manufacturing.machine.config'].browse(machine_id)
+            if not machine.exists():
+                return {'error': 'Machine not found'}
+            
+            if machine.machine_type != 'final_station':
+                return {'error': 'Not a final station'}
+            
+            box = request.env['manufacturing.box.management'].browse(box_id)
+            if not box.exists():
+                return {'error': 'Box not found'}
+            
+            # Print the barcode
+            result = box.print_barcode()
+            
+            return {'success': True, 'message': f'Barcode for box {box.box_number} sent to printer'}
+            
+        except Exception as e:
+            _logger.error(f"Error printing barcode for machine {machine_id}, box {box_id}: {str(e)}")
+            return {'error': str(e)}
+
+    @http.route('/manufacturing/final_station/<int:machine_id>/get_box_status', 
+                type='json', auth='user', methods=['POST'], csrf=False)
+    def get_box_status(self, machine_id):
+        """Get current box status and statistics"""
+        try:
+            machine = request.env['manufacturing.machine.config'].browse(machine_id)
+            if not machine.exists():
+                return {'error': 'Machine not found'}
+            
+            if machine.machine_type != 'final_station':
+                return {'error': 'Not a final station'}
+            
+            # Get current boxes for both variants
+            box_management = request.env['manufacturing.box.management']
+            current_exhaust_box = box_management.get_or_create_current_box('exhaust')
+            current_intake_box = box_management.get_or_create_current_box('intake')
+            
+            # Get box statistics
+            statistics = box_management.get_box_statistics()
+            
+            return {
+                'success': True,
+                'current_boxes': {
+                    'exhaust': {
+                        'id': current_exhaust_box.id,
+                        'box_number': current_exhaust_box.box_number,
+                        'current_position': current_exhaust_box.current_position,
+                        'max_capacity': current_exhaust_box.max_capacity,
+                        'status': current_exhaust_box.status,
+                        'passed_parts': current_exhaust_box.passed_parts
+                    },
+                    'intake': {
+                        'id': current_intake_box.id,
+                        'box_number': current_intake_box.box_number,
+                        'current_position': current_intake_box.current_position,
+                        'max_capacity': current_intake_box.max_capacity,
+                        'status': current_intake_box.status,
+                        'passed_parts': current_intake_box.passed_parts
+                    }
+                },
+                'statistics': statistics
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error getting box status for machine {machine_id}: {str(e)}")
+            return {'error': str(e)}
+
     @http.route('/manufacturing/final_station/<int:machine_id>/trigger_auto_monitoring', type='json', auth='user', methods=['POST'])
     def trigger_auto_monitoring(self, machine_id):
         """Manually trigger auto-start monitoring for testing"""

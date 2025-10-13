@@ -25,6 +25,9 @@ Features:
     'author': 'ASD Rakesh',
     'website': 'https://www.yourcompany.com',
     'depends': ['base', 'web', 'mail'],
+    'external_dependencies': {
+        'python': ['barcode', 'Pillow'],
+    },
     'data': [
         'security/ir.model.access.csv',
         'data/sequence_data.xml',
@@ -36,6 +39,8 @@ Features:
         'views/aumann_measurement_views.xml',
         'views/gauging_measurement_views.xml',
         'views/final_station_measurement_views.xml',
+        'views/box_management_views.xml',
+        'views/qe_override_wizard_views.xml',
         'views/dashboard_views.xml',
         'views/menu_views.xml',
         'data/cron_data.xml',

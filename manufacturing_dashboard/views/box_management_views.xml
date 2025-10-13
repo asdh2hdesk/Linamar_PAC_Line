@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Box Management Tree View -->
+    <record id="view_box_management_list" model="ir.ui.view">
+        <field name="name">box.management.list</field>
+        <field name="model">manufacturing.box.management</field>
+        <field name="arch" type="xml">
+            <list decoration-success="status=='printed'" decoration-info="status=='full'" decoration-warning="status=='open'">
+                <field name="box_number"/>
+                <field name="part_variant" widget="badge"
+                       decoration-info="part_variant=='exhaust'"
+                       decoration-success="part_variant=='intake'"/>
+                <field name="status" widget="badge"
+                       decoration-success="status=='printed'"
+                       decoration-info="status=='full'"
+                       decoration-warning="status=='open'"/>
+                <field name="current_position"/>
+                <field name="max_capacity"/>
+                <field name="total_parts"/>
+                <field name="passed_parts"/>
+                <field name="rejected_parts"/>
+                <field name="create_date" widget="datetime"/>
+                <field name="complete_date" widget="datetime"/>
+                <field name="print_date" widget="datetime"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Box Management Form View -->
+    <record id="view_box_management_form" model="ir.ui.view">
+        <field name="name">box.management.form</field>
+        <field name="model">manufacturing.box.management</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="print_barcode" type="object" string="Print Barcode"
+                            class="btn-primary" 
+                            modifiers="{'invisible': [('status', 'in', ['open'])]}"/>
+                    <field name="status" widget="statusbar" statusbar_visible="open,full,printed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="box_number" placeholder="Box Number..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="box_info" string="Box Information">
+                            <field name="part_variant" readonly="1"/>
+                            <field name="current_position"/>
+                            <field name="max_capacity"/>
+                            <field name="create_date"/>
+                            <field name="complete_date"/>
+                            <field name="print_date"/>
+                        </group>
+                        <group name="statistics" string="Statistics">
+                            <field name="total_parts"/>
+                            <field name="passed_parts"/>
+                            <field name="rejected_parts"/>
+                        </group>
+                    </group>
+
+                    <!-- Parts in Box -->
+                    <notebook>
+                        <page name="parts" string="Parts in Box">
+                            <field name="part_quality_ids" readonly="1">
+                                <list>
+                                    <field name="serial_number"/>
+                                    <field name="test_date" widget="datetime"/>
+                                    <field name="box_position"/>
+                                    <field name="final_result" widget="badge"
+                                           decoration-success="final_result=='pass'"
+                                           decoration-danger="final_result=='reject'"
+                                           decoration-warning="final_result=='pending'"/>
+                                    <field name="vici_result" widget="badge"/>
+                                    <field name="ruhlamat_result" widget="badge"/>
+                                    <field name="aumann_result" widget="badge"/>
+                                    <field name="gauging_result" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="barcode" string="Barcode Information">
+                            <group>
+                                <field name="barcode_filename"/>
+                                <field name="barcode_data" widget="image" readonly="1"/>
+                            </group>
+                            <group string="Zebra Print Data">
+                                <field name="zebra_print_data" widget="text" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Box Management Search View -->
+    <record id="view_box_management_search" model="ir.ui.view">
+        <field name="name">box.management.search</field>
+        <field name="model">manufacturing.box.management</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="box_number"/>
+                <filter name="exhaust" string="Exhaust Boxes" domain="[('part_variant', '=', 'exhaust')]"/>
+                <filter name="intake" string="Intake Boxes" domain="[('part_variant', '=', 'intake')]"/>
+                <separator/>
+                <filter name="open" string="Open Boxes" domain="[('status', '=', 'open')]"/>
+                <filter name="full" string="Full Boxes" domain="[('status', '=', 'full')]"/>
+                <filter name="printed" string="Printed Boxes" domain="[('status', '=', 'printed')]"/>
+                <separator/>
+                <filter name="today" string="Today"
+                        domain="[('create_date', '&gt;=', datetime.datetime.now().strftime('%Y-%m-%d'))]"/>
+                <filter name="this_week" string="This Week"
+                        domain="[('create_date', '&gt;=', (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Part Variant" name="group_variant" context="{'group_by': 'part_variant'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Create Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Box Management Kanban View -->
+    <record id="view_box_management_kanban" model="ir.ui.view">
+        <field name="name">box.management.kanban</field>
+        <field name="model">manufacturing.box.management</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="part_variant">
+                <field name="box_number"/>
+                <field name="part_variant"/>
+                <field name="status"/>
+                <field name="current_position"/>
+                <field name="max_capacity"/>
+                <field name="passed_parts"/>
+                <field name="create_date"/>
+                <field name="complete_date"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_details">
+                                <strong><field name="box_number"/></strong>
+                                <div class="text-muted">
+                                    <field name="create_date" widget="relative"/>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge badge-secondary">
+                                        <field name="current_position"/>/<field name="max_capacity"/>
+                                    </span>
+                                    <span class="badge badge-success">
+                                        <field name="passed_parts"/> Passed
+                                    </span>
+                                </div>
+                                <div t-if="record.complete_date.value" class="mt-2">
+                                    <small>Completed: <field name="complete_date" widget="relative"/></small>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Box Management Action -->
+    <record id="action_box_management" model="ir.actions.act_window">
+        <field name="name">Box Management</field>
+        <field name="res_model">manufacturing.box.management</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No boxes created yet!
+            </p>
+            <p>
+                Boxes will be created automatically when parts pass quality control.
+                Each box can hold up to 540 parts.
+            </p>
+        </field>
+    </record>
+</odoo>

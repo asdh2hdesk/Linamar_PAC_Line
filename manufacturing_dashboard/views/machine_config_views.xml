@@ -29,10 +29,12 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="sync_machine_data" type="object" string="Sync Now" class="btn-primary"
-                            icon="fa-refresh"/>
+                <button name="sync_machine_data" type="object" string="Sync Now" class="btn-primary"
+                        icon="fa-refresh"/>
                     <button name="test_plc_connection" type="object" string="Test PLC" class="btn-secondary"
                             icon="fa-plug" invisible="machine_type != 'final_station'"/>
+                    <button name="force_sync_all_machines" type="object" string="Force Sync All" class="btn-warning"
+                            icon="fa-bolt" context="{'show_result': True}"/>
 
                     <button name="toggle_operation_mode" type="object" string="Toggle Mode" class="btn-info"
                             icon="fa-toggle-on" invisible="machine_type != 'final_station'"/>
@@ -202,6 +204,13 @@
                                 <button name="load_aumann_tolerances" type="object" string="Load Tolerances" 
                                         class="btn-secondary" icon="fa-refresh"/>
                             </header>
+                            <group>
+                                <group string="Tolerance Configuration">
+                                    <field name="aumann_tolerance_dirs" widget="char" 
+                                           placeholder="C:\path\to\tolerances;D:\another\path"
+                                           help="Directory paths containing JSON tolerance files (480.json, 980.json). Leave empty to use module default tolerances."/>
+                                </group>
+                            </group>
                             <group>
                                 <group string="Intake Tolerances (Serial Prefix: 980)">
                                     <field name="aumann_intake_tolerances_json" widget="text" 

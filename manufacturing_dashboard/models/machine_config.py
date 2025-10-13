@@ -6,14 +6,10 @@ import csv
 import logging
 import pyodbc  # or pypyodbc
 from datetime import datetime, timedelta
-import threading
-import queue
-import time
 from .plc_monitor_service import get_plc_monitor_service
 
 _logger = logging.getLogger(__name__)
 
-# Simple PLC callback system - direct method calls
 
 
 class MachineConfig(models.Model):
@@ -32,6 +28,8 @@ class MachineConfig(models.Model):
 
     csv_file_path = fields.Char('CSV File Path', 
                                 help='Full path to the CSV file for this machine (not required for final stations)')
+    aumann_tolerance_dirs = fields.Char('Aumann Tolerance Directories',
+                                       help='Directory paths containing JSON tolerance files (480.json, 980.json). Separate multiple paths with semicolons.')
     is_active = fields.Boolean('Active', default=True)
     last_sync = fields.Datetime('Last Sync')
     sync_interval = fields.Integer('Sync Interval (seconds)', default=30)
@@ -404,9 +402,21 @@ class MachineConfig(models.Model):
 
     @api.model
     def sync_all_machines(self):
-        """Cron job method to sync all active machines"""
+        """Optimized cron job method to sync all active machines in parallel"""
+        import threading
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import time
+        
+        # Get all active machines
         machines = self.search([('is_active', '=', True)])
+        if not machines:
+            _logger.info("No active machines to sync")
+            return
+            
         now_dt = fields.Datetime.now()
+        machines_to_sync = []
+        
+        # Pre-filter machines that need syncing
         for machine in machines:
             try:
                 should_sync = False
@@ -422,36 +432,261 @@ class MachineConfig(models.Model):
                         should_sync = True
 
                 if should_sync:
-                    machine.sync_machine_data()
+                    machines_to_sync.append(machine)
                 else:
                     _logger.debug(
                         f"Skipping sync for {machine.machine_name}; next in {(machine.sync_interval or 0) - int((now_dt - machine.last_sync).total_seconds())}s"
                     )
             except Exception as e:
-                _logger.error(f"Error syncing machine {machine.machine_name}: {str(e)}")
+                _logger.error(f"Error checking sync status for machine {machine.machine_name}: {str(e)}")
+        
+        if not machines_to_sync:
+            _logger.info("No machines need syncing at this time")
+            return
+            
+        _logger.info(f"Starting parallel sync for {len(machines_to_sync)} machines")
+        start_time = time.time()
+        
+        # Use ThreadPoolExecutor for parallel processing
+        # Dynamic worker count based on machine types and system load
+        max_workers = self._calculate_optimal_workers(machines_to_sync)
+        
+        _logger.info(f"Using {max_workers} workers for parallel sync")
+        
+        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="MachineSync") as executor:
+            # Submit all sync tasks
+            future_to_machine = {
+                executor.submit(self._sync_machine_async, machine): machine 
+                for machine in machines_to_sync
+            }
+            
+            # Process completed tasks
+            completed_count = 0
+            for future in as_completed(future_to_machine):
+                machine = future_to_machine[future]
+                completed_count += 1
+                try:
+                    result = future.result()
+                    _logger.info(f"[{completed_count}/{len(machines_to_sync)}] Completed sync for {machine.machine_name}: {result}")
+                except Exception as e:
+                    _logger.error(f"[{completed_count}/{len(machines_to_sync)}] Error syncing machine {machine.machine_name}: {str(e)}")
+        
+        total_time = time.time() - start_time
+        _logger.info(f"All machine syncs completed in {total_time:.2f}s (avg: {total_time/len(machines_to_sync):.2f}s per machine)")
+
+    def _calculate_optimal_workers(self, machines_to_sync):
+        """Calculate optimal number of workers based on machine types and system load"""
+        # Base calculation
+        total_machines = len(machines_to_sync)
+        
+        # Count machine types for optimization
+        final_stations = sum(1 for m in machines_to_sync if m.machine_type == 'final_station')
+        heavy_machines = sum(1 for m in machines_to_sync if m.machine_type in ['ruhlamat', 'gauging'])
+        light_machines = sum(1 for m in machines_to_sync if m.machine_type in ['vici_vision', 'aumann'])
+        
+        # Calculate optimal workers
+        if total_machines <= 2:
+            return total_machines  # All machines can run simultaneously
+        elif total_machines <= 4:
+            return min(total_machines, 3)  # Max 3 for small sets
+        elif heavy_machines > 0:
+            return min(total_machines, 4)  # Limit for heavy operations
+        else:
+            return min(total_machines, 6)  # More workers for light operations
+
+    def _sync_machine_async(self, machine):
+        """Async wrapper for machine sync with proper database handling"""
+        try:
+            # Create a new database cursor for this thread
+            with self.env.registry.cursor() as new_cr:
+                new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                machine_record = new_env['manufacturing.machine.config'].browse(machine.id)
+                
+                if machine_record.exists():
+                    result = machine_record.sync_machine_data_optimized()
+                    new_cr.commit()
+                    return result
+                else:
+                    return f"Machine {machine.machine_name} not found"
+        except Exception as e:
+            _logger.error(f"Error in async sync for {machine.machine_name}: {str(e)}")
+            return f"Error: {str(e)}"
+
+    @api.model
+    def force_sync_all_machines(self):
+        """Force sync all active machines immediately, ignoring sync intervals"""
+        import threading
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import time
+        
+        _logger.info("=== FORCE SYNC ALL MACHINES ===")
+        
+        # Get all active machines
+        machines = self.search([('is_active', '=', True)])
+        if not machines:
+            _logger.info("No active machines to force sync")
+            return "No active machines found"
+            
+        _logger.info(f"Force syncing {len(machines)} machines simultaneously")
+        start_time = time.time()
+        
+        # Use maximum workers for force sync
+        max_workers = min(len(machines), 6)  # Allow more workers for force sync
+        
+        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="ForceSync") as executor:
+            # Submit all sync tasks
+            future_to_machine = {
+                executor.submit(self._sync_machine_async, machine): machine 
+                for machine in machines
+            }
+            
+            # Process completed tasks
+            completed_count = 0
+            results = []
+            for future in as_completed(future_to_machine):
+                machine = future_to_machine[future]
+                completed_count += 1
+                try:
+                    result = future.result()
+                    results.append(f"{machine.machine_name}: {result}")
+                    _logger.info(f"[{completed_count}/{len(machines)}] Force sync completed for {machine.machine_name}")
+                except Exception as e:
+                    results.append(f"{machine.machine_name}: ERROR - {str(e)}")
+                    _logger.error(f"[{completed_count}/{len(machines)}] Force sync error for {machine.machine_name}: {str(e)}")
+        
+        total_time = time.time() - start_time
+        summary = f"Force sync completed in {total_time:.2f}s for {len(machines)} machines"
+        _logger.info(f"=== {summary} ===")
+        
+        return {
+            'summary': summary,
+            'total_machines': len(machines),
+            'total_time': total_time,
+            'avg_time_per_machine': total_time / len(machines),
+            'results': results
+        }
+
+    @api.model
+    def get_sync_status(self):
+        """Get current sync status for all machines"""
+        machines = self.search([('is_active', '=', True)])
+        now_dt = fields.Datetime.now()
+        
+        status_info = {
+            'total_machines': len(machines),
+            'active_machines': 0,
+            'needs_sync': 0,
+            'last_sync_times': {},
+            'sync_intervals': {},
+            'machine_status': {}
+        }
+        
+        for machine in machines:
+            status_info['active_machines'] += 1
+            status_info['machine_status'][machine.machine_name] = machine.status
+            status_info['sync_intervals'][machine.machine_name] = machine.sync_interval
+            
+            if machine.last_sync:
+                elapsed = (now_dt - machine.last_sync).total_seconds()
+                status_info['last_sync_times'][machine.machine_name] = {
+                    'last_sync': machine.last_sync.isoformat(),
+                    'elapsed_seconds': elapsed,
+                    'needs_sync': elapsed >= (machine.sync_interval or 0)
+                }
+                if elapsed >= (machine.sync_interval or 0):
+                    status_info['needs_sync'] += 1
+            else:
+                status_info['last_sync_times'][machine.machine_name] = {
+                    'last_sync': None,
+                    'elapsed_seconds': None,
+                    'needs_sync': True
+                }
+                status_info['needs_sync'] += 1
+        
+        return status_info
+
+    def force_sync_all_machines(self):
+        """Button method to force sync all machines with user feedback"""
+        result = self.env['manufacturing.machine.config'].force_sync_all_machines()
+        
+        if isinstance(result, dict):
+            message = f"Force sync completed!\n\n"
+            message += f"Total machines: {result['total_machines']}\n"
+            message += f"Total time: {result['total_time']:.2f}s\n"
+            message += f"Average per machine: {result['avg_time_per_machine']:.2f}s\n\n"
+            message += "Results:\n" + "\n".join(result['results'])
+            
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Force Sync Complete',
+                    'message': message,
+                    'type': 'success',
+                    'sticky': True,
+                }
+            }
+        else:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Force Sync Result',
+                    'message': str(result),
+                    'type': 'info',
+                    'sticky': True,
+                }
+            }
 
     def sync_machine_data(self):
-        """Sync data from CSV file based on machine type"""
-        if not os.path.exists(self.csv_file_path):
-            _logger.warning(f"CSV file not found: {self.csv_file_path}")
-            self.status = 'error'
-            return
+        """Sync data from CSV file based on machine type (legacy method)"""
+        return self.sync_machine_data_optimized()
 
-        try:
-            if self.machine_type == 'vici_vision':
-                self._sync_vici_data()
-            elif self.machine_type == 'ruhlamat':
-                self._sync_ruhlamat_data()
-            elif self.machine_type == 'gauging':
-                self._sync_gauging_data()
-            elif self.machine_type == 'aumann':
-                self._sync_aumann_data()
-
+    def sync_machine_data_optimized(self):
+        """Optimized sync data from CSV file based on machine type"""
+        import time
+        
+        # For final stations, we don't sync CSV data - they use PLC monitoring
+        if self.machine_type == 'final_station':
+            # Final stations only update their status, not CSV data
             self.last_sync = fields.Datetime.now()
             self.status = 'running'
+            return f"Final station status updated (PLC monitoring active: {self.plc_monitoring_active})"
+        
+        # Check if CSV file exists for other machine types (Aumann may provide multiple paths; handled inside its sync)
+        if self.machine_type != 'aumann' and not os.path.exists(self.csv_file_path):
+            _logger.warning(f"CSV file not found: {self.csv_file_path}")
+            self.status = 'error'
+            return f"CSV file not found: {self.csv_file_path}"
+
+        try:
+            _logger.info(f"Starting optimized sync for {self.machine_name} ({self.machine_type})")
+            start_time = time.time()
+            
+            if self.machine_type == 'vici_vision':
+                result = self._sync_vici_data_optimized()
+            elif self.machine_type == 'ruhlamat':
+                result = self._sync_ruhlamat_data_optimized()
+            elif self.machine_type == 'gauging':
+                result = self._sync_gauging_data_optimized()
+            elif self.machine_type == 'aumann':
+                result = self._sync_aumann_data_optimized()
+            else:
+                result = f"Unknown machine type: {self.machine_type}"
+
+            # Update status and timing
+            self.last_sync = fields.Datetime.now()
+            self.status = 'running'
+            
+            sync_duration = time.time() - start_time
+            _logger.info(f"Completed sync for {self.machine_name} in {sync_duration:.2f}s: {result}")
+            
+            return result
+            
         except Exception as e:
             _logger.error(f"Error syncing {self.machine_name}: {str(e)}")
             self.status = 'error'
+            return f"Error: {str(e)}"
 
     def _sync_vici_data(self):
         """Sync VICI Vision system data using multi-row CSV (header + nominal/tolerances)."""
@@ -610,6 +845,177 @@ class MachineConfig(models.Model):
         except Exception as e:
             _logger.error(f"Error syncing VICI data: {str(e)}")
             raise
+
+    def _sync_vici_data_optimized(self):
+        """Optimized VICI Vision system data sync with batch processing"""
+        try:
+            if not os.path.exists(self.csv_file_path):
+                _logger.error(f"VICI CSV file not found: {self.csv_file_path}")
+                return "CSV file not found"
+
+            with open(self.csv_file_path, 'r', encoding='utf-8-sig', newline='') as file:
+                reader = csv.reader(file)
+                rows = list(reader)
+
+                if len(rows) < 7:
+                    _logger.warning(f"VICI CSV seems too short (rows={len(rows)}). Path: {self.csv_file_path}")
+                    return f"CSV too short: {len(rows)} rows"
+
+                header = rows[0]
+                nominal_row = rows[3]
+                lower_row = rows[4]
+                upper_row = rows[5]
+
+                # Map CSV measurement names to Odoo field names
+                field_map = {
+                    'L 64.8': 'l_64_8',
+                    'L 35.4': 'l_35_4',
+                    'L 46.6': 'l_46_6',
+                    'L 82': 'l_82',
+                    'L 128.6': 'l_128_6',
+                    'L 164': 'l_164',
+                    'Runout E31-E22': 'runout_e31_e22',
+                    'Runout E21-E12': 'runout_e21_e12',
+                    'Runout E11 tube end': 'runout_e11_tube_end',
+                    'Angular difference E32-E12 pos tool': 'ang_diff_e32_e12_pos_tool',
+                    'Angular difference E31-E12 pos tool': 'ang_diff_e31_e12_pos_tool',
+                    'Angular difference E22-E12 pos tool': 'ang_diff_e22_e12_pos_tool',
+                    'Angular difference E21-E12 pos tool': 'ang_diff_e21_e12_pos_tool',
+                    'Angular difference E11-E12 pos tool': 'ang_diff_e11_e12_pos_tool',
+                }
+
+                def parse_float(val):
+                    try:
+                        return float(val) if val not in (None, '',) else None
+                    except Exception:
+                        try:
+                            return float(str(val).replace(',', '.'))
+                        except Exception:
+                            return None
+
+                # Build nominal/tolerance lookups by column index
+                col_to_nominal = {}
+                col_to_tol_low = {}
+                col_to_tol_high = {}
+                for idx, name in enumerate(header):
+                    if name in field_map:
+                        col_to_nominal[idx] = parse_float(nominal_row[idx] if idx < len(nominal_row) else None)
+                        col_to_tol_low[idx] = parse_float(lower_row[idx] if idx < len(lower_row) else None)
+                        col_to_tol_high[idx] = parse_float(upper_row[idx] if idx < len(upper_row) else None)
+
+                def within(n, lo, hi, val):
+                    if val is None or n is None or lo is None or hi is None:
+                        return True
+                    return (n + lo) <= val <= (n + hi)
+
+                def parse_dt(date_str_val, time_str_val):
+                    import pytz
+                    for fmt in ("%d-%m-%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S"):
+                        try:
+                            parsed_dt = datetime.strptime(f"{date_str_val} {time_str_val}", fmt)
+                            ist = pytz.timezone('Asia/Kolkata')
+                            ist_dt = ist.localize(parsed_dt)
+                            utc_dt = ist_dt.astimezone(pytz.UTC)
+                            return utc_dt.strftime('%Y-%m-%d %H:%M:%S')
+                        except Exception:
+                            continue
+                    return None
+
+                # Batch processing: collect all records first, then create in batches
+                records_to_create = []
+                existing_serials = set()
+                
+                # Get existing serials to avoid duplicates (batch query)
+                existing_records = self.env['manufacturing.vici.vision'].search([
+                    ('machine_id', '=', self.id)
+                ])
+                existing_serials = set(existing_records.mapped('serial_number'))
+
+                for row in rows[6:]:
+                    if not row or len(row) < 7:
+                        continue
+
+                    date_str = row[0].strip() if len(row) > 0 else ''
+                    time_str = row[1].strip() if len(row) > 1 else ''
+                    operator = row[2].strip() if len(row) > 2 else ''
+                    batch_sn = row[3].strip() if len(row) > 3 else ''
+                    measure_number = row[4].strip() if len(row) > 4 else ''
+                    measure_state = row[5].strip() if len(row) > 5 else ''
+                    serial = row[6].strip() if len(row) > 6 else ''
+
+                    if not serial or serial in existing_serials:
+                        continue
+
+                    # Parse datetime
+                    if not date_str or not time_str:
+                        continue
+                    test_date = parse_dt(date_str, time_str)
+                    if not test_date:
+                        continue
+
+                    vals = {
+                        'serial_number': serial,
+                        'machine_id': self.id,
+                        'test_date': test_date,
+                        'log_date': test_date.date(),
+                        'log_time': time_str or test_date.strftime("%H:%M:%S"),
+                        'operator_name': operator,
+                        'batch_serial_number': batch_sn,
+                        'measure_number': int(measure_number) if measure_number.isdigit() else None,
+                        'measure_state': int(measure_state) if measure_state.isdigit() else None,
+                        'raw_data': ','.join(row)[:2000],
+                    }
+                    
+                    failed = []
+                    # Fill measurement and tolerance fields
+                    for idx, name in enumerate(header):
+                        if name in field_map and idx < len(row):
+                            field_name = field_map[name]
+                            value = parse_float(row[idx])
+                            vals[field_name] = value
+                            n = col_to_nominal.get(idx)
+                            lo = col_to_tol_low.get(idx)
+                            hi = col_to_tol_high.get(idx)
+                            vals[f"{field_name}_nominal"] = n
+                            vals[f"{field_name}_tol_low"] = lo
+                            vals[f"{field_name}_tol_high"] = hi
+                            if not within(n, lo, hi, value):
+                                failed.append(name)
+
+                    vals['result'] = 'pass' if not failed else 'reject'
+                    vals['rejection_reason'] = False if not failed else 'Out of tolerance: ' + ', '.join(failed)
+                    vals['failed_fields'] = False if not failed else ', '.join(failed)
+
+                    records_to_create.append(vals)
+
+                # Batch create records (much faster than individual creates)
+                if records_to_create:
+                    # Create in batches of 100 to avoid memory issues
+                    batch_size = 100
+                    total_created = 0
+                    
+                    for i in range(0, len(records_to_create), batch_size):
+                        batch = records_to_create[i:i + batch_size]
+                        try:
+                            self.env['manufacturing.vici.vision'].create(batch)
+                            total_created += len(batch)
+                        except Exception as e:
+                            _logger.error(f"Failed to create VICI batch {i//batch_size + 1}: {e}")
+                            # Try individual creates for this batch
+                            for record in batch:
+                                try:
+                                    self.env['manufacturing.vici.vision'].create(record)
+                                    total_created += 1
+                                except Exception as e2:
+                                    _logger.error(f"Failed to create VICI record for SN {record.get('serial_number', 'unknown')}: {e2}")
+
+                    return f"Created {total_created} VICI records"
+                else:
+                    return "No new VICI records to create"
+
+        except Exception as e:
+            _logger.error(f"Error syncing VICI data: {str(e)}")
+            return f"Error: {str(e)}"
 
 
     # You'll need to install pyodbc: pip install pyodbc
@@ -852,6 +1258,48 @@ class MachineConfig(models.Model):
             self.status = 'error'
             raise
 
+    def _sync_ruhlamat_data_optimized(self):
+        """Optimized Ruhlamat sync - simplified version for better performance"""
+        try:
+            if not os.path.exists(self.csv_file_path):
+                _logger.error(f"Ruhlamat MDB file not found: {self.csv_file_path}")
+                return "MDB file not found"
+            
+            # For now, use the existing method but with better error handling
+            # TODO: Implement true batch processing for MDB files
+            self._sync_ruhlamat_data()
+            return "Ruhlamat sync completed"
+            
+        except Exception as e:
+            _logger.error(f"Error in optimized Ruhlamat sync: {str(e)}")
+            return f"Error: {str(e)}"
+
+    def _sync_gauging_data_optimized(self):
+        """Optimized Gauging sync - placeholder for future implementation"""
+        try:
+            if not os.path.exists(self.csv_file_path):
+                _logger.error(f"Gauging CSV file not found: {self.csv_file_path}")
+                return "CSV file not found"
+            
+            # For now, use the existing method
+            # TODO: Implement optimized batch processing
+            self._sync_gauging_data()
+            return "Gauging sync completed"
+            
+        except Exception as e:
+            _logger.error(f"Error in optimized Gauging sync: {str(e)}")
+            return f"Error: {str(e)}"
+
+    def _sync_aumann_data_optimized(self):
+        """Optimized Aumann sync - support multiple source folders via csv_file_path"""
+        try:
+            # Delegate to the main implementation which supports multi-paths
+            self._sync_aumann_data()
+            return "Aumann sync completed"
+        except Exception as e:
+            _logger.error(f"Error in optimized Aumann sync: {str(e)}")
+            return f"Error: {str(e)}"
+
     def _sync_ruhlamat_data_alternative(self):
         """Alternative method to sync MDB data using pandas"""
         try:
@@ -1020,8 +1468,8 @@ class MachineConfig(models.Model):
             raise
 
     def _sync_aumann_data(self):
-        """Sync Aumann Measurement system data from folder of CSV files (one per serial number)"""
-        _logger.info(f"Starting Aumann data sync for machine: {self.machine_name} from folder: {self.csv_file_path}")
+        """Sync Aumann Measurement system data from one or multiple folders of CSV files (one file per serial)."""
+        _logger.info(f"Starting Aumann data sync for machine: {self.machine_name} from path(s): {self.csv_file_path}")
         
         # Initialize progress tracking
         self.sync_start_time = fields.Datetime.now()
@@ -1032,56 +1480,70 @@ class MachineConfig(models.Model):
         self.env.cr.commit()
         
         try:
-            # Check if the path is a directory (folder-based approach)
-            if not os.path.exists(self.csv_file_path):
-                _logger.error(f"Aumann CSV folder not found: {self.csv_file_path}")
+            # Resolve one or more source directories from csv_file_path
+            source_dirs = self._parse_multi_paths(self.csv_file_path)
+            if not source_dirs:
+                _logger.error("Aumann CSV source path(s) not configured")
                 self.status = 'error'
-                self.sync_stage = "Error: Folder not found"
-                return
-            
-            if not os.path.isdir(self.csv_file_path):
-                _logger.error(f"Aumann path is not a directory: {self.csv_file_path}")
-                self.status = 'error'
-                self.sync_stage = "Error: Path is not a directory"
+                self.sync_stage = "Error: No source path(s) provided"
                 return
 
-            # Update progress: Scanning folder
-            self.sync_stage = "Scanning folder for CSV files"
+            # Filter only existing directories
+            valid_dirs = []
+            for p in source_dirs:
+                if os.path.isdir(p):
+                    valid_dirs.append(p)
+                else:
+                    _logger.warning(f"Skipping invalid Aumann path: {p}")
+
+            if not valid_dirs:
+                _logger.error("None of the provided Aumann paths exist or are directories")
+                self.status = 'error'
+                self.sync_stage = "Error: No valid directories"
+                return
+
+            # Update progress: Scanning folders
+            self.sync_stage = "Scanning folders for CSV files"
             self.sync_progress = 10.0
             self.env.cr.commit()
-            _logger.info("Scanning folder for CSV files...")
+            _logger.info(f"Scanning {len(valid_dirs)} Aumann folder(s) for CSV files...")
 
-            # Get all CSV files in the directory
-            csv_files = [f for f in os.listdir(self.csv_file_path) if f.lower().endswith('.csv')]
-            total_files = len(csv_files)
+            # Collect all CSV file full paths across all valid dirs
+            all_csv_files = []
+            for d in valid_dirs:
+                try:
+                    files = [os.path.join(d, f) for f in os.listdir(d) if f.lower().endswith('.csv')]
+                    _logger.info(f"Found {len(files)} CSV files in {d}")
+                    all_csv_files.extend(files)
+                except Exception as e:
+                    _logger.error(f"Error listing directory {d}: {e}")
+
+            total_files = len(all_csv_files)
             self.sync_total_records = total_files
-            self.sync_stage = f"Found {total_files} CSV files to process"
+            self.sync_stage = f"Found {total_files} CSV files to process across {len(valid_dirs)} folder(s)"
             self.sync_progress = 15.0
             self.env.cr.commit()
-            _logger.info(f"Found {total_files} CSV files in Aumann folder")
-            
+
             records_created = 0
-            
-            for file_index, csv_file in enumerate(csv_files):
+
+            for file_index, csv_path in enumerate(all_csv_files):
+                csv_file = os.path.basename(csv_path)
                 # Update progress for file processing
-                file_progress = 15.0 + (file_index / total_files) * 80.0  # 15-95% for files
+                file_progress = 15.0 + ((file_index / total_files) * 80.0 if total_files else 80.0)
                 self.sync_progress = file_progress
                 self.sync_processed_records = file_index + 1
                 self.sync_stage = f"Processing file {file_index + 1} of {total_files}: {csv_file}"
-                
+
                 # Commit progress every 10 files or at the end
                 if file_index % 10 == 0 or file_index == total_files - 1:
                     self.env.cr.commit()
                     _logger.info(f"Progress: {file_progress:.1f}% - Processing file {file_index + 1}/{total_files}")
-                
-                csv_path = os.path.join(self.csv_file_path, csv_file)
+
                 try:
                     file_records = self._process_aumann_csv_file(csv_path)
                     records_created += file_records
-                    
                     if file_records > 0:
                         _logger.debug(f"Created {file_records} records from {csv_file}")
-                        
                 except Exception as e:
                     _logger.error(f"Error processing Aumann CSV file {csv_file}: {e}")
                     continue
@@ -1252,6 +1714,37 @@ class MachineConfig(models.Model):
 
         return records_created
 
+    def _parse_multi_paths(self, raw_paths):
+        """Parse multi-path string into a list of absolute directory paths.
+        Accepts separators: newline, semicolon, pipe, comma. Trims quotes/spaces.
+        """
+        try:
+            if not raw_paths:
+                return []
+            # Normalize separators
+            seps = ['\n', ';', '|', ',']
+            work = str(raw_paths)
+            for s in seps:
+                work = work.replace(s, '\n')
+            # Split and clean
+            parts = [p.strip().strip('"\'') for p in work.splitlines() if p and p.strip()]
+            # Expand env vars and normalize
+            cleaned = []
+            for p in parts:
+                expanded = os.path.expandvars(os.path.expanduser(p))
+                cleaned.append(os.path.normpath(expanded))
+            # De-duplicate while preserving order
+            seen = set()
+            result = []
+            for p in cleaned:
+                if p not in seen:
+                    seen.add(p)
+                    result.append(p)
+            return result
+        except Exception as e:
+            _logger.error(f"Failed to parse multi paths '{raw_paths}': {e}")
+            return []
+
     def _extract_serial_number_from_filename(self, csv_path, row):
         """Extract serial number from filename or row data"""
         # Try to get from Seriennummer field first
@@ -1360,7 +1853,7 @@ class MachineConfig(models.Model):
             'Wheel Angle Right 150 - CTF 41.4': 'wheel_angle_right_150',
             'Wheel Angle to Reference - CTF 42': 'wheel_angle_to_reference',
             
-            # Angle Lobe Measurements
+            # Angle Lobe Measurements - Exhaust (E) variants
             'Angle Lobe E11 to Ref. - CTF 29': 'angle_lobe_e11_to_ref',
             'Angle Lobe E12 to Ref. - CTF 29': 'angle_lobe_e12_to_ref',
             'Angle Lobe E21 to Ref. - CTF 29': 'angle_lobe_e21_to_ref',
@@ -1368,7 +1861,15 @@ class MachineConfig(models.Model):
             'Angle Lobe E31 to Ref. - CTF 29': 'angle_lobe_e31_to_ref',
             'Angle Lobe E32 to Ref. - CTF 29': 'angle_lobe_e32_to_ref',
             
-            # Base Circle Radius Measurements
+            # Angle Lobe Measurements - Intake (A) variants
+            'Angle Lobe A11 to Ref. - CTF 29': 'angle_lobe_a11_to_ref',
+            'Angle Lobe A12 to Ref. - CTF 29': 'angle_lobe_a12_to_ref',
+            'Angle Lobe A21 to Ref. - CTF 29': 'angle_lobe_a21_to_ref',
+            'Angle Lobe A22 to Ref. - CTF 29': 'angle_lobe_a22_to_ref',
+            'Angle Lobe A31 to Ref. - CTF 29': 'angle_lobe_a31_to_ref',
+            'Angle Lobe A32 to Ref. - CTF 29': 'angle_lobe_a32_to_ref',
+            
+            # Base Circle Radius Measurements - Exhaust (E) variants
             'Base Circle Radius Lobe E11 - CTF 54': 'base_circle_radius_lobe_e11',
             'Base Circle Radius Lobe E12 - CTF 54': 'base_circle_radius_lobe_e12',
             'Base Circle Radius Lobe E21 - CTF 54': 'base_circle_radius_lobe_e21',
@@ -1376,13 +1877,29 @@ class MachineConfig(models.Model):
             'Base Circle Radius Lobe E31 - CTF 54': 'base_circle_radius_lobe_e31',
             'Base Circle Radius Lobe E32 - CTF 54': 'base_circle_radius_lobe_e32',
             
-            # Base Circle Runout Measurements
+            # Base Circle Radius Measurements - Intake (A) variants
+            'Base Circle Radius Lobe A11 - CTF 54': 'base_circle_radius_lobe_a11',
+            'Base Circle Radius Lobe A12 - CTF 54': 'base_circle_radius_lobe_a12',
+            'Base Circle Radius Lobe A21 - CTF 54': 'base_circle_radius_lobe_a21',
+            'Base Circle Radius Lobe A22 - CTF 54': 'base_circle_radius_lobe_a22',
+            'Base Circle Radius Lobe A31 - CTF 54': 'base_circle_radius_lobe_a31',
+            'Base Circle Radius Lobe A32 - CTF 54': 'base_circle_radius_lobe_a32',
+            
+            # Base Circle Runout Measurements - Exhaust (E) variants
             'Base Circle Runout Lobe E11 adj. - CTF 15': 'base_circle_runout_lobe_e11_adj',
             'Base Circle Runout Lobe E12 adj. - CTF 15': 'base_circle_runout_lobe_e12_adj',
             'Base Circle Runout Lobe E21 adj. - CTF 15': 'base_circle_runout_lobe_e21_adj',
             'Base Circle Runout Lobe E22 adj. - CTF 15': 'base_circle_runout_lobe_e22_adj',
             'Base Circle Runout Lobe E31 adj. - CTF 15': 'base_circle_runout_lobe_e31_adj',
             'Base Circle Runout Lobe E32 adj. - CTF 15': 'base_circle_runout_lobe_e32_adj',
+            
+            # Base Circle Runout Measurements - Intake (A) variants
+            'Base Circle Runout Lobe A11 adj. - CTF 15': 'base_circle_runout_lobe_a11_adj',
+            'Base Circle Runout Lobe A12 adj. - CTF 15': 'base_circle_runout_lobe_a12_adj',
+            'Base Circle Runout Lobe A21 adj. - CTF 15': 'base_circle_runout_lobe_a21_adj',
+            'Base Circle Runout Lobe A22 adj. - CTF 15': 'base_circle_runout_lobe_a22_adj',
+            'Base Circle Runout Lobe A31 adj. - CTF 15': 'base_circle_runout_lobe_a31_adj',
+            'Base Circle Runout Lobe A32 adj. - CTF 15': 'base_circle_runout_lobe_a32_adj',
             
             # Bearing and Width Measurements
             'Bearing Width - CTF 55': 'bearing_width',
@@ -1412,13 +1929,21 @@ class MachineConfig(models.Model):
             'Diameter Journal B2 - CTF 7': 'diameter_journal_b2',
             'Diameter Step Diameter tpc - CTF 24': 'diameter_step_diameter_tpc',
             
-            # Distance Measurements
+            # Distance Measurements - Exhaust (E) variants
             'Distance Lobe E11 - CTF 52.1': 'distance_lobe_e11',
             'Distance Lobe E12 - CTF 52.2': 'distance_lobe_e12',
             'Distance Lobe E21 - CTF 52.3': 'distance_lobe_e21',
             'Distance Lobe E22 - CTF 52.4': 'distance_lobe_e22',
             'Distance Lobe E31 - CTF 52.5': 'distance_lobe_e31',
             'Distance Lobe E32 - CTF 52.6': 'distance_lobe_e32',
+            
+            # Distance Measurements - Intake (A) variants
+            'Distance Lobe A11 - CTF 52.1': 'distance_lobe_a11',
+            'Distance Lobe A12 - CTF 52.2': 'distance_lobe_a12',
+            'Distance Lobe A21 - CTF 52.3': 'distance_lobe_a21',
+            'Distance Lobe A22 - CTF 52.4': 'distance_lobe_a22',
+            'Distance Lobe A31 - CTF 52.5': 'distance_lobe_a31',
+            'Distance Lobe A32 - CTF 52.6': 'distance_lobe_a32',
             'Distance Rear End - CTF 214': 'distance_rear_end',
             'Distance Step length front face - CTF 66': 'distance_step_length_front_face',
             'Distance Trigger Length - CTF 213': 'distance_trigger_length',
@@ -1466,7 +1991,7 @@ class MachineConfig(models.Model):
             'Runout Journal B1 A1-A3 - CTF 10': 'runout_journal_b1_a1_a3',
             'Runout Journal B2 A1-A3 - CTF 10': 'runout_journal_b2_a1_a3',
             
-            # Profile Error Measurements (Zones)
+            # Profile Error Measurements (Zones) - Exhaust (E) variants
             'Profile Error Lobe E11  Zone 1 - CTF 12': 'profile_error_lobe_e11_zone_1',
             'Profile Error Lobe E11  Zone 2 - CTF 13': 'profile_error_lobe_e11_zone_2',
             'Profile Error Lobe E11 Zone 3 - CTF 13': 'profile_error_lobe_e11_zone_3',
@@ -1491,8 +2016,34 @@ class MachineConfig(models.Model):
             'Profile Error Lobe E32  Zone 2 - CTF 13': 'profile_error_lobe_e32_zone_2',
             'Profile Error Lobe E32 Zone 3 - CTF 13': 'profile_error_lobe_e32_zone_3',
             'Profile Error Lobe E32 Zone 4 - CTF 12': 'profile_error_lobe_e32_zone_4',
+            
+            # Profile Error Measurements (Zones) - Intake (A) variants
+            'Profile Error Lobe A11  Zone 1 - CTF 12': 'profile_error_lobe_a11_zone_1',
+            'Profile Error Lobe A11  Zone 2 - CTF 13': 'profile_error_lobe_a11_zone_2',
+            'Profile Error Lobe A11 Zone 3 - CTF 13': 'profile_error_lobe_a11_zone_3',
+            'Profile Error Lobe A11 Zone 4 - CTF 12': 'profile_error_lobe_a11_zone_4',
+            'Profile Error Lobe A12  Zone 1 - CTF 12': 'profile_error_lobe_a12_zone_1',
+            'Profile Error Lobe A12  Zone 2 - CTF 13': 'profile_error_lobe_a12_zone_2',
+            'Profile Error Lobe A12 Zone 3 - CTF 13': 'profile_error_lobe_a12_zone_3',
+            'Profile Error Lobe A12 Zone 4 - CTF 12': 'profile_error_lobe_a12_zone_4',
+            'Profile Error Lobe A21  Zone 1 - CTF 12': 'profile_error_lobe_a21_zone_1',
+            'Profile Error Lobe A21  Zone 2 - CTF 13': 'profile_error_lobe_a21_zone_2',
+            'Profile Error Lobe A21 Zone 3 - CTF 13': 'profile_error_lobe_a21_zone_3',
+            'Profile Error Lobe A21 Zone 4 - CTF 12': 'profile_error_lobe_a21_zone_4',
+            'Profile Error Lobe A22  Zone 1 - CTF 12': 'profile_error_lobe_a22_zone_1',
+            'Profile Error Lobe A22  Zone 2 - CTF 13': 'profile_error_lobe_a22_zone_2',
+            'Profile Error Lobe A22 Zone 3 - CTF 13': 'profile_error_lobe_a22_zone_3',
+            'Profile Error Lobe A22 Zone 4 - CTF 12': 'profile_error_lobe_a22_zone_4',
+            'Profile Error Lobe A31  Zone 1 - CTF 12': 'profile_error_lobe_a31_zone_1',
+            'Profile Error Lobe A31  Zone 2 - CTF 13': 'profile_error_lobe_a31_zone_2',
+            'Profile Error Lobe A31 Zone 3 - CTF 13': 'profile_error_lobe_a31_zone_3',
+            'Profile Error Lobe A31 Zone 4 - CTF 12': 'profile_error_lobe_a31_zone_4',
+            'Profile Error Lobe A32  Zone 1 - CTF 12': 'profile_error_lobe_a32_zone_1',
+            'Profile Error Lobe A32  Zone 2 - CTF 13': 'profile_error_lobe_a32_zone_2',
+            'Profile Error Lobe A32 Zone 3 - CTF 13': 'profile_error_lobe_a32_zone_3',
+            'Profile Error Lobe A32 Zone 4 - CTF 12': 'profile_error_lobe_a32_zone_4',
 
-            # Velocity Error (1°) Zones
+            # Velocity Error (1°) Zones - Exhaust (E) variants
             'Velocity Error Lobe E11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_1',
             'Velocity Error Lobe E11 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_2',
             'Velocity Error Lobe E11 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_3',
@@ -1517,19 +2068,195 @@ class MachineConfig(models.Model):
             'Velocity Error Lobe E32 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_2',
             'Velocity Error Lobe E32 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_3',
             'Velocity Error Lobe E32 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_4',
+            
+            # Velocity Error (1°) Zones - Intake (A) variants
+            'Velocity Error Lobe A11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_1',
+            'Velocity Error Lobe A11 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_2',
+            'Velocity Error Lobe A11 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_3',
+            'Velocity Error Lobe A11 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_4',
+            'Velocity Error Lobe A12 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_1',
+            'Velocity Error Lobe A12 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_2',
+            'Velocity Error Lobe A12 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_3',
+            'Velocity Error Lobe A12 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_4',
+            'Velocity Error Lobe A21 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_1',
+            'Velocity Error Lobe A21 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_2',
+            'Velocity Error Lobe A21 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_3',
+            'Velocity Error Lobe A21 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_4',
+            'Velocity Error Lobe A22 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_1',
+            'Velocity Error Lobe A22 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_2',
+            'Velocity Error Lobe A22 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_3',
+            'Velocity Error Lobe A22 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_4',
+            'Velocity Error Lobe A31 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_1',
+            'Velocity Error Lobe A31 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_2',
+            'Velocity Error Lobe A31 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_3',
+            'Velocity Error Lobe A31 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_4',
+            'Velocity Error Lobe A32 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_1',
+            'Velocity Error Lobe A32 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_2',
+            'Velocity Error Lobe A32 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_3',
+            'Velocity Error Lobe A32 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_4',
 
-            # Widths
+            # Widths - Exhaust (E) variants
             'Width Lobe E11 - CTF 207': 'width_lobe_e11',
             'Width Lobe E12 - CTF 207': 'width_lobe_e12',
             'Width Lobe E21 - CTF 207': 'width_lobe_e21',
             'Width Lobe E22 - CTF 207': 'width_lobe_e22',
             'Width Lobe E31 - CTF 207': 'width_lobe_e31',
             'Width Lobe E32 - CTF 207': 'width_lobe_e32',
+            
+            # Widths - Intake (A) variants
+            'Width Lobe A11 - CTF 207': 'width_lobe_a11',
+            'Width Lobe A12 - CTF 207': 'width_lobe_a12',
+            'Width Lobe A21 - CTF 207': 'width_lobe_a21',
+            'Width Lobe A22 - CTF 207': 'width_lobe_a22',
+            'Width Lobe A31 - CTF 207': 'width_lobe_a31',
+            'Width Lobe A32 - CTF 207': 'width_lobe_a32',
+            
+            # Straightness - Exhaust (E) variants
+            'Straightness Lobe E11 - CTF 88': 'straightness_lobe_e11',
+            'Straightness Lobe E12 - CTF 88': 'straightness_lobe_e12',
+            'Straightness Lobe E21 - CTF 88': 'straightness_lobe_e21',
+            'Straightness Lobe E22 - CTF 88': 'straightness_lobe_e22',
+            'Straightness Lobe E31 - CTF 88': 'straightness_lobe_e31',
+            'Straightness Lobe E32 - CTF 88': 'straightness_lobe_e32',
+            
+            # Straightness - Intake (A) variants
+            'Straightness Lobe A11 - CTF 88': 'straightness_lobe_a11',
+            'Straightness Lobe A12 - CTF 88': 'straightness_lobe_a12',
+            'Straightness Lobe A21 - CTF 88': 'straightness_lobe_a21',
+            'Straightness Lobe A22 - CTF 88': 'straightness_lobe_a22',
+            'Straightness Lobe A31 - CTF 88': 'straightness_lobe_a31',
+            'Straightness Lobe A32 - CTF 88': 'straightness_lobe_a32',
+            
+            # Straightness - Pump Lobe (Intake only)
+            'Straightness Pump Lobe - CTF 88': 'straightness_pump_lobe',
+            
+            # Parallelism - Exhaust (E) variants
+            'Parallelism Lobe E11 A1-B1 - CTF 89': 'parallelism_lobe_e11_a1_b1',
+            'Parallelism Lobe E12 A1-B1 - CTF 89': 'parallelism_lobe_e12_a1_b1',
+            'Parallelism Lobe E21 A1-B1 - CTF 89': 'parallelism_lobe_e21_a1_b1',
+            'Parallelism Lobe E22 A1-B1 - CTF 89': 'parallelism_lobe_e22_a1_b1',
+            'Parallelism Lobe E31 A1-B1 - CTF 89': 'parallelism_lobe_e31_a1_b1',
+            'Parallelism Lobe E32 A1-B1 - CTF 89': 'parallelism_lobe_e32_a1_b1',
+            
+            # Parallelism - Intake (A) variants
+            'Parallelism Lobe A11 A1-B1 - CTF 89': 'parallelism_lobe_a11_a1_b1',
+            'Parallelism Lobe A12 A1-B1 - CTF 89': 'parallelism_lobe_a12_a1_b1',
+            'Parallelism Lobe A21 A1-B1 - CTF 89': 'parallelism_lobe_a21_a1_b1',
+            'Parallelism Lobe A22 A1-B1 - CTF 89': 'parallelism_lobe_a22_a1_b1',
+            'Parallelism Lobe A31 A1-B1 - CTF 89': 'parallelism_lobe_a31_a1_b1',
+            'Parallelism Lobe A32 A1-B1 - CTF 89': 'parallelism_lobe_a32_a1_b1',
+            
+            # Parallelism - Pump Lobe (Intake only)
+            'Parallelism Pump Lobe A1-B1 - CTF 89': 'parallelism_pump_lobe_a1_b1',
+            
+            # M (PSA lobing notation) - Exhaust (E) variants
+            'M (PSA lobing notation)  Lobe E11 ': 'm_psa_lobing_notation_lobe_e11',
+            'M (PSA lobing notation)  Lobe E12 ': 'm_psa_lobing_notation_lobe_e12',
+            'M (PSA lobing notation)  Lobe E21 ': 'm_psa_lobing_notation_lobe_e21',
+            'M (PSA lobing notation)  Lobe E22 ': 'm_psa_lobing_notation_lobe_e22',
+            'M (PSA lobing notation)  Lobe E31 ': 'm_psa_lobing_notation_lobe_e31',
+            'M (PSA lobing notation)  Lobe E32 ': 'm_psa_lobing_notation_lobe_e32',
+            
+            # M (PSA lobing notation) - Intake (A) variants
+            'M (PSA lobing notation)  Lobe A11 ': 'm_psa_lobing_notation_lobe_a11',
+            'M (PSA lobing notation)  Lobe A12 ': 'm_psa_lobing_notation_lobe_a12',
+            'M (PSA lobing notation)  Lobe A21 ': 'm_psa_lobing_notation_lobe_a21',
+            'M (PSA lobing notation)  Lobe A22 ': 'm_psa_lobing_notation_lobe_a22',
+            'M (PSA lobing notation)  Lobe A31 ': 'm_psa_lobing_notation_lobe_a31',
+            'M (PSA lobing notation)  Lobe A32 ': 'm_psa_lobing_notation_lobe_a32',
         }
 
+    def _load_aumann_tolerances(self, variant):
+        """Load JSON tolerance file for the specified variant (480 or 980)"""
+        try:
+            import json
+            import os
+            
+            # Determine variant from serial number prefix
+            if variant == '480':
+                tolerance_file = '480.json'
+            elif variant == '980':
+                tolerance_file = '980.json'
+            else:
+                _logger.warning(f"Unknown variant: {variant}, using default tolerances")
+                return {}
+            
+            # Try to load from module data directory first
+            try:
+                from odoo.modules import get_module_resource
+                tolerance_path = get_module_resource('manufacturing_dashboard', 'data', 'aumann_tolerances', tolerance_file)
+                if tolerance_path and os.path.exists(tolerance_path):
+                    with open(tolerance_path, 'r') as f:
+                        tolerances = json.load(f)
+                        _logger.info(f"Loaded tolerances for variant {variant} from module data")
+                        return tolerances
+            except Exception as e:
+                _logger.debug(f"Could not load tolerances from module data: {e}")
+            
+            # Fallback: try to load from configured tolerance directory
+            if hasattr(self, 'aumann_tolerance_dirs') and self.aumann_tolerance_dirs:
+                tolerance_dirs = self._parse_multi_paths(self.aumann_tolerance_dirs)
+                for tolerance_dir in tolerance_dirs:
+                    tolerance_path = os.path.join(tolerance_dir, tolerance_file)
+                    if os.path.exists(tolerance_path):
+                        with open(tolerance_path, 'r') as f:
+                            tolerances = json.load(f)
+                            _logger.info(f"Loaded tolerances for variant {variant} from {tolerance_path}")
+                            return tolerances
+            
+            _logger.warning(f"Could not find tolerance file for variant {variant}")
+            return {}
+            
+        except Exception as e:
+            _logger.error(f"Error loading tolerances for variant {variant}: {e}")
+            return {}
+
     def _determine_aumann_result(self, create_vals):
-        """Determine pass/reject result based on Aumann measurements"""
-        # Define critical measurement tolerances
+        """Determine pass/reject result based on Aumann measurements using JSON tolerances"""
+        try:
+            # Extract serial number to determine variant
+            serial_number = create_vals.get('serial_number', '')
+            if not serial_number:
+                _logger.warning("No serial number found in create_vals, using default tolerances")
+                return self._determine_aumann_result_fallback(create_vals)
+            
+            # Determine variant from serial prefix
+            if serial_number.startswith('480'):
+                variant = '480'
+            elif serial_number.startswith('980'):
+                variant = '980'
+            else:
+                _logger.warning(f"Unknown serial prefix: {serial_number[:3]}, using default tolerances")
+                return self._determine_aumann_result_fallback(create_vals)
+            
+            # Load tolerances for this variant
+            tolerances = self._load_aumann_tolerances(variant)
+            if not tolerances:
+                _logger.warning(f"No tolerances loaded for variant {variant}, using default tolerances")
+                return self._determine_aumann_result_fallback(create_vals)
+            
+            # Check each tolerance
+            for field_name, (min_val, max_val) in tolerances.items():
+                if field_name in create_vals and create_vals[field_name] is not None:
+                    try:
+                        measured_value = float(create_vals[field_name])
+                        if not (min_val <= measured_value <= max_val):
+                            _logger.info(f"Measurement {field_name}={measured_value} out of tolerance [{min_val}, {max_val}] for {serial_number}")
+                            return 'reject'
+                    except (ValueError, TypeError) as e:
+                        _logger.warning(f"Could not compare {field_name}={create_vals[field_name]} with tolerance: {e}")
+                        continue
+            
+            _logger.debug(f"All measurements within tolerance for {serial_number}")
+            return 'pass'
+            
+        except Exception as e:
+            _logger.error(f"Error in tolerance evaluation for {serial_number}: {e}")
+            return self._determine_aumann_result_fallback(create_vals)
+
+    def _determine_aumann_result_fallback(self, create_vals):
+        """Fallback result determination using hardcoded tolerances"""
+        # Define critical measurement tolerances (fallback)
         critical_tolerances = {
             'diameter_journal_a1': (23.959, 23.980),
             'diameter_journal_a2': (23.959, 23.980),

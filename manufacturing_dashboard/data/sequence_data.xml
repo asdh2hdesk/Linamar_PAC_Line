@@ -26,16 +26,16 @@
         <record id="machine_ruhlamat_01" model="manufacturing.machine.config">
             <field name="machine_name">Ruhlamat Press Station 01</field>
             <field name="machine_type">ruhlamat</field>
-            <field name="csv_file_path">\\Lip-engg01\8959787117\ufm_8959787117.mdbb</field>
+            <field name="csv_file_path">\\Lip-engg01\8959787117\ufm_8959787117.mdb</field>
             <field name="sync_interval">30</field>
-            <field name="is_active">False</field>
+            <field name="is_active">True</field>
             <field name="status">stopped</field>
         </record>
 
         <record id="machine_gauging_01" model="manufacturing.machine.config">
             <field name="machine_name">Gauging Measurement Station 01</field>
             <field name="machine_type">gauging</field>
-            <field name="csv_file_path">\\DESKTOP-QVVFPVI\CSV_Data\October2025.csv</field>
+            <field name="csv_file_path">\\DESKTOP-QVVFPVI\CSV_Data\0Degreeangle.csv</field>
             <field name="sync_interval">30</field>
             <field name="is_active">True</field>
             <field name="status">stopped</field>
@@ -44,9 +44,9 @@
         <record id="machine_aumann_01" model="manufacturing.machine.config">
             <field name="machine_name">Aumann Measurement Station 01</field>
             <field name="machine_type">aumann</field>
-            <field name="csv_file_path">\\Cp-57ff06\dc\Q50-11502-00568100</field>
+            <field name="csv_file_path">\\Cp-57ff06\dc\Q50-11502-0056810,\\Cp-57ff06\dc\Q50-11502-0056823</field>
             <field name="sync_interval">30</field>
-            <field name="is_active">False</field>
+            <field name="is_active">True</field>
             <field name="status">stopped</field>
         </record>
     </data>
