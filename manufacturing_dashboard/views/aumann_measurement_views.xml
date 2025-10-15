@@ -10,8 +10,10 @@
                 <field name="machine_id"/>
                 <field name="test_date"/>
                 <field name="part_form"/>
+                <field name="camshaft_type" widget="badge"/>
                 <field name="total_measurements"/>
                 <field name="measurements_passed"/>
+                <field name="measurements_failed"/>
                 <field name="pass_rate" widget="percentage"/>
                 <field name="dimensional_accuracy" widget="badge"/>
                 <field name="critical_measurements_ok" widget="boolean_toggle"/>
@@ -38,6 +40,7 @@
                             <field name="machine_id"/>
                             <field name="test_date"/>
                             <field name="part_form"/>
+                            <field name="camshaft_type"/>
                             <field name="product_id"/>
                             <field name="assembly"/>
                         </group>
@@ -84,21 +87,291 @@
                         <page string="Cam Measurements">
                             <group>
                                 <group string="Base Circle Radius">
-                                    <field name="base_circle_radius_lobe_e11"/>
-                                    <field name="base_circle_radius_lobe_e12"/>
-                                    <field name="base_circle_radius_lobe_e21"/>
+                                    <field name="base_circle_radius_lobe_11"/>
+                                    <field name="base_circle_radius_lobe_12"/>
+                                    <field name="base_circle_radius_lobe_21"/>
+                                    <field name="base_circle_radius_lobe_22"/>
+                                    <field name="base_circle_radius_lobe_31"/>
+                                    <field name="base_circle_radius_lobe_32"/>
+                                    <field name="base_circle_radius_pump_lobe"/>
                                 </group>
                                 <group string="Lobe Width">
-                                    <field name="width_lobe_e11"/>
-                                    <field name="width_lobe_e12"/>
-                                    <field name="width_lobe_e21"/>
+                                    <field name="width_lobe_11"/>
+                                    <field name="width_lobe_12"/>
+                                    <field name="width_lobe_21"/>
+                                    <field name="width_lobe_22"/>
+                                    <field name="width_lobe_31"/>
+                                    <field name="width_lobe_32"/>
+                                    <field name="width_pump_lobe"/>
                                 </group>
                             </group>
                             <group>
-                                <group string="Angles">
-                                    <field name="angle_lobe_e11_to_ref"/>
-                                    <field name="angle_lobe_e12_to_ref"/>
-                                    <field name="angle_lobe_e21_to_ref"/>
+                                <group string="Lobe Angles">
+                                    <field name="angle_lobe_11_to_ref"/>
+                                    <field name="angle_lobe_12_to_ref"/>
+                                    <field name="angle_lobe_21_to_ref"/>
+                                    <field name="angle_lobe_22_to_ref"/>
+                                    <field name="angle_lobe_31_to_ref"/>
+                                    <field name="angle_lobe_32_to_ref"/>
+                                    <field name="angle_pumplobe_to_ref"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Wheel Angle Measurements">
+                            <group>
+                                <group string="Left Wheel Angles">
+                                    <field name="wheel_angle_left_120"/>
+                                    <field name="wheel_angle_left_150"/>
+                                    <field name="wheel_angle_left_180"/>
+                                    <field name="wheel_angle_left_30"/>
+                                </group>
+                                <group string="Right Wheel Angles">
+                                    <field name="wheel_angle_right_120"/>
+                                    <field name="wheel_angle_right_150"/>
+                                    <field name="wheel_angle_right_90"/>
+                                    <field name="wheel_angle_right_60"/>
+                                    <field name="wheel_angle_right_30"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="wheel_angle_to_reference"/>
+                            </group>
+                        </page>
+
+                        <page string="Base Circle &amp; Runout">
+                            <group>
+                                <group string="Base Circle Runout">
+                                    <field name="base_circle_runout_lobe_11_adj"/>
+                                    <field name="base_circle_runout_lobe_12_adj"/>
+                                    <field name="base_circle_runout_lobe_21_adj"/>
+                                    <field name="base_circle_runout_lobe_22_adj"/>
+                                    <field name="base_circle_runout_lobe_31_adj"/>
+                                    <field name="base_circle_runout_lobe_32_adj"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Distance Measurements">
+                            <group>
+                                <group string="Lobe Distances">
+                                    <field name="distance_lobe_11"/>
+                                    <field name="distance_lobe_12"/>
+                                    <field name="distance_lobe_21"/>
+                                    <field name="distance_lobe_22"/>
+                                    <field name="distance_lobe_31"/>
+                                    <field name="distance_lobe_32"/>
+                                    <field name="distance_pump_lobe"/>
+                                </group>
+                                <group string="Other Distances">
+                                    <field name="distance_rear_end"/>
+                                    <field name="distance_step_length_front_face"/>
+                                    <field name="distance_trigger_length"/>
+                                    <field name="distance_from_front_end_face"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Profile &amp; Velocity Errors">
+                            <group>
+                                <group string="Profile Errors - Lobe 11">
+                                    <field name="profile_error_lobe_11_zone_1"/>
+                                    <field name="profile_error_lobe_11_zone_2"/>
+                                    <field name="profile_error_lobe_11_zone_3"/>
+                                    <field name="profile_error_lobe_11_zone_4"/>
+                                </group>
+                                <group string="Profile Errors - Lobe 12">
+                                    <field name="profile_error_lobe_12_zone_1"/>
+                                    <field name="profile_error_lobe_12_zone_2"/>
+                                    <field name="profile_error_lobe_12_zone_3"/>
+                                    <field name="profile_error_lobe_12_zone_4"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Profile Errors - Lobe 21">
+                                    <field name="profile_error_lobe_21_zone_1"/>
+                                    <field name="profile_error_lobe_21_zone_2"/>
+                                    <field name="profile_error_lobe_21_zone_3"/>
+                                    <field name="profile_error_lobe_21_zone_4"/>
+                                </group>
+                                <group string="Profile Errors - Lobe 22">
+                                    <field name="profile_error_lobe_22_zone_1"/>
+                                    <field name="profile_error_lobe_22_zone_2"/>
+                                    <field name="profile_error_lobe_22_zone_3"/>
+                                    <field name="profile_error_lobe_22_zone_4"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Profile Errors - Lobe 31">
+                                    <field name="profile_error_lobe_31_zone_1"/>
+                                    <field name="profile_error_lobe_31_zone_2"/>
+                                    <field name="profile_error_lobe_31_zone_3"/>
+                                    <field name="profile_error_lobe_31_zone_4"/>
+                                </group>
+                                <group string="Profile Errors - Lobe 32">
+                                    <field name="profile_error_lobe_32_zone_1"/>
+                                    <field name="profile_error_lobe_32_zone_2"/>
+                                    <field name="profile_error_lobe_32_zone_3"/>
+                                    <field name="profile_error_lobe_32_zone_4"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Pump Lobe Profile Errors">
+                                    <field name="profile_error_pumplobe_rising_side"/>
+                                    <field name="profile_error_pumplobe_closing_side"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Velocity Errors">
+                            <group>
+                                <group string="Velocity Errors - Lobe 11">
+                                    <field name="velocity_error_lobe_11_zone_1"/>
+                                    <field name="velocity_error_lobe_11_zone_2"/>
+                                    <field name="velocity_error_lobe_11_zone_3"/>
+                                    <field name="velocity_error_lobe_11_zone_4"/>
+                                </group>
+                                <group string="Velocity Errors - Lobe 12">
+                                    <field name="velocity_error_lobe_12_zone_1"/>
+                                    <field name="velocity_error_lobe_12_zone_2"/>
+                                    <field name="velocity_error_lobe_12_zone_3"/>
+                                    <field name="velocity_error_lobe_12_zone_4"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Velocity Errors - Lobe 21">
+                                    <field name="velocity_error_lobe_21_zone_1"/>
+                                    <field name="velocity_error_lobe_21_zone_2"/>
+                                    <field name="velocity_error_lobe_21_zone_3"/>
+                                    <field name="velocity_error_lobe_21_zone_4"/>
+                                </group>
+                                <group string="Velocity Errors - Lobe 22">
+                                    <field name="velocity_error_lobe_22_zone_1"/>
+                                    <field name="velocity_error_lobe_22_zone_2"/>
+                                    <field name="velocity_error_lobe_22_zone_3"/>
+                                    <field name="velocity_error_lobe_22_zone_4"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Velocity Errors - Lobe 31">
+                                    <field name="velocity_error_lobe_31_zone_1"/>
+                                    <field name="velocity_error_lobe_31_zone_2"/>
+                                    <field name="velocity_error_lobe_31_zone_3"/>
+                                    <field name="velocity_error_lobe_31_zone_4"/>
+                                </group>
+                                <group string="Velocity Errors - Lobe 32">
+                                    <field name="velocity_error_lobe_32_zone_1"/>
+                                    <field name="velocity_error_lobe_32_zone_2"/>
+                                    <field name="velocity_error_lobe_32_zone_3"/>
+                                    <field name="velocity_error_lobe_32_zone_4"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Pump Lobe Velocity Errors">
+                                    <field name="velocity_error_pumplobe_1_deg_rising_side"/>
+                                    <field name="velocity_error_pumplobe_1_deg_closing_side"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Straightness &amp; Parallelism">
+                            <group>
+                                <group string="Lobe Straightness">
+                                    <field name="straightness_lobe_11"/>
+                                    <field name="straightness_lobe_12"/>
+                                    <field name="straightness_lobe_21"/>
+                                    <field name="straightness_lobe_22"/>
+                                    <field name="straightness_lobe_31"/>
+                                    <field name="straightness_lobe_32"/>
+                                    <field name="straightness_pump_lobe"/>
+                                </group>
+                                <group string="Lobe Parallelism">
+                                    <field name="parallelism_lobe_11_a1_b1"/>
+                                    <field name="parallelism_lobe_12_a1_b1"/>
+                                    <field name="parallelism_lobe_21_a1_b1"/>
+                                    <field name="parallelism_lobe_22_a1_b1"/>
+                                    <field name="parallelism_lobe_31_a1_b1"/>
+                                    <field name="parallelism_lobe_32_a1_b1"/>
+                                    <field name="parallelism_pump_lobe_a1_b1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Concentricity &amp; Diameter">
+                            <group>
+                                <group string="Concentricity Measurements">
+                                    <field name="concentricity_front_bearing_h"/>
+                                    <field name="concentricity_io_front_end_dia_39"/>
+                                    <field name="concentricity_io_front_end_major_dia_40"/>
+                                    <field name="concentricity_io_step_diameter_32_5"/>
+                                </group>
+                                <group string="Concentricity Results">
+                                    <field name="concentricity_result_front_end_dia_39"/>
+                                    <field name="concentricity_result_front_end_major_dia_40"/>
+                                    <field name="concentricity_result_step_diameter_32_5"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Diameter Measurements">
+                                    <field name="diameter_front_bearing_h"/>
+                                    <field name="diameter_front_end"/>
+                                    <field name="diameter_front_end_major"/>
+                                    <field name="diameter_step_diameter_tpc"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Face &amp; Profile Measurements">
+                            <group>
+                                <group string="Face Measurements">
+                                    <field name="face_total_runout_bearing_face_0"/>
+                                    <field name="face_total_runout_bearing_face_25"/>
+                                    <field name="front_face_flatness_concav"/>
+                                    <field name="front_face_flatness_convex"/>
+                                    <field name="front_face_runout"/>
+                                </group>
+                                <group string="Profile Measurements">
+                                    <field name="max_profile_30_trigger_wheel_diameter"/>
+                                    <field name="max_profile_42_trigger_wheel_diameter"/>
+                                    <field name="min_profile_30_trigger_wheel_diameter"/>
+                                    <field name="min_profile_42_trigger_wheel_diameter"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Roundness &amp; Runout">
+                            <group>
+                                <group string="Journal Roundness">
+                                    <field name="roundness_journal_a1"/>
+                                    <field name="roundness_journal_a2"/>
+                                    <field name="roundness_journal_a3"/>
+                                    <field name="roundness_journal_b1"/>
+                                    <field name="roundness_journal_b2"/>
+                                </group>
+                                <group string="Journal Runout">
+                                    <field name="runout_journal_a1_a1_b1"/>
+                                    <field name="runout_journal_a2_a1_b1"/>
+                                    <field name="runout_journal_a3_a1_b1"/>
+                                    <field name="runout_journal_b1_a1_a3"/>
+                                    <field name="runout_journal_b2_a1_a3"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Temperature &amp; M PSA">
+                            <group>
+                                <group string="Temperature Measurements">
+                                    <field name="temperature_machine"/>
+                                    <field name="temperature_sensor"/>
+                                </group>
+                                <group string="M PSA Lobing Notation">
+                                    <field name="m_psa_lobing_notation_lobe_11"/>
+                                    <field name="m_psa_lobing_notation_lobe_12"/>
+                                    <field name="m_psa_lobing_notation_lobe_21"/>
+                                    <field name="m_psa_lobing_notation_lobe_22"/>
+                                    <field name="m_psa_lobing_notation_lobe_31"/>
+                                    <field name="m_psa_lobing_notation_lobe_32"/>
+                                    <field name="m_psa_lobing_notation_pumplobe"/>
                                 </group>
                             </group>
                         </page>
@@ -112,6 +385,17 @@
                                 <group string="Two Flat">
                                     <field name="two_flat_size"/>
                                     <field name="two_flat_symmetry"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Bearing &amp; Width">
+                                    <field name="bearing_width"/>
+                                    <field name="cam_angle12"/>
+                                    <field name="cam_angle34"/>
+                                    <field name="cam_angle56"/>
+                                </group>
+                                <group string="Rear End">
+                                    <field name="rear_end_length"/>
                                 </group>
                             </group>
                         </page>

@@ -17,7 +17,7 @@
                 <field name="rejection_rate" widget="percentage"/>
                 <field name="last_sync" widget="relative"/>
                 <field name="is_active" widget="boolean_toggle"/>
-                <button name="sync_machine_data" type="object" string="Sync Now" icon="fa-refresh" class="btn-link"/>
+                <button name="sync_machine_data_optimized" type="object" string="Quick Sync" icon="fa-refresh" class="btn-link"/>
             </list>
         </field>
     </record>
@@ -29,8 +29,12 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                <button name="sync_machine_data" type="object" string="Sync Now" class="btn-primary"
-                        icon="fa-refresh"/>
+                <button name="sync_machine_data_optimized" type="object" string="Quick Sync" class="btn-primary"
+                        icon="fa-refresh" invisible= "machine_type == 'final_station'"/>
+                <button name="force_full_sync" type="object" string="Full Sync" class="btn-warning"
+                        icon="fa-bolt" invisible= "machine_type == 'final_station'"/>
+                <button name="cancel_current_sync" type="object" string="Cancel Sync" class="btn-danger"
+                        icon="fa-stop" invisible= "machine_type == 'final_station' or status != 'running'"/>
                     <button name="test_plc_connection" type="object" string="Test PLC" class="btn-secondary"
                             icon="fa-plug" invisible="machine_type != 'final_station'"/>
                     <button name="force_sync_all_machines" type="object" string="Force Sync All" class="btn-warning"
@@ -100,6 +104,7 @@
                         <group name="basic_config" string="Basic Configuration">
                             <field name="csv_file_path" widget="char" placeholder="/path/to/csv/file.csv"/>
                             <field name="sync_interval" widget="integer"/>
+                            <field name="sync_mode" optional="hide"/>
                             <field name="is_active"/>
                         </group>
                         <group name="status_info" string="Status Information">

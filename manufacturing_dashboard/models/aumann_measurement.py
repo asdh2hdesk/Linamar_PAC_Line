@@ -19,9 +19,18 @@ class AumannMeasurement(models.Model):
 
     # Part information
     part_type = fields.Char('Type')
-    part_form = fields.Char('Part Form', default='Exhaust CAMSHAFT')
+    part_form = fields.Selection([
+        ('intake', 'Intake CAMSHAFT'),
+        ('exhaust', 'Exhaust CAMSHAFT')
+    ], string='Part Form', default='exhaust', required=True)
     product_id = fields.Char('Product ID', default='Q50-11502-0056810')
     assembly = fields.Char('Assembly', default='MSA')
+
+    # Camshaft type determines which lobe fields are used
+    camshaft_type = fields.Selection([
+        ('intake', 'Intake (A-Lobes with Pump)'),
+        ('exhaust', 'Exhaust (E-Lobes)')
+    ], string='Camshaft Type', compute='_compute_camshaft_type', store=True)
 
     # Measurement summary
     total_measurements = fields.Integer('Total Measurements')
@@ -41,30 +50,33 @@ class AumannMeasurement(models.Model):
     wheel_angle_right_30 = fields.Float('Wheel Angle Right 30 (deg)', digits=(10, 6))
     wheel_angle_to_reference = fields.Float('Wheel Angle to Reference (deg)', digits=(10, 6))
 
-    # Angle Lobe Measurements
-    angle_lobe_e11_to_ref = fields.Float('Angle Lobe E11 to Ref (deg)', digits=(10, 6))
-    angle_lobe_e12_to_ref = fields.Float('Angle Lobe E12 to Ref (deg)', digits=(10, 6))
-    angle_lobe_e21_to_ref = fields.Float('Angle Lobe E21 to Ref (deg)', digits=(10, 6))
-    angle_lobe_e22_to_ref = fields.Float('Angle Lobe E22 to Ref (deg)', digits=(10, 6))
-    angle_lobe_e31_to_ref = fields.Float('Angle Lobe E31 to Ref (deg)', digits=(10, 6))
-    angle_lobe_e32_to_ref = fields.Float('Angle Lobe E32 to Ref (deg)', digits=(10, 6))
+    # Universal Lobe Angle Measurements (used for both A and E lobes)
+    angle_lobe_11_to_ref = fields.Float('Angle Lobe 11 to Ref (deg)', digits=(10, 6))
+    angle_lobe_12_to_ref = fields.Float('Angle Lobe 12 to Ref (deg)', digits=(10, 6))
+    angle_lobe_21_to_ref = fields.Float('Angle Lobe 21 to Ref (deg)', digits=(10, 6))
+    angle_lobe_22_to_ref = fields.Float('Angle Lobe 22 to Ref (deg)', digits=(10, 6))
+    angle_lobe_31_to_ref = fields.Float('Angle Lobe 31 to Ref (deg)', digits=(10, 6))
+    angle_lobe_32_to_ref = fields.Float('Angle Lobe 32 to Ref (deg)', digits=(10, 6))
 
-    # Base Circle Radius Measurements
-    base_circle_radius_lobe_e11 = fields.Float('Base Circle Radius Lobe E11 (mm)', digits=(10, 6))
-    base_circle_radius_lobe_e12 = fields.Float('Base Circle Radius Lobe E12 (mm)', digits=(10, 6))
-    base_circle_radius_lobe_e21 = fields.Float('Base Circle Radius Lobe E21 (mm)', digits=(10, 6))
-    base_circle_radius_lobe_e22 = fields.Float('Base Circle Radius Lobe E22 (mm)', digits=(10, 6))
-    base_circle_radius_lobe_e31 = fields.Float('Base Circle Radius Lobe E31 (mm)', digits=(10, 6))
-    base_circle_radius_lobe_e32 = fields.Float('Base Circle Radius Lobe E32 (mm)', digits=(10, 6))
+    # Pump Lobe - Intake only
+    angle_pumplobe_to_ref = fields.Float('Angle Pump Lobe to Ref (deg)', digits=(10, 6))
+
+    # Universal Base Circle Radius Measurements
+    base_circle_radius_lobe_11 = fields.Float('Base Circle Radius Lobe 11 (mm)', digits=(10, 6))
+    base_circle_radius_lobe_12 = fields.Float('Base Circle Radius Lobe 12 (mm)', digits=(10, 6))
+    base_circle_radius_lobe_21 = fields.Float('Base Circle Radius Lobe 21 (mm)', digits=(10, 6))
+    base_circle_radius_lobe_22 = fields.Float('Base Circle Radius Lobe 22 (mm)', digits=(10, 6))
+    base_circle_radius_lobe_31 = fields.Float('Base Circle Radius Lobe 31 (mm)', digits=(10, 6))
+    base_circle_radius_lobe_32 = fields.Float('Base Circle Radius Lobe 32 (mm)', digits=(10, 6))
     base_circle_radius_pump_lobe = fields.Float('Base Circle Radius Pump Lobe (mm)', digits=(10, 6))
 
-    # Base Circle Runout Measurements
-    base_circle_runout_lobe_e11_adj = fields.Float('Base Circle Runout Lobe E11 adj (mm)', digits=(10, 6))
-    base_circle_runout_lobe_e12_adj = fields.Float('Base Circle Runout Lobe E12 adj (mm)', digits=(10, 6))
-    base_circle_runout_lobe_e21_adj = fields.Float('Base Circle Runout Lobe E21 adj (mm)', digits=(10, 6))
-    base_circle_runout_lobe_e22_adj = fields.Float('Base Circle Runout Lobe E22 adj (mm)', digits=(10, 6))
-    base_circle_runout_lobe_e31_adj = fields.Float('Base Circle Runout Lobe E31 adj (mm)', digits=(10, 6))
-    base_circle_runout_lobe_e32_adj = fields.Float('Base Circle Runout Lobe E32 adj (mm)', digits=(10, 6))
+    # Universal Base Circle Runout Measurements
+    base_circle_runout_lobe_11_adj = fields.Float('Base Circle Runout Lobe 11 adj (mm)', digits=(10, 6))
+    base_circle_runout_lobe_12_adj = fields.Float('Base Circle Runout Lobe 12 adj (mm)', digits=(10, 6))
+    base_circle_runout_lobe_21_adj = fields.Float('Base Circle Runout Lobe 21 adj (mm)', digits=(10, 6))
+    base_circle_runout_lobe_22_adj = fields.Float('Base Circle Runout Lobe 22 adj (mm)', digits=(10, 6))
+    base_circle_runout_lobe_31_adj = fields.Float('Base Circle Runout Lobe 31 adj (mm)', digits=(10, 6))
+    base_circle_runout_lobe_32_adj = fields.Float('Base Circle Runout Lobe 32 adj (mm)', digits=(10, 6))
 
     # Bearing and Width Measurements
     bearing_width = fields.Float('Bearing Width (mm)', digits=(10, 6))
@@ -94,13 +106,13 @@ class AumannMeasurement(models.Model):
     diameter_journal_b2 = fields.Float('Diameter Journal B2 (mm)', digits=(10, 6))
     diameter_step_diameter_tpc = fields.Float('Diameter Step Diameter TPC (mm)', digits=(10, 6))
 
-    # Distance Measurements
-    distance_lobe_e11 = fields.Float('Distance Lobe E11 (mm)', digits=(10, 6))
-    distance_lobe_e12 = fields.Float('Distance Lobe E12 (mm)', digits=(10, 6))
-    distance_lobe_e21 = fields.Float('Distance Lobe E21 (mm)', digits=(10, 6))
-    distance_lobe_e22 = fields.Float('Distance Lobe E22 (mm)', digits=(10, 6))
-    distance_lobe_e31 = fields.Float('Distance Lobe E31 (mm)', digits=(10, 6))
-    distance_lobe_e32 = fields.Float('Distance Lobe E32 (mm)', digits=(10, 6))
+    # Universal Distance Measurements
+    distance_lobe_11 = fields.Float('Distance Lobe 11 (mm)', digits=(10, 6))
+    distance_lobe_12 = fields.Float('Distance Lobe 12 (mm)', digits=(10, 6))
+    distance_lobe_21 = fields.Float('Distance Lobe 21 (mm)', digits=(10, 6))
+    distance_lobe_22 = fields.Float('Distance Lobe 22 (mm)', digits=(10, 6))
+    distance_lobe_31 = fields.Float('Distance Lobe 31 (mm)', digits=(10, 6))
+    distance_lobe_32 = fields.Float('Distance Lobe 32 (mm)', digits=(10, 6))
     distance_pump_lobe = fields.Float('Distance Pump Lobe (mm)', digits=(10, 6))
     distance_rear_end = fields.Float('Distance Rear End (mm)', digits=(10, 6))
     distance_step_length_front_face = fields.Float('Distance Step Length Front Face (mm)', digits=(10, 6))
@@ -120,41 +132,41 @@ class AumannMeasurement(models.Model):
     min_profile_30_trigger_wheel_diameter = fields.Float('Min Profile 30 Trigger Wheel Diameter (mm)', digits=(10, 6))
     min_profile_42_trigger_wheel_diameter = fields.Float('Min Profile 42 Trigger Wheel Diameter (mm)', digits=(10, 6))
 
-    # Profile Error Measurements (E11)
-    profile_error_lobe_e11_zone_1 = fields.Float('Profile Error Lobe E11 Zone 1 (mm)', digits=(10, 6))
-    profile_error_lobe_e11_zone_2 = fields.Float('Profile Error Lobe E11 Zone 2 (mm)', digits=(10, 6))
-    profile_error_lobe_e11_zone_3 = fields.Float('Profile Error Lobe E11 Zone 3 (mm)', digits=(10, 6))
-    profile_error_lobe_e11_zone_4 = fields.Float('Profile Error Lobe E11 Zone 4 (mm)', digits=(10, 6))
+    # Universal Profile Error Measurements (Lobe 11)
+    profile_error_lobe_11_zone_1 = fields.Float('Profile Error Lobe 11 Zone 1 (mm)', digits=(10, 6))
+    profile_error_lobe_11_zone_2 = fields.Float('Profile Error Lobe 11 Zone 2 (mm)', digits=(10, 6))
+    profile_error_lobe_11_zone_3 = fields.Float('Profile Error Lobe 11 Zone 3 (mm)', digits=(10, 6))
+    profile_error_lobe_11_zone_4 = fields.Float('Profile Error Lobe 11 Zone 4 (mm)', digits=(10, 6))
 
-    # Profile Error Measurements (E12)
-    profile_error_lobe_e12_zone_1 = fields.Float('Profile Error Lobe E12 Zone 1 (mm)', digits=(10, 6))
-    profile_error_lobe_e12_zone_2 = fields.Float('Profile Error Lobe E12 Zone 2 (mm)', digits=(10, 6))
-    profile_error_lobe_e12_zone_3 = fields.Float('Profile Error Lobe E12 Zone 3 (mm)', digits=(10, 6))
-    profile_error_lobe_e12_zone_4 = fields.Float('Profile Error Lobe E12 Zone 4 (mm)', digits=(10, 6))
+    # Universal Profile Error Measurements (Lobe 12)
+    profile_error_lobe_12_zone_1 = fields.Float('Profile Error Lobe 12 Zone 1 (mm)', digits=(10, 6))
+    profile_error_lobe_12_zone_2 = fields.Float('Profile Error Lobe 12 Zone 2 (mm)', digits=(10, 6))
+    profile_error_lobe_12_zone_3 = fields.Float('Profile Error Lobe 12 Zone 3 (mm)', digits=(10, 6))
+    profile_error_lobe_12_zone_4 = fields.Float('Profile Error Lobe 12 Zone 4 (mm)', digits=(10, 6))
 
-    # Profile Error Measurements (E21)
-    profile_error_lobe_e21_zone_1 = fields.Float('Profile Error Lobe E21 Zone 1 (mm)', digits=(10, 6))
-    profile_error_lobe_e21_zone_2 = fields.Float('Profile Error Lobe E21 Zone 2 (mm)', digits=(10, 6))
-    profile_error_lobe_e21_zone_3 = fields.Float('Profile Error Lobe E21 Zone 3 (mm)', digits=(10, 6))
-    profile_error_lobe_e21_zone_4 = fields.Float('Profile Error Lobe E21 Zone 4 (mm)', digits=(10, 6))
+    # Universal Profile Error Measurements (Lobe 21)
+    profile_error_lobe_21_zone_1 = fields.Float('Profile Error Lobe 21 Zone 1 (mm)', digits=(10, 6))
+    profile_error_lobe_21_zone_2 = fields.Float('Profile Error Lobe 21 Zone 2 (mm)', digits=(10, 6))
+    profile_error_lobe_21_zone_3 = fields.Float('Profile Error Lobe 21 Zone 3 (mm)', digits=(10, 6))
+    profile_error_lobe_21_zone_4 = fields.Float('Profile Error Lobe 21 Zone 4 (mm)', digits=(10, 6))
 
-    # Profile Error Measurements (E22)
-    profile_error_lobe_e22_zone_1 = fields.Float('Profile Error Lobe E22 Zone 1 (mm)', digits=(10, 6))
-    profile_error_lobe_e22_zone_2 = fields.Float('Profile Error Lobe E22 Zone 2 (mm)', digits=(10, 6))
-    profile_error_lobe_e22_zone_3 = fields.Float('Profile Error Lobe E22 Zone 3 (mm)', digits=(10, 6))
-    profile_error_lobe_e22_zone_4 = fields.Float('Profile Error Lobe E22 Zone 4 (mm)', digits=(10, 6))
+    # Universal Profile Error Measurements (Lobe 22)
+    profile_error_lobe_22_zone_1 = fields.Float('Profile Error Lobe 22 Zone 1 (mm)', digits=(10, 6))
+    profile_error_lobe_22_zone_2 = fields.Float('Profile Error Lobe 22 Zone 2 (mm)', digits=(10, 6))
+    profile_error_lobe_22_zone_3 = fields.Float('Profile Error Lobe 22 Zone 3 (mm)', digits=(10, 6))
+    profile_error_lobe_22_zone_4 = fields.Float('Profile Error Lobe 22 Zone 4 (mm)', digits=(10, 6))
 
-    # Profile Error Measurements (E31)
-    profile_error_lobe_e31_zone_1 = fields.Float('Profile Error Lobe E31 Zone 1 (mm)', digits=(10, 6))
-    profile_error_lobe_e31_zone_2 = fields.Float('Profile Error Lobe E31 Zone 2 (mm)', digits=(10, 6))
-    profile_error_lobe_e31_zone_3 = fields.Float('Profile Error Lobe E31 Zone 3 (mm)', digits=(10, 6))
-    profile_error_lobe_e31_zone_4 = fields.Float('Profile Error Lobe E31 Zone 4 (mm)', digits=(10, 6))
+    # Universal Profile Error Measurements (Lobe 31)
+    profile_error_lobe_31_zone_1 = fields.Float('Profile Error Lobe 31 Zone 1 (mm)', digits=(10, 6))
+    profile_error_lobe_31_zone_2 = fields.Float('Profile Error Lobe 31 Zone 2 (mm)', digits=(10, 6))
+    profile_error_lobe_31_zone_3 = fields.Float('Profile Error Lobe 31 Zone 3 (mm)', digits=(10, 6))
+    profile_error_lobe_31_zone_4 = fields.Float('Profile Error Lobe 31 Zone 4 (mm)', digits=(10, 6))
 
-    # Profile Error Measurements (E32)
-    profile_error_lobe_e32_zone_1 = fields.Float('Profile Error Lobe E32 Zone 1 (mm)', digits=(10, 6))
-    profile_error_lobe_e32_zone_2 = fields.Float('Profile Error Lobe E32 Zone 2 (mm)', digits=(10, 6))
-    profile_error_lobe_e32_zone_3 = fields.Float('Profile Error Lobe E32 Zone 3 (mm)', digits=(10, 6))
-    profile_error_lobe_e32_zone_4 = fields.Float('Profile Error Lobe E32 Zone 4 (mm)', digits=(10, 6))
+    # Universal Profile Error Measurements (Lobe 32)
+    profile_error_lobe_32_zone_1 = fields.Float('Profile Error Lobe 32 Zone 1 (mm)', digits=(10, 6))
+    profile_error_lobe_32_zone_2 = fields.Float('Profile Error Lobe 32 Zone 2 (mm)', digits=(10, 6))
+    profile_error_lobe_32_zone_3 = fields.Float('Profile Error Lobe 32 Zone 3 (mm)', digits=(10, 6))
+    profile_error_lobe_32_zone_4 = fields.Float('Profile Error Lobe 32 Zone 4 (mm)', digits=(10, 6))
 
     # Profile Error Measurements (Pump Lobe)
     profile_error_pumplobe_rising_side = fields.Float('Profile Error Pump Lobe Rising Side (mm)', digits=(10, 6))
@@ -189,53 +201,53 @@ class AumannMeasurement(models.Model):
     two_flat_size = fields.Float('Two Flat Size (mm)', digits=(10, 6))
     two_flat_symmetry = fields.Float('Two Flat Symmetry (mm)', digits=(10, 6))
 
-    # Velocity Error Measurements (E11)
-    velocity_error_lobe_e11_zone_1 = fields.Float('Velocity Error Lobe E11 Zone 1 (deg)', digits=(10, 6))
-    velocity_error_lobe_e11_zone_2 = fields.Float('Velocity Error Lobe E11 Zone 2 (deg)', digits=(10, 6))
-    velocity_error_lobe_e11_zone_3 = fields.Float('Velocity Error Lobe E11 Zone 3 (deg)', digits=(10, 6))
-    velocity_error_lobe_e11_zone_4 = fields.Float('Velocity Error Lobe E11 Zone 4 (deg)', digits=(10, 6))
+    # Universal Velocity Error Measurements (Lobe 11)
+    velocity_error_lobe_11_zone_1 = fields.Float('Velocity Error Lobe 11 Zone 1 (deg)', digits=(10, 6))
+    velocity_error_lobe_11_zone_2 = fields.Float('Velocity Error Lobe 11 Zone 2 (deg)', digits=(10, 6))
+    velocity_error_lobe_11_zone_3 = fields.Float('Velocity Error Lobe 11 Zone 3 (deg)', digits=(10, 6))
+    velocity_error_lobe_11_zone_4 = fields.Float('Velocity Error Lobe 11 Zone 4 (deg)', digits=(10, 6))
 
-    # Velocity Error Measurements (E12)
-    velocity_error_lobe_e12_zone_1 = fields.Float('Velocity Error Lobe E12 Zone 1 (deg)', digits=(10, 6))
-    velocity_error_lobe_e12_zone_2 = fields.Float('Velocity Error Lobe E12 Zone 2 (deg)', digits=(10, 6))
-    velocity_error_lobe_e12_zone_3 = fields.Float('Velocity Error Lobe E12 Zone 3 (deg)', digits=(10, 6))
-    velocity_error_lobe_e12_zone_4 = fields.Float('Velocity Error Lobe E12 Zone 4 (deg)', digits=(10, 6))
+    # Universal Velocity Error Measurements (Lobe 12)
+    velocity_error_lobe_12_zone_1 = fields.Float('Velocity Error Lobe 12 Zone 1 (deg)', digits=(10, 6))
+    velocity_error_lobe_12_zone_2 = fields.Float('Velocity Error Lobe 12 Zone 2 (deg)', digits=(10, 6))
+    velocity_error_lobe_12_zone_3 = fields.Float('Velocity Error Lobe 12 Zone 3 (deg)', digits=(10, 6))
+    velocity_error_lobe_12_zone_4 = fields.Float('Velocity Error Lobe 12 Zone 4 (deg)', digits=(10, 6))
 
-    # Velocity Error Measurements (E21)
-    velocity_error_lobe_e21_zone_1 = fields.Float('Velocity Error Lobe E21 Zone 1 (deg)', digits=(10, 6))
-    velocity_error_lobe_e21_zone_2 = fields.Float('Velocity Error Lobe E21 Zone 2 (deg)', digits=(10, 6))
-    velocity_error_lobe_e21_zone_3 = fields.Float('Velocity Error Lobe E21 Zone 3 (deg)', digits=(10, 6))
-    velocity_error_lobe_e21_zone_4 = fields.Float('Velocity Error Lobe E21 Zone 4 (deg)', digits=(10, 6))
+    # Universal Velocity Error Measurements (Lobe 21)
+    velocity_error_lobe_21_zone_1 = fields.Float('Velocity Error Lobe 21 Zone 1 (deg)', digits=(10, 6))
+    velocity_error_lobe_21_zone_2 = fields.Float('Velocity Error Lobe 21 Zone 2 (deg)', digits=(10, 6))
+    velocity_error_lobe_21_zone_3 = fields.Float('Velocity Error Lobe 21 Zone 3 (deg)', digits=(10, 6))
+    velocity_error_lobe_21_zone_4 = fields.Float('Velocity Error Lobe 21 Zone 4 (deg)', digits=(10, 6))
 
-    # Velocity Error Measurements (E22)
-    velocity_error_lobe_e22_zone_1 = fields.Float('Velocity Error Lobe E22 Zone 1 (deg)', digits=(10, 6))
-    velocity_error_lobe_e22_zone_2 = fields.Float('Velocity Error Lobe E22 Zone 2 (deg)', digits=(10, 6))
-    velocity_error_lobe_e22_zone_3 = fields.Float('Velocity Error Lobe E22 Zone 3 (deg)', digits=(10, 6))
-    velocity_error_lobe_e22_zone_4 = fields.Float('Velocity Error Lobe E22 Zone 4 (deg)', digits=(10, 6))
+    # Universal Velocity Error Measurements (Lobe 22)
+    velocity_error_lobe_22_zone_1 = fields.Float('Velocity Error Lobe 22 Zone 1 (deg)', digits=(10, 6))
+    velocity_error_lobe_22_zone_2 = fields.Float('Velocity Error Lobe 22 Zone 2 (deg)', digits=(10, 6))
+    velocity_error_lobe_22_zone_3 = fields.Float('Velocity Error Lobe 22 Zone 3 (deg)', digits=(10, 6))
+    velocity_error_lobe_22_zone_4 = fields.Float('Velocity Error Lobe 22 Zone 4 (deg)', digits=(10, 6))
 
-    # Velocity Error Measurements (E31)
-    velocity_error_lobe_e31_zone_1 = fields.Float('Velocity Error Lobe E31 Zone 1 (deg)', digits=(10, 6))
-    velocity_error_lobe_e31_zone_2 = fields.Float('Velocity Error Lobe E31 Zone 2 (deg)', digits=(10, 6))
-    velocity_error_lobe_e31_zone_3 = fields.Float('Velocity Error Lobe E31 Zone 3 (deg)', digits=(10, 6))
-    velocity_error_lobe_e31_zone_4 = fields.Float('Velocity Error Lobe E31 Zone 4 (deg)', digits=(10, 6))
+    # Universal Velocity Error Measurements (Lobe 31)
+    velocity_error_lobe_31_zone_1 = fields.Float('Velocity Error Lobe 31 Zone 1 (deg)', digits=(10, 6))
+    velocity_error_lobe_31_zone_2 = fields.Float('Velocity Error Lobe 31 Zone 2 (deg)', digits=(10, 6))
+    velocity_error_lobe_31_zone_3 = fields.Float('Velocity Error Lobe 31 Zone 3 (deg)', digits=(10, 6))
+    velocity_error_lobe_31_zone_4 = fields.Float('Velocity Error Lobe 31 Zone 4 (deg)', digits=(10, 6))
 
-    # Velocity Error Measurements (E32)
-    velocity_error_lobe_e32_zone_1 = fields.Float('Velocity Error Lobe E32 Zone 1 (deg)', digits=(10, 6))
-    velocity_error_lobe_e32_zone_2 = fields.Float('Velocity Error Lobe E32 Zone 2 (deg)', digits=(10, 6))
-    velocity_error_lobe_e32_zone_3 = fields.Float('Velocity Error Lobe E32 Zone 3 (deg)', digits=(10, 6))
-    velocity_error_lobe_e32_zone_4 = fields.Float('Velocity Error Lobe E32 Zone 4 (deg)', digits=(10, 6))
+    # Universal Velocity Error Measurements (Lobe 32)
+    velocity_error_lobe_32_zone_1 = fields.Float('Velocity Error Lobe 32 Zone 1 (deg)', digits=(10, 6))
+    velocity_error_lobe_32_zone_2 = fields.Float('Velocity Error Lobe 32 Zone 2 (deg)', digits=(10, 6))
+    velocity_error_lobe_32_zone_3 = fields.Float('Velocity Error Lobe 32 Zone 3 (deg)', digits=(10, 6))
+    velocity_error_lobe_32_zone_4 = fields.Float('Velocity Error Lobe 32 Zone 4 (deg)', digits=(10, 6))
 
     # Velocity Error Measurements (Pump Lobe)
-    velocity_error_pumplobe_1_rising_side = fields.Float('Velocity Error Pump Lobe 1 Rising Side (deg)', digits=(10, 6))
-    velocity_error_pumplobe_1_closing_side = fields.Float('Velocity Error Pump Lobe 1 Closing Side (deg)', digits=(10, 6))
+    velocity_error_pumplobe_1_deg_rising_side = fields.Float('Velocity Error Pump Lobe 1° Rising Side (deg)', digits=(10, 6))
+    velocity_error_pumplobe_1_deg_closing_side = fields.Float('Velocity Error Pump Lobe 1° Closing Side (deg)', digits=(10, 6))
 
-    # Width Lobe Measurements
-    width_lobe_e11 = fields.Float('Width Lobe E11 (mm)', digits=(10, 6))
-    width_lobe_e12 = fields.Float('Width Lobe E12 (mm)', digits=(10, 6))
-    width_lobe_e21 = fields.Float('Width Lobe E21 (mm)', digits=(10, 6))
-    width_lobe_e22 = fields.Float('Width Lobe E22 (mm)', digits=(10, 6))
-    width_lobe_e31 = fields.Float('Width Lobe E31 (mm)', digits=(10, 6))
-    width_lobe_e32 = fields.Float('Width Lobe E32 (mm)', digits=(10, 6))
+    # Universal Width Lobe Measurements
+    width_lobe_11 = fields.Float('Width Lobe 11 (mm)', digits=(10, 6))
+    width_lobe_12 = fields.Float('Width Lobe 12 (mm)', digits=(10, 6))
+    width_lobe_21 = fields.Float('Width Lobe 21 (mm)', digits=(10, 6))
+    width_lobe_22 = fields.Float('Width Lobe 22 (mm)', digits=(10, 6))
+    width_lobe_31 = fields.Float('Width Lobe 31 (mm)', digits=(10, 6))
+    width_lobe_32 = fields.Float('Width Lobe 32 (mm)', digits=(10, 6))
     width_pump_lobe = fields.Float('Width Pump Lobe (mm)', digits=(10, 6))
 
     # Straightness Journal Measurements
@@ -245,22 +257,31 @@ class AumannMeasurement(models.Model):
     straightness_journal_b1 = fields.Float('Straightness Journal B1 (mm)', digits=(10, 6))
     straightness_journal_b2 = fields.Float('Straightness Journal B2 (mm)', digits=(10, 6))
 
-    # Parallelism Measurements
-    parallelism_lobe_e11_a1_b1 = fields.Float('Parallelism Lobe E11 A1-B1 (mm)', digits=(10, 6))
-    parallelism_lobe_e12_a1_b1 = fields.Float('Parallelism Lobe E12 A1-B1 (mm)', digits=(10, 6))
-    parallelism_lobe_e21_a1_b1 = fields.Float('Parallelism Lobe E21 A1-B1 (mm)', digits=(10, 6))
-    parallelism_lobe_e22_a1_b1 = fields.Float('Parallelism Lobe E22 A1-B1 (mm)', digits=(10, 6))
-    parallelism_lobe_e31_a1_b1 = fields.Float('Parallelism Lobe E31 A1-B1 (mm)', digits=(10, 6))
-    parallelism_lobe_e32_a1_b1 = fields.Float('Parallelism Lobe E32 A1-B1 (mm)', digits=(10, 6))
+    # Universal Straightness Lobe Measurements
+    straightness_lobe_11 = fields.Float('Straightness Lobe 11 (mm)', digits=(10, 6))
+    straightness_lobe_12 = fields.Float('Straightness Lobe 12 (mm)', digits=(10, 6))
+    straightness_lobe_21 = fields.Float('Straightness Lobe 21 (mm)', digits=(10, 6))
+    straightness_lobe_22 = fields.Float('Straightness Lobe 22 (mm)', digits=(10, 6))
+    straightness_lobe_31 = fields.Float('Straightness Lobe 31 (mm)', digits=(10, 6))
+    straightness_lobe_32 = fields.Float('Straightness Lobe 32 (mm)', digits=(10, 6))
+    straightness_pump_lobe = fields.Float('Straightness Pump Lobe (mm)', digits=(10, 6))
+
+    # Universal Parallelism Measurements
+    parallelism_lobe_11_a1_b1 = fields.Float('Parallelism Lobe 11 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_12_a1_b1 = fields.Float('Parallelism Lobe 12 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_21_a1_b1 = fields.Float('Parallelism Lobe 21 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_22_a1_b1 = fields.Float('Parallelism Lobe 22 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_31_a1_b1 = fields.Float('Parallelism Lobe 31 A1-B1 (mm)', digits=(10, 6))
+    parallelism_lobe_32_a1_b1 = fields.Float('Parallelism Lobe 32 A1-B1 (mm)', digits=(10, 6))
     parallelism_pump_lobe_a1_b1 = fields.Float('Parallelism Pump Lobe A1-B1 (mm)', digits=(10, 6))
 
-    # M PSA Lobing Notation
-    m_psa_lobing_notation_lobe_e11 = fields.Float('M PSA Lobing Notation Lobe E11', digits=(10, 6))
-    m_psa_lobing_notation_lobe_e12 = fields.Float('M PSA Lobing Notation Lobe E12', digits=(10, 6))
-    m_psa_lobing_notation_lobe_e21 = fields.Float('M PSA Lobing Notation Lobe E21', digits=(10, 6))
-    m_psa_lobing_notation_lobe_e22 = fields.Float('M PSA Lobing Notation Lobe E22', digits=(10, 6))
-    m_psa_lobing_notation_lobe_e31 = fields.Float('M PSA Lobing Notation Lobe E31', digits=(10, 6))
-    m_psa_lobing_notation_lobe_e32 = fields.Float('M PSA Lobing Notation Lobe E32', digits=(10, 6))
+    # Universal M PSA Lobing Notation
+    m_psa_lobing_notation_lobe_11 = fields.Float('M PSA Lobing Notation Lobe 11', digits=(10, 6))
+    m_psa_lobing_notation_lobe_12 = fields.Float('M PSA Lobing Notation Lobe 12', digits=(10, 6))
+    m_psa_lobing_notation_lobe_21 = fields.Float('M PSA Lobing Notation Lobe 21', digits=(10, 6))
+    m_psa_lobing_notation_lobe_22 = fields.Float('M PSA Lobing Notation Lobe 22', digits=(10, 6))
+    m_psa_lobing_notation_lobe_31 = fields.Float('M PSA Lobing Notation Lobe 31', digits=(10, 6))
+    m_psa_lobing_notation_lobe_32 = fields.Float('M PSA Lobing Notation Lobe 32', digits=(10, 6))
     m_psa_lobing_notation_pumplobe = fields.Float('M PSA Lobing Notation Pump Lobe', digits=(10, 6))
 
     result = fields.Selection([
@@ -273,6 +294,28 @@ class AumannMeasurement(models.Model):
 
     # Rendered tolerance table (read-only)
     tolerance_table_html = fields.Html(string='Tolerance Summary', compute='_compute_tolerance_table', sanitize=False)
+
+    @api.depends('part_form')
+    def _compute_camshaft_type(self):
+        """Determine camshaft type based on part_form"""
+        for record in self:
+            if 'Intake' in (record.part_form or ''):
+                record.camshaft_type = 'intake'
+            else:
+                record.camshaft_type = 'exhaust'
+
+    @api.depends('total_measurements', 'measurements_passed')
+    def _compute_measurements_failed(self):
+        for record in self:
+            record.measurements_failed = record.total_measurements - record.measurements_passed
+
+    @api.depends('total_measurements', 'measurements_passed')
+    def _compute_pass_rate(self):
+        for record in self:
+            if record.total_measurements > 0:
+                record.pass_rate = (record.measurements_passed / record.total_measurements) * 100
+            else:
+                record.pass_rate = 0.0
 
     # Quality indicators
     critical_measurements_ok = fields.Boolean('Critical Measurements OK', compute='_compute_critical_measurements')
@@ -496,7 +539,7 @@ class AumannMeasurement(models.Model):
             header = (
                 '<table class="o_table table table-sm table-striped">'
                 '<thead><tr>'
-                '<th>Field</th><th>Label</th><th>LTL</th><th>UTL</th><th>Actual</th><th>Result</th>'
+                '<th>Label</th><th>LTL</th><th>UTL</th><th>Actual</th><th>Result</th>'
                 '</tr></thead><tbody>'
             )
             for field_name, (ltl, utl) in tol.items():
@@ -509,7 +552,7 @@ class AumannMeasurement(models.Model):
                 ok = (ltl <= value <= utl)
                 result_badge = '<span class="badge text-bg-success">OK</span>' if ok else '<span class="badge text-bg-danger">NOK</span>'
                 rows.append(
-                    f"<tr><td>{field_name}</td><td>{label}</td><td>{ltl}</td><td>{utl}</td><td>{value}</td><td>{result_badge}</td></tr>"
+                    f"<tr><td>{label}</td><td>{ltl}</td><td>{utl}</td><td>{value}</td><td>{result_badge}</td></tr>"
                 )
             footer = '</tbody></table>'
             record.tolerance_table_html = header + ''.join(rows) + footer

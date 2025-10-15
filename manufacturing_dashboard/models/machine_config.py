@@ -3,6 +3,7 @@
 from odoo import models, fields, api
 import os
 import csv
+import json
 import logging
 import pyodbc  # or pypyodbc
 from datetime import datetime, timedelta
@@ -49,6 +50,14 @@ class MachineConfig(models.Model):
     sync_processed_records = fields.Integer('Processed Records', default=0)
     sync_start_time = fields.Datetime('Sync Start Time')
     sync_estimated_completion = fields.Datetime('Estimated Completion Time')
+
+    # File tracking for incremental sync
+    last_synced_files = fields.Text('Last Synced Files', 
+        help='JSON mapping of filename -> last_modified_timestamp for incremental sync')
+    sync_mode = fields.Selection([
+        ('quick', 'Quick Sync (Incremental)'),
+        ('full', 'Full Sync (All Files)')
+    ], default='quick', string='Sync Mode')
 
     parts_processed_today = fields.Integer('Parts Processed Today', compute='_compute_daily_stats')
     rejection_rate = fields.Float('Rejection Rate %', compute='_compute_daily_stats')
@@ -688,6 +697,69 @@ class MachineConfig(models.Model):
             self.status = 'error'
             return f"Error: {str(e)}"
 
+    def force_full_sync(self):
+        """Force a full sync of all files regardless of modification time"""
+        self.ensure_one()
+        
+        # Check if sync_mode field exists
+        if not hasattr(self, 'sync_mode'):
+            # If field doesn't exist, just run normal sync (will process all files)
+            result = self.sync_machine_data_optimized()
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Full Sync Complete',
+                    'message': f'Full sync completed: {result}',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        
+        # Temporarily set sync mode to full
+        original_mode = self.sync_mode
+        self.sync_mode = 'full'
+        
+        try:
+            result = self.sync_machine_data_optimized()
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Full Sync Complete',
+                    'message': f'Full sync completed: {result}',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        finally:
+            # Restore original mode
+            self.sync_mode = original_mode
+
+    def cancel_current_sync(self):
+        """Cancel the current sync operation and reset status"""
+        self.ensure_one()
+        
+        self.status = 'stopped'
+        self.sync_progress = 0.0
+        self.sync_stage = "Sync cancelled by user"
+        self.sync_processed_records = 0
+        self.sync_total_records = 0
+        self.env.cr.commit()
+        
+        _logger.info(f"Sync cancelled for machine: {self.machine_name}")
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Sync Cancelled',
+                'message': f'Sync operation cancelled for {self.machine_name}',
+                'type': 'warning',
+                'sticky': False,
+            }
+        }
+
     def _sync_vici_data(self):
         """Sync VICI Vision system data using multi-row CSV (header + nominal/tolerances)."""
         try:
@@ -853,6 +925,12 @@ class MachineConfig(models.Model):
                 _logger.error(f"VICI CSV file not found: {self.csv_file_path}")
                 return "CSV file not found"
 
+            # Quick sync: check if file was modified since last sync
+            force_full_sync = (hasattr(self, 'sync_mode') and self.sync_mode == 'full')
+            if not self._should_process_file(self.csv_file_path, force_full_sync):
+                _logger.info(f"VICI CSV file not modified since last sync, skipping")
+                return "No changes detected"
+
             with open(self.csv_file_path, 'r', encoding='utf-8-sig', newline='') as file:
                 reader = csv.reader(file)
                 rows = list(reader)
@@ -1009,6 +1087,8 @@ class MachineConfig(models.Model):
                                 except Exception as e2:
                                     _logger.error(f"Failed to create VICI record for SN {record.get('serial_number', 'unknown')}: {e2}")
 
+                    # Track processed file
+                    self._update_synced_files(self.csv_file_path, os.path.getmtime(self.csv_file_path))
                     return f"Created {total_created} VICI records"
                 else:
                     return "No new VICI records to create"
@@ -1259,20 +1339,252 @@ class MachineConfig(models.Model):
             raise
 
     def _sync_ruhlamat_data_optimized(self):
-        """Optimized Ruhlamat sync - simplified version for better performance"""
+        """Optimized Ruhlamat sync with batch processing for better performance"""
         try:
             if not os.path.exists(self.csv_file_path):
                 _logger.error(f"Ruhlamat MDB file not found: {self.csv_file_path}")
                 return "MDB file not found"
             
-            # For now, use the existing method but with better error handling
-            # TODO: Implement true batch processing for MDB files
-            self._sync_ruhlamat_data()
-            return "Ruhlamat sync completed"
+            # Quick sync: check if file was modified since last sync
+            force_full_sync = (hasattr(self, 'sync_mode') and self.sync_mode == 'full')
+            if not self._should_process_file(self.csv_file_path, force_full_sync):
+                _logger.info(f"Ruhlamat MDB file not modified since last sync, skipping")
+                return "No changes detected"
+            
+            # Use optimized batch processing method
+            result = self._sync_ruhlamat_data_batch()
+            
+            # Track processed file
+            self._update_synced_files(self.csv_file_path, os.path.getmtime(self.csv_file_path))
+            return result
             
         except Exception as e:
             _logger.error(f"Error in optimized Ruhlamat sync: {str(e)}")
             return f"Error: {str(e)}"
+
+    def _sync_ruhlamat_data_batch(self):
+        """Optimized Ruhlamat sync with batch processing - much faster than individual processing"""
+        _logger.info(f"Starting optimized Ruhlamat MDB sync for machine: {self.machine_name}")
+        
+        # Initialize progress tracking
+        self.sync_start_time = fields.Datetime.now()
+        self.sync_progress = 0.0
+        self.sync_stage = "Initializing optimized sync process"
+        self.sync_processed_records = 0
+        self.sync_total_records = 0
+        self.env.cr.commit()
+
+        try:
+            # Connect to MDB file
+            conn_str = (
+                r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
+                f'DBQ={self.csv_file_path};'
+            )
+
+            conn = pyodbc.connect(conn_str)
+            cursor = conn.cursor()
+
+            # Step 1: Get existing cycle IDs to avoid duplicates
+            self.sync_stage = "Checking existing cycles"
+            self.sync_progress = 5.0
+            self.env.cr.commit()
+            
+            existing_cycles = self.env['manufacturing.ruhlamat.press'].search([
+                ('machine_id', '=', self.id)
+            ]).mapped('cycle_id')
+            existing_cycle_set = set(existing_cycles)
+            _logger.info(f"Found {len(existing_cycle_set)} existing cycles")
+
+            # Step 2: Fetch all cycles in one query
+            self.sync_stage = "Fetching all cycles from database"
+            self.sync_progress = 10.0
+            self.env.cr.commit()
+            
+            cycles_query = """
+                SELECT CycleId, ProgramName, CycleDate, ProgramId, StationId, 
+                       StationName, StationLabel, PartId1, PartId2, PartId3, 
+                       PartId4, PartId5, OK, CycleStatus, UfmUsername, 
+                       CycleRuntimeNC, CycleRuntimePC, NcRuntimeCycleNo, 
+                       NcTotalCycleNo, ProgramDate, UfmVersion, UfmServiceInfo,
+                       CustomInt1, CustomInt2, CustomInt3, CustomString1, 
+                       CustomString2, CustomString3, CustomXml
+                FROM Cycles
+                ORDER BY CycleDate DESC
+            """
+            cursor.execute(cycles_query)
+            all_cycles = cursor.fetchall()
+            
+            # Filter out existing cycles
+            new_cycles = [cycle for cycle in all_cycles if cycle.CycleId not in existing_cycle_set]
+            total_new_cycles = len(new_cycles)
+            
+            self.sync_total_records = total_new_cycles
+            self.sync_stage = f"Processing {total_new_cycles} new cycles (skipped {len(all_cycles) - total_new_cycles} existing)"
+            self.sync_progress = 15.0
+            self.env.cr.commit()
+            
+            _logger.info(f"Found {total_new_cycles} new cycles to process (skipped {len(all_cycles) - total_new_cycles} existing)")
+
+            if total_new_cycles == 0:
+                _logger.info("No new cycles to process")
+                return "No new cycles to process"
+
+            # Step 3: Batch process cycles
+            batch_size = 100  # Process 100 cycles at a time
+            created_cycles = 0
+            created_gaugings = 0
+
+            for batch_start in range(0, total_new_cycles, batch_size):
+                batch_end = min(batch_start + batch_size, total_new_cycles)
+                batch_cycles = new_cycles[batch_start:batch_end]
+                
+                # Update progress
+                batch_progress = 15.0 + (batch_start / total_new_cycles) * 70.0
+                self.sync_progress = batch_progress
+                self.sync_processed_records = batch_start
+                self.sync_stage = f"Processing batch {batch_start//batch_size + 1} ({batch_start}-{batch_end} of {total_new_cycles})"
+                self.env.cr.commit()
+                
+                _logger.info(f"Processing batch {batch_start//batch_size + 1}: cycles {batch_start}-{batch_end}")
+
+                # Prepare batch data for cycles
+                cycle_batch_data = []
+                cycle_id_to_record_id = {}
+                
+                for cycle_row in batch_cycles:
+                    cycle_data = {
+                        'cycle_id': cycle_row.CycleId,
+                        'program_name': cycle_row.ProgramName,
+                        'cycle_date': cycle_row.CycleDate,
+                        'program_id': cycle_row.ProgramId,
+                        'station_id': str(cycle_row.StationId) if cycle_row.StationId else '',
+                        'station_name': cycle_row.StationName or '',
+                        'station_label': cycle_row.StationLabel or '',
+                        'part_id1': cycle_row.PartId1.strip() if cycle_row.PartId1 else '',
+                        'part_id2': cycle_row.PartId2 or '',
+                        'part_id3': cycle_row.PartId3 or '',
+                        'part_id4': cycle_row.PartId4 or '',
+                        'part_id5': cycle_row.PartId5 or '',
+                        'ok_status': cycle_row.OK,
+                        'cycle_status': cycle_row.CycleStatus,
+                        'ufm_username': cycle_row.UfmUsername or '',
+                        'cycle_runtime_nc': float(cycle_row.CycleRuntimeNC or 0),
+                        'cycle_runtime_pc': float(cycle_row.CycleRuntimePC or 0),
+                        'nc_runtime_cycle_no': cycle_row.NcRuntimeCycleNo or 0,
+                        'nc_total_cycle_no': cycle_row.NcTotalCycleNo or 0,
+                        'program_date': cycle_row.ProgramDate,
+                        'ufm_version': cycle_row.UfmVersion or 0,
+                        'ufm_service_info': cycle_row.UfmServiceInfo or 0,
+                        'custom_int1': cycle_row.CustomInt1 or 0,
+                        'custom_int2': cycle_row.CustomInt2 or 0,
+                        'custom_int3': cycle_row.CustomInt3 or 0,
+                        'custom_string1': cycle_row.CustomString1 or '',
+                        'custom_string2': cycle_row.CustomString2 or '',
+                        'custom_string3': cycle_row.CustomString3 or '',
+                        'custom_xml': cycle_row.CustomXml or '',
+                        'machine_id': self.id,
+                    }
+                    cycle_batch_data.append(cycle_data)
+
+                # Batch create cycles
+                if cycle_batch_data:
+                    cycle_records = self.env['manufacturing.ruhlamat.press'].create(cycle_batch_data)
+                    created_cycles += len(cycle_records)
+                    
+                    # Map cycle IDs to record IDs for gauging creation
+                    for i, cycle_record in enumerate(cycle_records):
+                        cycle_id_to_record_id[batch_cycles[i].CycleId] = cycle_record.id
+
+                # Step 4: Batch fetch and create gaugings for this batch
+                if cycle_id_to_record_id:
+                    cycle_ids_str = ','.join(map(str, cycle_id_to_record_id.keys()))
+                    gaugings_query = f"""
+                        SELECT GaugingId, CycleId, ProgramName, CycleDate, GaugingNo,
+                               GaugingType, Anchor, OK, GaugingStatus, ActualX, 
+                               SignalXUnit, ActualY, SignalYUnit, LimitTesting,
+                               StartX, EndX, UpperLimit, LowerLimit, RunningNo,
+                               GaugingAlias, SignalXName, SignalYName, SignalXId,
+                               SignalYId, AbsOffsetX, AbsOffsetY, EdgeTypeBottom,
+                               EdgeTypeLeft, EdgeTypeRight, EdgeTypeTop, FromStepData,
+                               StepNo, LastStep
+                        FROM Gaugings
+                        WHERE CycleId IN ({cycle_ids_str})
+                        ORDER BY CycleId, GaugingNo
+                    """
+                    
+                    cursor.execute(gaugings_query)
+                    all_gaugings = cursor.fetchall()
+                    
+                    if all_gaugings:
+                        _logger.info(f"Found {len(all_gaugings)} gaugings for batch")
+                        
+                        # Prepare batch data for gaugings
+                        gauging_batch_data = []
+                        for gauging_row in all_gaugings:
+                            gauging_data = {
+                                'gauging_id': gauging_row.GaugingId,
+                                'cycle_id': gauging_row.CycleId,
+                                'cycle_id_ref': cycle_id_to_record_id[gauging_row.CycleId],
+                                'program_name': gauging_row.ProgramName or '',
+                                'cycle_date': gauging_row.CycleDate,
+                                'gauging_no': gauging_row.GaugingNo or 0,
+                                'gauging_type': gauging_row.GaugingType or '',
+                                'anchor': gauging_row.Anchor or '',
+                                'ok_status': gauging_row.OK,
+                                'gauging_status': gauging_row.GaugingStatus,
+                                'actual_x': float(gauging_row.ActualX or 0),
+                                'signal_x_unit': gauging_row.SignalXUnit or '',
+                                'actual_y': float(gauging_row.ActualY or 0),
+                                'signal_y_unit': gauging_row.SignalYUnit or '',
+                                'limit_testing': gauging_row.LimitTesting or 0,
+                                'start_x': float(gauging_row.StartX or 0),
+                                'end_x': float(gauging_row.EndX or 0),
+                                'upper_limit': float(gauging_row.UpperLimit or 0),
+                                'lower_limit': float(gauging_row.LowerLimit or 0),
+                                'running_no': gauging_row.RunningNo or 0,
+                                'gauging_alias': gauging_row.GaugingAlias or '',
+                                'signal_x_name': gauging_row.SignalXName or '',
+                                'signal_y_name': gauging_row.SignalYName or '',
+                                'signal_x_id': gauging_row.SignalXId or 0,
+                                'signal_y_id': gauging_row.SignalYId or 0,
+                                'abs_offset_x': float(gauging_row.AbsOffsetX or 0),
+                                'abs_offset_y': float(gauging_row.AbsOffsetY or 0),
+                                'edge_type_bottom': gauging_row.EdgeTypeBottom or '',
+                                'edge_type_left': gauging_row.EdgeTypeLeft or '',
+                                'edge_type_right': gauging_row.EdgeTypeRight or '',
+                                'edge_type_top': gauging_row.EdgeTypeTop or '',
+                                'from_step_data': gauging_row.FromStepData or 0,
+                                'step_no': gauging_row.StepNo or 0,
+                                'last_step': gauging_row.LastStep or 0,
+                            }
+                            gauging_batch_data.append(gauging_data)
+
+                        # Batch create gaugings
+                        if gauging_batch_data:
+                            gauging_records = self.env['manufacturing.ruhlamat.gauging'].create(gauging_batch_data)
+                            created_gaugings += len(gauging_records)
+
+            # Final progress update
+            self.sync_progress = 100.0
+            self.sync_stage = "Ruhlamat sync completed successfully"
+            self.sync_processed_records = total_new_cycles
+            self.env.cr.commit()
+            
+            conn.close()
+            
+            _logger.info(f"Optimized Ruhlamat sync completed. Created {created_cycles} cycles and {created_gaugings} gaugings")
+            _logger.info(f"Total processing time: {fields.Datetime.now() - self.sync_start_time}")
+            
+            self.status = 'running'
+            self.last_sync = fields.Datetime.now()
+            
+            return f"Created {created_cycles} cycles and {created_gaugings} gaugings"
+            
+        except Exception as e:
+            _logger.error(f"Error in optimized Ruhlamat sync: {e}")
+            self.status = 'error'
+            self.sync_stage = f"Error: {str(e)}"
+            raise
 
     def _sync_gauging_data_optimized(self):
         """Optimized Gauging sync - placeholder for future implementation"""
@@ -1281,9 +1593,18 @@ class MachineConfig(models.Model):
                 _logger.error(f"Gauging CSV file not found: {self.csv_file_path}")
                 return "CSV file not found"
             
+            # Quick sync: check if file was modified since last sync
+            force_full_sync = (hasattr(self, 'sync_mode') and self.sync_mode == 'full')
+            if not self._should_process_file(self.csv_file_path, force_full_sync):
+                _logger.info(f"Gauging CSV file not modified since last sync, skipping")
+                return "No changes detected"
+            
             # For now, use the existing method
             # TODO: Implement optimized batch processing
             self._sync_gauging_data()
+            
+            # Track processed file
+            self._update_synced_files(self.csv_file_path, os.path.getmtime(self.csv_file_path))
             return "Gauging sync completed"
             
         except Exception as e:
@@ -1518,15 +1839,26 @@ class MachineConfig(models.Model):
                 except Exception as e:
                     _logger.error(f"Error listing directory {d}: {e}")
 
-            total_files = len(all_csv_files)
+            # Filter files based on sync mode
+            force_full_sync = (hasattr(self, 'sync_mode') and self.sync_mode == 'full')
+            files_to_process = []
+
+            for csv_path in all_csv_files:
+                if self._should_process_file(csv_path, force_full_sync):
+                    files_to_process.append(csv_path)
+
+            total_files = len(files_to_process)
+            skipped_files = len(all_csv_files) - total_files
             self.sync_total_records = total_files
-            self.sync_stage = f"Found {total_files} CSV files to process across {len(valid_dirs)} folder(s)"
+            self.sync_stage = f"Found {len(all_csv_files)} CSV files, processing {total_files} files, skipping {skipped_files} unchanged files"
             self.sync_progress = 15.0
             self.env.cr.commit()
 
+            _logger.info(f"Quick sync: Processing {total_files} files, skipping {skipped_files} unchanged files")
+
             records_created = 0
 
-            for file_index, csv_path in enumerate(all_csv_files):
+            for file_index, csv_path in enumerate(files_to_process):
                 csv_file = os.path.basename(csv_path)
                 # Update progress for file processing
                 file_progress = 15.0 + ((file_index / total_files) * 80.0 if total_files else 80.0)
@@ -1544,6 +1876,9 @@ class MachineConfig(models.Model):
                     records_created += file_records
                     if file_records > 0:
                         _logger.debug(f"Created {file_records} records from {csv_file}")
+                    
+                    # Track processed file
+                    self._update_synced_files(csv_path, os.path.getmtime(csv_path))
                 except Exception as e:
                     _logger.error(f"Error processing Aumann CSV file {csv_file}: {e}")
                     continue
@@ -1745,6 +2080,41 @@ class MachineConfig(models.Model):
             _logger.error(f"Failed to parse multi paths '{raw_paths}': {e}")
             return []
 
+    def _get_last_synced_files(self):
+        """Get dictionary of last synced files with their modification times"""
+        try:
+            if hasattr(self, 'last_synced_files') and self.last_synced_files:
+                return json.loads(self.last_synced_files)
+            return {}
+        except Exception:
+            return {}
+
+    def _update_synced_files(self, file_path, mod_time):
+        """Update the synced files tracking"""
+        if hasattr(self, 'last_synced_files'):
+            synced_files = self._get_last_synced_files()
+            synced_files[file_path] = mod_time
+            self.last_synced_files = json.dumps(synced_files)
+
+    def _should_process_file(self, file_path, force_full_sync=False):
+        """Check if file should be processed based on modification time"""
+        if force_full_sync:
+            return True
+        
+        # If sync_mode field doesn't exist yet, process all files (backward compatibility)
+        if not hasattr(self, 'sync_mode'):
+            return True
+        
+        try:
+            current_mod_time = os.path.getmtime(file_path)
+            synced_files = self._get_last_synced_files()
+            last_mod_time = synced_files.get(file_path, 0)
+            
+            return current_mod_time > last_mod_time
+        except Exception as e:
+            _logger.warning(f"Error checking file modification time for {file_path}: {e}")
+            return True  # Process if we can't determine
+
     def _extract_serial_number_from_filename(self, csv_path, row):
         """Extract serial number from filename or row data"""
         # Try to get from Seriennummer field first
@@ -1843,81 +2213,95 @@ class MachineConfig(models.Model):
             return fields.Datetime.now()
 
     def _get_aumann_field_mapping(self):
-        """Get mapping from CSV field names to model field names"""
+        """Get mapping from CSV field names to universal model field names
+        Both A-lobes (Intake) and E-lobes (Exhaust) map to the same universal fields
+        """
         return {
-            # Wheel Angle Measurements
+            # Wheel Angle Measurements - Intake variant
+            'Wheel Angle Left 150 - CTF 41.5': 'wheel_angle_left_150',
+            'Wheel Angle Left 30 - CTF 41.4': 'wheel_angle_left_30',
+            'Wheel Angle Right 30 - CTF 41.3': 'wheel_angle_right_30',
+            'Wheel Angle Right 60 - CTF 41.2': 'wheel_angle_right_60',
+            'Wheel Angle Right 90 - CTF 41.1': 'wheel_angle_right_90',
+
+            # Wheel Angle Measurements - Exhaust variant
             'Wheel Angle Left 120 - CTF 41.3': 'wheel_angle_left_120',
             'Wheel Angle Left 150 - CTF 41.2': 'wheel_angle_left_150',
             'Wheel Angle Left 180 - CTF 41.1': 'wheel_angle_left_180',
             'Wheel Angle Right 120 - CTF 41.5': 'wheel_angle_right_120',
             'Wheel Angle Right 150 - CTF 41.4': 'wheel_angle_right_150',
+
             'Wheel Angle to Reference - CTF 42': 'wheel_angle_to_reference',
-            
-            # Angle Lobe Measurements - Exhaust (E) variants
-            'Angle Lobe E11 to Ref. - CTF 29': 'angle_lobe_e11_to_ref',
-            'Angle Lobe E12 to Ref. - CTF 29': 'angle_lobe_e12_to_ref',
-            'Angle Lobe E21 to Ref. - CTF 29': 'angle_lobe_e21_to_ref',
-            'Angle Lobe E22 to Ref. - CTF 29': 'angle_lobe_e22_to_ref',
-            'Angle Lobe E31 to Ref. - CTF 29': 'angle_lobe_e31_to_ref',
-            'Angle Lobe E32 to Ref. - CTF 29': 'angle_lobe_e32_to_ref',
-            
-            # Angle Lobe Measurements - Intake (A) variants
-            'Angle Lobe A11 to Ref. - CTF 29': 'angle_lobe_a11_to_ref',
-            'Angle Lobe A12 to Ref. - CTF 29': 'angle_lobe_a12_to_ref',
-            'Angle Lobe A21 to Ref. - CTF 29': 'angle_lobe_a21_to_ref',
-            'Angle Lobe A22 to Ref. - CTF 29': 'angle_lobe_a22_to_ref',
-            'Angle Lobe A31 to Ref. - CTF 29': 'angle_lobe_a31_to_ref',
-            'Angle Lobe A32 to Ref. - CTF 29': 'angle_lobe_a32_to_ref',
-            
-            # Base Circle Radius Measurements - Exhaust (E) variants
-            'Base Circle Radius Lobe E11 - CTF 54': 'base_circle_radius_lobe_e11',
-            'Base Circle Radius Lobe E12 - CTF 54': 'base_circle_radius_lobe_e12',
-            'Base Circle Radius Lobe E21 - CTF 54': 'base_circle_radius_lobe_e21',
-            'Base Circle Radius Lobe E22 - CTF 54': 'base_circle_radius_lobe_e22',
-            'Base Circle Radius Lobe E31 - CTF 54': 'base_circle_radius_lobe_e31',
-            'Base Circle Radius Lobe E32 - CTF 54': 'base_circle_radius_lobe_e32',
-            
-            # Base Circle Radius Measurements - Intake (A) variants
-            'Base Circle Radius Lobe A11 - CTF 54': 'base_circle_radius_lobe_a11',
-            'Base Circle Radius Lobe A12 - CTF 54': 'base_circle_radius_lobe_a12',
-            'Base Circle Radius Lobe A21 - CTF 54': 'base_circle_radius_lobe_a21',
-            'Base Circle Radius Lobe A22 - CTF 54': 'base_circle_radius_lobe_a22',
-            'Base Circle Radius Lobe A31 - CTF 54': 'base_circle_radius_lobe_a31',
-            'Base Circle Radius Lobe A32 - CTF 54': 'base_circle_radius_lobe_a32',
-            
-            # Base Circle Runout Measurements - Exhaust (E) variants
-            'Base Circle Runout Lobe E11 adj. - CTF 15': 'base_circle_runout_lobe_e11_adj',
-            'Base Circle Runout Lobe E12 adj. - CTF 15': 'base_circle_runout_lobe_e12_adj',
-            'Base Circle Runout Lobe E21 adj. - CTF 15': 'base_circle_runout_lobe_e21_adj',
-            'Base Circle Runout Lobe E22 adj. - CTF 15': 'base_circle_runout_lobe_e22_adj',
-            'Base Circle Runout Lobe E31 adj. - CTF 15': 'base_circle_runout_lobe_e31_adj',
-            'Base Circle Runout Lobe E32 adj. - CTF 15': 'base_circle_runout_lobe_e32_adj',
-            
-            # Base Circle Runout Measurements - Intake (A) variants
-            'Base Circle Runout Lobe A11 adj. - CTF 15': 'base_circle_runout_lobe_a11_adj',
-            'Base Circle Runout Lobe A12 adj. - CTF 15': 'base_circle_runout_lobe_a12_adj',
-            'Base Circle Runout Lobe A21 adj. - CTF 15': 'base_circle_runout_lobe_a21_adj',
-            'Base Circle Runout Lobe A22 adj. - CTF 15': 'base_circle_runout_lobe_a22_adj',
-            'Base Circle Runout Lobe A31 adj. - CTF 15': 'base_circle_runout_lobe_a31_adj',
-            'Base Circle Runout Lobe A32 adj. - CTF 15': 'base_circle_runout_lobe_a32_adj',
-            
+
+            # Angle Lobe Measurements - Both E and A variants map to universal fields
+            'Angle Lobe E11 to Ref. - CTF 29': 'angle_lobe_11_to_ref',
+            'Angle Lobe E12 to Ref. - CTF 29': 'angle_lobe_12_to_ref',
+            'Angle Lobe E21 to Ref. - CTF 29': 'angle_lobe_21_to_ref',
+            'Angle Lobe E22 to Ref. - CTF 29': 'angle_lobe_22_to_ref',
+            'Angle Lobe E31 to Ref. - CTF 29': 'angle_lobe_31_to_ref',
+            'Angle Lobe E32 to Ref. - CTF 29': 'angle_lobe_32_to_ref',
+            'Angle Lobe A11 to Ref. - CTF 29': 'angle_lobe_11_to_ref',
+            'Angle Lobe A12 to Ref. - CTF 29': 'angle_lobe_12_to_ref',
+            'Angle Lobe A21 to Ref. - CTF 29': 'angle_lobe_21_to_ref',
+            'Angle Lobe A22 to Ref. - CTF 29': 'angle_lobe_22_to_ref',
+            'Angle Lobe A31 to Ref. - CTF 29': 'angle_lobe_31_to_ref',
+            'Angle Lobe A32 to Ref. - CTF 29': 'angle_lobe_32_to_ref',
+
+            # Angle Pump Lobe - Intake only
+            'Angle PumpLobe to Ref. - CTF 92': 'angle_pumplobe_to_ref',
+
+            # Base Circle Radius - Both variants map to universal fields
+            'Base Circle Radius Lobe E11 - CTF 54': 'base_circle_radius_lobe_11',
+            'Base Circle Radius Lobe E12 - CTF 54': 'base_circle_radius_lobe_12',
+            'Base Circle Radius Lobe E21 - CTF 54': 'base_circle_radius_lobe_21',
+            'Base Circle Radius Lobe E22 - CTF 54': 'base_circle_radius_lobe_22',
+            'Base Circle Radius Lobe E31 - CTF 54': 'base_circle_radius_lobe_31',
+            'Base Circle Radius Lobe E32 - CTF 54': 'base_circle_radius_lobe_32',
+            'Base Circle Radius Lobe A11 - CTF 54': 'base_circle_radius_lobe_11',
+            'Base Circle Radius Lobe A12 - CTF 54': 'base_circle_radius_lobe_12',
+            'Base Circle Radius Lobe A21 - CTF 54': 'base_circle_radius_lobe_21',
+            'Base Circle Radius Lobe A22 - CTF 54': 'base_circle_radius_lobe_22',
+            'Base Circle Radius Lobe A31 - CTF 54': 'base_circle_radius_lobe_31',
+            'Base Circle Radius Lobe A32 - CTF 54': 'base_circle_radius_lobe_32',
+            'Base Circle Radius Pump Lobe - 239': 'base_circle_radius_pump_lobe',
+
+            # Base Circle Runout - Both variants map to universal fields
+            'Base Circle Runout Lobe E11 adj. - CTF  15': 'base_circle_runout_lobe_11_adj',
+            'Base Circle Runout Lobe E12 adj. - CTF  15': 'base_circle_runout_lobe_12_adj',
+            'Base Circle Runout Lobe E21 adj. - CTF  15': 'base_circle_runout_lobe_21_adj',
+            'Base Circle Runout Lobe E22 adj. - CTF  15': 'base_circle_runout_lobe_22_adj',
+            'Base Circle Runout Lobe E31 adj. - CTF  15': 'base_circle_runout_lobe_31_adj',
+            'Base Circle Runout Lobe E32 adj. - CTF  15': 'base_circle_runout_lobe_32_adj',
+            'Base Circle Runout Lobe A11 adj. - CTF 15': 'base_circle_runout_lobe_11_adj',
+            'Base Circle Runout Lobe A12 adj. - CTF 15': 'base_circle_runout_lobe_12_adj',
+            'Base Circle Runout Lobe A21 adj. - CTF 15': 'base_circle_runout_lobe_21_adj',
+            'Base Circle Runout Lobe A22 adj. - CTF 15': 'base_circle_runout_lobe_22_adj',
+            'Base Circle Runout Lobe A31 adj. - CTF 15': 'base_circle_runout_lobe_31_adj',
+            'Base Circle Runout Lobe A32 adj. - CTF 15': 'base_circle_runout_lobe_32_adj',
+
             # Bearing and Width Measurements
             'Bearing Width - CTF 55': 'bearing_width',
             'Cam Angle12': 'cam_angle12',
             'Cam Angle34': 'cam_angle34',
             'Cam Angle56 ': 'cam_angle56',
-            
-            # Concentricity Measurements
+
+            # Concentricity Measurements - Handle both naming conventions
             'Concentricity Front Bearing H - CTF 63': 'concentricity_front_bearing_h',
+            'Concentricity IO -M- Front End - CTF 59': 'concentricity_io_front_end_dia_39',
             'Concentricity IO -M- Front End Dia 39 - CTF 59': 'concentricity_io_front_end_dia_39',
+            'Concentricity IO -M- Front end major - CTF 61': 'concentricity_io_front_end_major_dia_40',
             'Concentricity IO -M- Front end major Dia 40 - CTF 61': 'concentricity_io_front_end_major_dia_40',
+            'Concentricity IO -M- Step Diameter - CTF 25': 'concentricity_io_step_diameter_32_5',
             'Concentricity IO -M- Step Diameter 32.5 - CTF 25': 'concentricity_io_step_diameter_32_5',
-            
+
             # Concentricity Results
+            'Concentricity result Front End - CTF 59': 'concentricity_result_front_end_dia_39',
             'Concentricity result Front End Dia 39 - CTF 59': 'concentricity_result_front_end_dia_39',
+            'Concentricity result Front end major - CTF 61': 'concentricity_result_front_end_major_dia_40',
             'Concentricity result Front end major Dia 40 - CTF 61': 'concentricity_result_front_end_major_dia_40',
+            'Concentricity result Step Diameter - CTF 25': 'concentricity_result_step_diameter_32_5',
             'Concentricity result Step Diameter 32.5 - CTF 25': 'concentricity_result_step_diameter_32_5',
-            
+
             # Diameter Measurements
             'Diameter Front Bearing H - CTF 62': 'diameter_front_bearing_h',
             'Diameter Front End - CTF 58': 'diameter_front_end',
@@ -1928,242 +2312,243 @@ class MachineConfig(models.Model):
             'Diameter Journal B1 - CTF 7': 'diameter_journal_b1',
             'Diameter Journal B2 - CTF 7': 'diameter_journal_b2',
             'Diameter Step Diameter tpc - CTF 24': 'diameter_step_diameter_tpc',
-            
-            # Distance Measurements - Exhaust (E) variants
-            'Distance Lobe E11 - CTF 52.1': 'distance_lobe_e11',
-            'Distance Lobe E12 - CTF 52.2': 'distance_lobe_e12',
-            'Distance Lobe E21 - CTF 52.3': 'distance_lobe_e21',
-            'Distance Lobe E22 - CTF 52.4': 'distance_lobe_e22',
-            'Distance Lobe E31 - CTF 52.5': 'distance_lobe_e31',
-            'Distance Lobe E32 - CTF 52.6': 'distance_lobe_e32',
-            
-            # Distance Measurements - Intake (A) variants
-            'Distance Lobe A11 - CTF 52.1': 'distance_lobe_a11',
-            'Distance Lobe A12 - CTF 52.2': 'distance_lobe_a12',
-            'Distance Lobe A21 - CTF 52.3': 'distance_lobe_a21',
-            'Distance Lobe A22 - CTF 52.4': 'distance_lobe_a22',
-            'Distance Lobe A31 - CTF 52.5': 'distance_lobe_a31',
-            'Distance Lobe A32 - CTF 52.6': 'distance_lobe_a32',
+
+            # Distance Measurements - Both variants map to universal fields
+            'Distance Lobe E11 - CTF 52.1': 'distance_lobe_11',
+            'Distance Lobe E12 - CTF 52.2': 'distance_lobe_12',
+            'Distance Lobe E21 - CTF 52.3': 'distance_lobe_21',
+            'Distance Lobe E22 - CTF 52.4': 'distance_lobe_22',
+            'Distance Lobe E31 - CTF 52.5': 'distance_lobe_31',
+            'Distance Lobe E32 - CTF 52.6': 'distance_lobe_32',
+            'Distance Lobe A11 - CTF 52.1': 'distance_lobe_11',
+            'Distance Lobe A12 - CTF 52.2': 'distance_lobe_12',
+            'Distance Lobe A21 - CTF 52.3': 'distance_lobe_21',
+            'Distance Lobe A22 - CTF 52.4': 'distance_lobe_22',
+            'Distance Lobe A31 - CTF 52.5': 'distance_lobe_31',
+            'Distance Lobe A32 - CTF 52.6': 'distance_lobe_32',
+            'Distance Pump Lobe - CTF 81': 'distance_pump_lobe',
             'Distance Rear End - CTF 214': 'distance_rear_end',
             'Distance Step length front face - CTF 66': 'distance_step_length_front_face',
-            'Distance Trigger Length - CTF 213': 'distance_trigger_length',
+            'Distance Trigger Length - CTF 220': 'distance_trigger_length',  # Intake
+            'Distance Trigger Length - CTF 213': 'distance_trigger_length',  # Exhaust
             'Distance from front end face - CTF 65': 'distance_from_front_end_face',
-            
+
             # Face Measurements
             'Face total runout of bearing face - 0 - CTF 56': 'face_total_runout_bearing_face_0',
             'Face total runout of bearing face - 25 - CTF 56': 'face_total_runout_bearing_face_25',
             'Front face flatness Concav - CTF 68': 'front_face_flatness_concav',
             'Front face flatness Convex - CTF 68': 'front_face_flatness_convex',
             'Front face runout - CTF 67': 'front_face_runout',
-            
+
             # Profile Measurements
             'Max. Profile 30 for trigger wheel diameter - CTF 39': 'max_profile_30_trigger_wheel_diameter',
             'Max. Profile 42 for trigger wheel diameter - CTF 39': 'max_profile_42_trigger_wheel_diameter',
             'Min. Profile 30 for trigger wheel diameter - CTF 39': 'min_profile_30_trigger_wheel_diameter',
             'Min. Profile 42 for trigger wheel diameter - CTF 39': 'min_profile_42_trigger_wheel_diameter',
-            
+
             # Temperature Measurements
             'Temperature Machine': 'temperature_machine',
             'Temperature Sensor': 'temperature_sensor',
-            
-            # Trigger Wheel Measurements
-            'Trigger wheel diameter - CTF 248': 'trigger_wheel_diameter',
-            'Trigger wheel width - CTF 218': 'trigger_wheel_width',
-            
+
+            # Trigger Wheel Measurements - Both CTF variants
+            'Trigger wheel diameter - CTF 247': 'trigger_wheel_diameter',  # Intake
+            'Trigger wheel diameter - CTF 248': 'trigger_wheel_diameter',  # Exhaust
+            'Trigger wheel width - CTF 223': 'trigger_wheel_width',  # Intake
+            'Trigger wheel width - CTF 218': 'trigger_wheel_width',  # Exhaust
+
             # Two Flat Measurements
             'Two Flat Size - CTF 20': 'two_flat_size',
             'Two Flat Symmetry - CTF 21': 'two_flat_symmetry',
-            
+
             # Rear End Length
             'Rear end length- CTF 211': 'rear_end_length',
-            
+
             # Roundness Measurements
             'Roundness Journal A1 - CTF 2': 'roundness_journal_a1',
             'Roundness Journal A2 - CTF 2': 'roundness_journal_a2',
             'Roundness Journal A3 - CTF 2': 'roundness_journal_a3',
             'Roundness Journal B1 - CTF 8': 'roundness_journal_b1',
             'Roundness Journal B2 - CTF 8': 'roundness_journal_b2',
-            
+
             # Runout Measurements
             'Runout Journal A1 A1-B1 - CTF 4': 'runout_journal_a1_a1_b1',
             'Runout Journal A2 A1-B1 - CTF 4': 'runout_journal_a2_a1_b1',
             'Runout Journal A3 A1-B1 - CTF 4': 'runout_journal_a3_a1_b1',
             'Runout Journal B1 A1-A3 - CTF 10': 'runout_journal_b1_a1_a3',
             'Runout Journal B2 A1-A3 - CTF 10': 'runout_journal_b2_a1_a3',
-            
-            # Profile Error Measurements (Zones) - Exhaust (E) variants
-            'Profile Error Lobe E11  Zone 1 - CTF 12': 'profile_error_lobe_e11_zone_1',
-            'Profile Error Lobe E11  Zone 2 - CTF 13': 'profile_error_lobe_e11_zone_2',
-            'Profile Error Lobe E11 Zone 3 - CTF 13': 'profile_error_lobe_e11_zone_3',
-            'Profile Error Lobe E11 Zone 4 - CTF 12': 'profile_error_lobe_e11_zone_4',
-            'Profile Error Lobe E12  Zone 1 - CTF 12': 'profile_error_lobe_e12_zone_1',
-            'Profile Error Lobe E12  Zone 2 - CTF 13': 'profile_error_lobe_e12_zone_2',
-            'Profile Error Lobe E12 Zone 3 - CTF 13': 'profile_error_lobe_e12_zone_3',
-            'Profile Error Lobe E12 Zone 4 - CTF 12': 'profile_error_lobe_e12_zone_4',
-            'Profile Error Lobe E21  Zone 1 - CTF 12': 'profile_error_lobe_e21_zone_1',
-            'Profile Error Lobe E21  Zone 2 - CTF 13': 'profile_error_lobe_e21_zone_2',
-            'Profile Error Lobe E21 Zone 3 - CTF 13': 'profile_error_lobe_e21_zone_3',
-            'Profile Error Lobe E21 Zone 4 - CTF 12': 'profile_error_lobe_e21_zone_4',
-            'Profile Error Lobe E22  Zone 1 - CTF 12': 'profile_error_lobe_e22_zone_1',
-            'Profile Error Lobe E22  Zone 2 - CTF 13': 'profile_error_lobe_e22_zone_2',
-            'Profile Error Lobe E22 Zone 3 - CTF 13': 'profile_error_lobe_e22_zone_3',
-            'Profile Error Lobe E22 Zone 4 - CTF 12': 'profile_error_lobe_e22_zone_4',
-            'Profile Error Lobe E31  Zone 1 - CTF 12': 'profile_error_lobe_e31_zone_1',
-            'Profile Error Lobe E31  Zone 2 - CTF 13': 'profile_error_lobe_e31_zone_2',
-            'Profile Error Lobe E31 Zone 3 - CTF 13': 'profile_error_lobe_e31_zone_3',
-            'Profile Error Lobe E31 Zone 4 - CTF 12': 'profile_error_lobe_e31_zone_4',
-            'Profile Error Lobe E32  Zone 1 - CTF 12': 'profile_error_lobe_e32_zone_1',
-            'Profile Error Lobe E32  Zone 2 - CTF 13': 'profile_error_lobe_e32_zone_2',
-            'Profile Error Lobe E32 Zone 3 - CTF 13': 'profile_error_lobe_e32_zone_3',
-            'Profile Error Lobe E32 Zone 4 - CTF 12': 'profile_error_lobe_e32_zone_4',
-            
-            # Profile Error Measurements (Zones) - Intake (A) variants
-            'Profile Error Lobe A11  Zone 1 - CTF 12': 'profile_error_lobe_a11_zone_1',
-            'Profile Error Lobe A11  Zone 2 - CTF 13': 'profile_error_lobe_a11_zone_2',
-            'Profile Error Lobe A11 Zone 3 - CTF 13': 'profile_error_lobe_a11_zone_3',
-            'Profile Error Lobe A11 Zone 4 - CTF 12': 'profile_error_lobe_a11_zone_4',
-            'Profile Error Lobe A12  Zone 1 - CTF 12': 'profile_error_lobe_a12_zone_1',
-            'Profile Error Lobe A12  Zone 2 - CTF 13': 'profile_error_lobe_a12_zone_2',
-            'Profile Error Lobe A12 Zone 3 - CTF 13': 'profile_error_lobe_a12_zone_3',
-            'Profile Error Lobe A12 Zone 4 - CTF 12': 'profile_error_lobe_a12_zone_4',
-            'Profile Error Lobe A21  Zone 1 - CTF 12': 'profile_error_lobe_a21_zone_1',
-            'Profile Error Lobe A21  Zone 2 - CTF 13': 'profile_error_lobe_a21_zone_2',
-            'Profile Error Lobe A21 Zone 3 - CTF 13': 'profile_error_lobe_a21_zone_3',
-            'Profile Error Lobe A21 Zone 4 - CTF 12': 'profile_error_lobe_a21_zone_4',
-            'Profile Error Lobe A22  Zone 1 - CTF 12': 'profile_error_lobe_a22_zone_1',
-            'Profile Error Lobe A22  Zone 2 - CTF 13': 'profile_error_lobe_a22_zone_2',
-            'Profile Error Lobe A22 Zone 3 - CTF 13': 'profile_error_lobe_a22_zone_3',
-            'Profile Error Lobe A22 Zone 4 - CTF 12': 'profile_error_lobe_a22_zone_4',
-            'Profile Error Lobe A31  Zone 1 - CTF 12': 'profile_error_lobe_a31_zone_1',
-            'Profile Error Lobe A31  Zone 2 - CTF 13': 'profile_error_lobe_a31_zone_2',
-            'Profile Error Lobe A31 Zone 3 - CTF 13': 'profile_error_lobe_a31_zone_3',
-            'Profile Error Lobe A31 Zone 4 - CTF 12': 'profile_error_lobe_a31_zone_4',
-            'Profile Error Lobe A32  Zone 1 - CTF 12': 'profile_error_lobe_a32_zone_1',
-            'Profile Error Lobe A32  Zone 2 - CTF 13': 'profile_error_lobe_a32_zone_2',
-            'Profile Error Lobe A32 Zone 3 - CTF 13': 'profile_error_lobe_a32_zone_3',
-            'Profile Error Lobe A32 Zone 4 - CTF 12': 'profile_error_lobe_a32_zone_4',
 
-            # Velocity Error (1°) Zones - Exhaust (E) variants
-            'Velocity Error Lobe E11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_1',
-            'Velocity Error Lobe E11 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_2',
-            'Velocity Error Lobe E11 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_3',
-            'Velocity Error Lobe E11 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e11_zone_4',
-            'Velocity Error Lobe E12 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_1',
-            'Velocity Error Lobe E12 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_2',
-            'Velocity Error Lobe E12 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_3',
-            'Velocity Error Lobe E12 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e12_zone_4',
-            'Velocity Error Lobe E21 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_1',
-            'Velocity Error Lobe E21 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_2',
-            'Velocity Error Lobe E21 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_3',
-            'Velocity Error Lobe E21 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e21_zone_4',
-            'Velocity Error Lobe E22 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_1',
-            'Velocity Error Lobe E22 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_2',
-            'Velocity Error Lobe E22 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_3',
-            'Velocity Error Lobe E22 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e22_zone_4',
-            'Velocity Error Lobe E31 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_1',
-            'Velocity Error Lobe E31 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_2',
-            'Velocity Error Lobe E31 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_3',
-            'Velocity Error Lobe E31 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e31_zone_4',
-            'Velocity Error Lobe E32 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_1',
-            'Velocity Error Lobe E32 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_2',
-            'Velocity Error Lobe E32 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_3',
-            'Velocity Error Lobe E32 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_e32_zone_4',
-            
-            # Velocity Error (1°) Zones - Intake (A) variants
-            'Velocity Error Lobe A11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_1',
-            'Velocity Error Lobe A11 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_2',
-            'Velocity Error Lobe A11 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_3',
-            'Velocity Error Lobe A11 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a11_zone_4',
-            'Velocity Error Lobe A12 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_1',
-            'Velocity Error Lobe A12 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_2',
-            'Velocity Error Lobe A12 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_3',
-            'Velocity Error Lobe A12 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a12_zone_4',
-            'Velocity Error Lobe A21 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_1',
-            'Velocity Error Lobe A21 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_2',
-            'Velocity Error Lobe A21 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_3',
-            'Velocity Error Lobe A21 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a21_zone_4',
-            'Velocity Error Lobe A22 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_1',
-            'Velocity Error Lobe A22 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_2',
-            'Velocity Error Lobe A22 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_3',
-            'Velocity Error Lobe A22 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a22_zone_4',
-            'Velocity Error Lobe A31 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_1',
-            'Velocity Error Lobe A31 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_2',
-            'Velocity Error Lobe A31 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_3',
-            'Velocity Error Lobe A31 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a31_zone_4',
-            'Velocity Error Lobe A32 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_1',
-            'Velocity Error Lobe A32 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_2',
-            'Velocity Error Lobe A32 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_3',
-            'Velocity Error Lobe A32 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_a32_zone_4',
+            # Straightness Journal Measurements
+            'Straightness Journal A1 - CTF 3': 'straightness_journal_a1',
+            'Straightness Journal A2 - CTF 3': 'straightness_journal_a2',
+            'Straightness Journal A3 - CTF 3': 'straightness_journal_a3',
+            'Straightness Journal B1 - CTF 9': 'straightness_journal_b1',
+            'Straightness Journal B2 - CTF 9': 'straightness_journal_b2',
 
-            # Widths - Exhaust (E) variants
-            'Width Lobe E11 - CTF 207': 'width_lobe_e11',
-            'Width Lobe E12 - CTF 207': 'width_lobe_e12',
-            'Width Lobe E21 - CTF 207': 'width_lobe_e21',
-            'Width Lobe E22 - CTF 207': 'width_lobe_e22',
-            'Width Lobe E31 - CTF 207': 'width_lobe_e31',
-            'Width Lobe E32 - CTF 207': 'width_lobe_e32',
-            
-            # Widths - Intake (A) variants
-            'Width Lobe A11 - CTF 207': 'width_lobe_a11',
-            'Width Lobe A12 - CTF 207': 'width_lobe_a12',
-            'Width Lobe A21 - CTF 207': 'width_lobe_a21',
-            'Width Lobe A22 - CTF 207': 'width_lobe_a22',
-            'Width Lobe A31 - CTF 207': 'width_lobe_a31',
-            'Width Lobe A32 - CTF 207': 'width_lobe_a32',
-            
-            # Straightness - Exhaust (E) variants
-            'Straightness Lobe E11 - CTF 88': 'straightness_lobe_e11',
-            'Straightness Lobe E12 - CTF 88': 'straightness_lobe_e12',
-            'Straightness Lobe E21 - CTF 88': 'straightness_lobe_e21',
-            'Straightness Lobe E22 - CTF 88': 'straightness_lobe_e22',
-            'Straightness Lobe E31 - CTF 88': 'straightness_lobe_e31',
-            'Straightness Lobe E32 - CTF 88': 'straightness_lobe_e32',
-            
-            # Straightness - Intake (A) variants
-            'Straightness Lobe A11 - CTF 88': 'straightness_lobe_a11',
-            'Straightness Lobe A12 - CTF 88': 'straightness_lobe_a12',
-            'Straightness Lobe A21 - CTF 88': 'straightness_lobe_a21',
-            'Straightness Lobe A22 - CTF 88': 'straightness_lobe_a22',
-            'Straightness Lobe A31 - CTF 88': 'straightness_lobe_a31',
-            'Straightness Lobe A32 - CTF 88': 'straightness_lobe_a32',
-            
-            # Straightness - Pump Lobe (Intake only)
+            # Profile Error Measurements - Both variants map to universal fields
+            'Profile Error Lobe E11  Zone 1 - CTF 12': 'profile_error_lobe_11_zone_1',
+            'Profile Error Lobe E11  Zone 2 - CTF 13': 'profile_error_lobe_11_zone_2',
+            'Profile Error Lobe E11 Zone 3 - CTF 13': 'profile_error_lobe_11_zone_3',
+            'Profile Error Lobe E11 Zone 4 - CTF 12': 'profile_error_lobe_11_zone_4',
+            'Profile Error Lobe E12  Zone 1 - CTF 12': 'profile_error_lobe_12_zone_1',
+            'Profile Error Lobe E12  Zone 2 - CTF 13': 'profile_error_lobe_12_zone_2',
+            'Profile Error Lobe E12 Zone 3 - CTF 13': 'profile_error_lobe_12_zone_3',
+            'Profile Error Lobe E12 Zone 4 - CTF 12': 'profile_error_lobe_12_zone_4',
+            'Profile Error Lobe E21  Zone 1 - CTF 12': 'profile_error_lobe_21_zone_1',
+            'Profile Error Lobe E21  Zone 2 - CTF 13': 'profile_error_lobe_21_zone_2',
+            'Profile Error Lobe E21 Zone 3 - CTF 13': 'profile_error_lobe_21_zone_3',
+            'Profile Error Lobe E21 Zone 4 - CTF 12': 'profile_error_lobe_21_zone_4',
+            'Profile Error Lobe E22  Zone 1 - CTF 12': 'profile_error_lobe_22_zone_1',
+            'Profile Error Lobe E22  Zone 2 - CTF 13': 'profile_error_lobe_22_zone_2',
+            'Profile Error Lobe E22 Zone 3 - CTF 13': 'profile_error_lobe_22_zone_3',
+            'Profile Error Lobe E22 Zone 4 - CTF 12': 'profile_error_lobe_22_zone_4',
+            'Profile Error Lobe E31  Zone 1 - CTF 12': 'profile_error_lobe_31_zone_1',
+            'Profile Error Lobe E31  Zone 2 - CTF 13': 'profile_error_lobe_31_zone_2',
+            'Profile Error Lobe E31 Zone 3 - CTF 13': 'profile_error_lobe_31_zone_3',
+            'Profile Error Lobe E31 Zone 4 - CTF 12': 'profile_error_lobe_31_zone_4',
+            'Profile Error Lobe E32  Zone 1 - CTF 12': 'profile_error_lobe_32_zone_1',
+            'Profile Error Lobe E32  Zone 2 - CTF 13': 'profile_error_lobe_32_zone_2',
+            'Profile Error Lobe E32 Zone 3 - CTF 13': 'profile_error_lobe_32_zone_3',
+            'Profile Error Lobe E32 Zone 4 - CTF 12': 'profile_error_lobe_32_zone_4',
+            'Profile Error Lobe A11  Zone 1 - CTF 12': 'profile_error_lobe_11_zone_1',
+            'Profile Error Lobe A11  Zone 2 - CTF 13': 'profile_error_lobe_11_zone_2',
+            'Profile Error Lobe A11 Zone 3 - CTF 13': 'profile_error_lobe_11_zone_3',
+            'Profile Error Lobe A11 Zone 4 - CTF 12': 'profile_error_lobe_11_zone_4',
+            'Profile Error Lobe A12  Zone 1 - CTF 12': 'profile_error_lobe_12_zone_1',
+            'Profile Error Lobe A12  Zone 2 - CTF 13': 'profile_error_lobe_12_zone_2',
+            'Profile Error Lobe A12 Zone 3 - CTF 13': 'profile_error_lobe_12_zone_3',
+            'Profile Error Lobe A12 Zone 4 - CTF 12': 'profile_error_lobe_12_zone_4',
+            'Profile Error Lobe A21  Zone 1 - CTF 12': 'profile_error_lobe_21_zone_1',
+            'Profile Error Lobe A21  Zone 2 - CTF 13': 'profile_error_lobe_21_zone_2',
+            'Profile Error Lobe A21 Zone 3 - CTF 13': 'profile_error_lobe_21_zone_3',
+            'Profile Error Lobe A21 Zone 4 - CTF 12': 'profile_error_lobe_21_zone_4',
+            'Profile Error Lobe A22  Zone 1 - CTF 12': 'profile_error_lobe_22_zone_1',
+            'Profile Error Lobe A22  Zone 2 - CTF 13': 'profile_error_lobe_22_zone_2',
+            'Profile Error Lobe A22 Zone 3 - CTF 13': 'profile_error_lobe_22_zone_3',
+            'Profile Error Lobe A22 Zone 4 - CTF 12': 'profile_error_lobe_22_zone_4',
+            'Profile Error Lobe A31  Zone 1 - CTF 12': 'profile_error_lobe_31_zone_1',
+            'Profile Error Lobe A31  Zone 2 - CTF 13': 'profile_error_lobe_31_zone_2',
+            'Profile Error Lobe A31 Zone 3 - CTF 13': 'profile_error_lobe_31_zone_3',
+            'Profile Error Lobe A31 Zone 4 - CTF 12': 'profile_error_lobe_31_zone_4',
+            'Profile Error Lobe A32  Zone 1 - CTF 12': 'profile_error_lobe_32_zone_1',
+            'Profile Error Lobe A32  Zone 2 - CTF 13': 'profile_error_lobe_32_zone_2',
+            'Profile Error Lobe A32 Zone 3 - CTF 13': 'profile_error_lobe_32_zone_3',
+            'Profile Error Lobe A32 Zone 4 - CTF 12': 'profile_error_lobe_32_zone_4',
+            'Profile Error PumpLobe closing side - CTF 45.2': 'profile_error_pumplobe_closing_side',
+            'Profile Error PumpLobe closing side - CTF 45.2 ': 'profile_error_pumplobe_closing_side',
+            'Profile Error PumpLobe rising side - CTF 45.1': 'profile_error_pumplobe_rising_side',
+            'Profile Error PumpLobe rising side - CTF 45.1 ': 'profile_error_pumplobe_rising_side',
+
+            # Velocity Error Measurements - Both variants map to universal fields
+            'Velocity Error Lobe E11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_11_zone_1',
+            'Velocity Error Lobe E11 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_11_zone_2',
+            'Velocity Error Lobe E11 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_11_zone_3',
+            'Velocity Error Lobe E11 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_11_zone_4',
+            'Velocity Error Lobe E12 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_12_zone_1',
+            'Velocity Error Lobe E12 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_12_zone_2',
+            'Velocity Error Lobe E12 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_12_zone_3',
+            'Velocity Error Lobe E12 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_12_zone_4',
+            'Velocity Error Lobe E21 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_21_zone_1',
+            'Velocity Error Lobe E21 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_21_zone_2',
+            'Velocity Error Lobe E21 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_21_zone_3',
+            'Velocity Error Lobe E21 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_21_zone_4',
+            'Velocity Error Lobe E22 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_22_zone_1',
+            'Velocity Error Lobe E22 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_22_zone_2',
+            'Velocity Error Lobe E22 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_22_zone_3',
+            'Velocity Error Lobe E22 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_22_zone_4',
+            'Velocity Error Lobe E31 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_31_zone_1',
+            'Velocity Error Lobe E31 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_31_zone_2',
+            'Velocity Error Lobe E31 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_31_zone_3',
+            'Velocity Error Lobe E31 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_31_zone_4',
+            'Velocity Error Lobe E32 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_32_zone_1',
+            'Velocity Error Lobe E32 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_32_zone_2',
+            'Velocity Error Lobe E32 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_32_zone_3',
+            'Velocity Error Lobe E32 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_32_zone_4',
+            'Velocity Error Lobe A11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_11_zone_1',
+            'Velocity Error Lobe A11 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_11_zone_2',
+            'Velocity Error Lobe A11 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_11_zone_3',
+            'Velocity Error Lobe A11 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_11_zone_4',
+            'Velocity Error Lobe A12 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_12_zone_1',
+            'Velocity Error Lobe A12 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_12_zone_2',
+            'Velocity Error Lobe A12 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_12_zone_3',
+            'Velocity Error Lobe A12 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_12_zone_4',
+            'Velocity Error Lobe A21 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_21_zone_1',
+            'Velocity Error Lobe A21 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_21_zone_2',
+            'Velocity Error Lobe A21 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_21_zone_3',
+            'Velocity Error Lobe A21 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_21_zone_4',
+            'Velocity Error Lobe A22 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_22_zone_1',
+            'Velocity Error Lobe A22 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_22_zone_2',
+            'Velocity Error Lobe A22 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_22_zone_3',
+            'Velocity Error Lobe A22 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_22_zone_4',
+            'Velocity Error Lobe A31 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_31_zone_1',
+            'Velocity Error Lobe A31 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_31_zone_2',
+            'Velocity Error Lobe A31 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_31_zone_3',
+            'Velocity Error Lobe A31 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_31_zone_4',
+            'Velocity Error Lobe A32 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_32_zone_1',
+            'Velocity Error Lobe A32 Zone 2 (1°) - CTF 14': 'velocity_error_lobe_32_zone_2',
+            'Velocity Error Lobe A32 Zone 3 (1°) - CTF 14': 'velocity_error_lobe_32_zone_3',
+            'Velocity Error Lobe A32 Zone 4 (1°) - CTF 14': 'velocity_error_lobe_32_zone_4',
+            'Velocity Error PumpLobe 1° closing side - CTF 46.2': 'velocity_error_pumplobe_1_deg_closing_side',
+            'Velocity Error PumpLobe 1° rising side - CTF 46.1': 'velocity_error_pumplobe_1_deg_rising_side',
+
+            # Width Measurements - Both variants map to universal fields
+            'Width Lobe E11 - CTF 207': 'width_lobe_11',
+            'Width Lobe E12 - CTF 207': 'width_lobe_12',
+            'Width Lobe E21 - CTF 207': 'width_lobe_21',
+            'Width Lobe E22 - CTF 207': 'width_lobe_22',
+            'Width Lobe E31 - CTF 207': 'width_lobe_31',
+            'Width Lobe E32 - CTF 207': 'width_lobe_32',
+            'Width Lobe A11 - CTF 206': 'width_lobe_11',
+            'Width Lobe A12 - CTF 206': 'width_lobe_12',
+            'Width Lobe A21 - CTF 206': 'width_lobe_21',
+            'Width Lobe A22 - CTF 206': 'width_lobe_22',
+            'Width Lobe A31 - CTF 206': 'width_lobe_31',
+            'Width Lobe A32 - CTF 206': 'width_lobe_32',
+            'Width Pump Lobe - CTF 80': 'width_pump_lobe',
+
+            # Straightness Lobe - Both variants map to universal fields
+            'Straightness Lobe E11 - CTF 88': 'straightness_lobe_11',
+            'Straightness Lobe E12 - CTF 88': 'straightness_lobe_12',
+            'Straightness Lobe E21 - CTF 88': 'straightness_lobe_21',
+            'Straightness Lobe E22 - CTF 88': 'straightness_lobe_22',
+            'Straightness Lobe E31 - CTF 88': 'straightness_lobe_31',
+            'Straightness Lobe E32 - CTF 88': 'straightness_lobe_32',
+            'Straightness Lobe A11 - CTF 88': 'straightness_lobe_11',
+            'Straightness Lobe A12 - CTF 88': 'straightness_lobe_12',
+            'Straightness Lobe A21 - CTF 88': 'straightness_lobe_21',
+            'Straightness Lobe A22 - CTF 88': 'straightness_lobe_22',
+            'Straightness Lobe A31 - CTF 88': 'straightness_lobe_31',
+            'Straightness Lobe A32 - CTF 88': 'straightness_lobe_32',
             'Straightness Pump Lobe - CTF 88': 'straightness_pump_lobe',
-            
-            # Parallelism - Exhaust (E) variants
-            'Parallelism Lobe E11 A1-B1 - CTF 89': 'parallelism_lobe_e11_a1_b1',
-            'Parallelism Lobe E12 A1-B1 - CTF 89': 'parallelism_lobe_e12_a1_b1',
-            'Parallelism Lobe E21 A1-B1 - CTF 89': 'parallelism_lobe_e21_a1_b1',
-            'Parallelism Lobe E22 A1-B1 - CTF 89': 'parallelism_lobe_e22_a1_b1',
-            'Parallelism Lobe E31 A1-B1 - CTF 89': 'parallelism_lobe_e31_a1_b1',
-            'Parallelism Lobe E32 A1-B1 - CTF 89': 'parallelism_lobe_e32_a1_b1',
-            
-            # Parallelism - Intake (A) variants
-            'Parallelism Lobe A11 A1-B1 - CTF 89': 'parallelism_lobe_a11_a1_b1',
-            'Parallelism Lobe A12 A1-B1 - CTF 89': 'parallelism_lobe_a12_a1_b1',
-            'Parallelism Lobe A21 A1-B1 - CTF 89': 'parallelism_lobe_a21_a1_b1',
-            'Parallelism Lobe A22 A1-B1 - CTF 89': 'parallelism_lobe_a22_a1_b1',
-            'Parallelism Lobe A31 A1-B1 - CTF 89': 'parallelism_lobe_a31_a1_b1',
-            'Parallelism Lobe A32 A1-B1 - CTF 89': 'parallelism_lobe_a32_a1_b1',
-            
-            # Parallelism - Pump Lobe (Intake only)
+
+            # Parallelism - Both variants map to universal fields
+            'Parallelism Lobe E11 A1-B1 - CTF 89': 'parallelism_lobe_11_a1_b1',
+            'Parallelism Lobe E12 A1-B1 - CTF 89': 'parallelism_lobe_12_a1_b1',
+            'Parallelism Lobe E21 A1-B1 - CTF 89': 'parallelism_lobe_21_a1_b1',
+            'Parallelism Lobe E22 A1-B1 - CTF 89': 'parallelism_lobe_22_a1_b1',
+            'Parallelism Lobe E31 A1-B1 - CTF 89': 'parallelism_lobe_31_a1_b1',
+            'Parallelism Lobe E32 A1-B1 - CTF 89': 'parallelism_lobe_32_a1_b1',
+            'Parallelism Lobe A11 A1-B1 - CTF 89': 'parallelism_lobe_11_a1_b1',
+            'Parallelism Lobe A12 A1-B1 - CTF 89': 'parallelism_lobe_12_a1_b1',
+            'Parallelism Lobe A21 A1-B1 - CTF 89': 'parallelism_lobe_21_a1_b1',
+            'Parallelism Lobe A22 A1-B1 - CTF 89': 'parallelism_lobe_22_a1_b1',
+            'Parallelism Lobe A31 A1-B1 - CTF 89': 'parallelism_lobe_31_a1_b1',
+            'Parallelism Lobe A32 A1-B1 - CTF 89': 'parallelism_lobe_32_a1_b1',
             'Parallelism Pump Lobe A1-B1 - CTF 89': 'parallelism_pump_lobe_a1_b1',
-            
-            # M (PSA lobing notation) - Exhaust (E) variants
-            'M (PSA lobing notation)  Lobe E11 ': 'm_psa_lobing_notation_lobe_e11',
-            'M (PSA lobing notation)  Lobe E12 ': 'm_psa_lobing_notation_lobe_e12',
-            'M (PSA lobing notation)  Lobe E21 ': 'm_psa_lobing_notation_lobe_e21',
-            'M (PSA lobing notation)  Lobe E22 ': 'm_psa_lobing_notation_lobe_e22',
-            'M (PSA lobing notation)  Lobe E31 ': 'm_psa_lobing_notation_lobe_e31',
-            'M (PSA lobing notation)  Lobe E32 ': 'm_psa_lobing_notation_lobe_e32',
-            
-            # M (PSA lobing notation) - Intake (A) variants
-            'M (PSA lobing notation)  Lobe A11 ': 'm_psa_lobing_notation_lobe_a11',
-            'M (PSA lobing notation)  Lobe A12 ': 'm_psa_lobing_notation_lobe_a12',
-            'M (PSA lobing notation)  Lobe A21 ': 'm_psa_lobing_notation_lobe_a21',
-            'M (PSA lobing notation)  Lobe A22 ': 'm_psa_lobing_notation_lobe_a22',
-            'M (PSA lobing notation)  Lobe A31 ': 'm_psa_lobing_notation_lobe_a31',
-            'M (PSA lobing notation)  Lobe A32 ': 'm_psa_lobing_notation_lobe_a32',
+
+            # M (PSA lobing notation) - Both variants map to universal fields
+            'M (PSA lobing notation)  Lobe E11 ': 'm_psa_lobing_notation_lobe_11',
+            'M (PSA lobing notation)  Lobe E12 ': 'm_psa_lobing_notation_lobe_12',
+            'M (PSA lobing notation)  Lobe E21 ': 'm_psa_lobing_notation_lobe_21',
+            'M (PSA lobing notation)  Lobe E22 ': 'm_psa_lobing_notation_lobe_22',
+            'M (PSA lobing notation)  Lobe E31 ': 'm_psa_lobing_notation_lobe_31',
+            'M (PSA lobing notation)  Lobe E32 ': 'm_psa_lobing_notation_lobe_32',
+            'M (PSA lobing notation)  Lobe A11 ': 'm_psa_lobing_notation_lobe_11',
+            'M (PSA lobing notation)  Lobe A12 ': 'm_psa_lobing_notation_lobe_12',
+            'M (PSA lobing notation)  Lobe A21 ': 'm_psa_lobing_notation_lobe_21',
+            'M (PSA lobing notation)  Lobe A22 ': 'm_psa_lobing_notation_lobe_22',
+            'M (PSA lobing notation)  Lobe A31 ': 'm_psa_lobing_notation_lobe_31',
+            'M (PSA lobing notation)  Lobe A32 ': 'm_psa_lobing_notation_lobe_32',
+            'M (PSA lobing notation)  PumpLobe ': 'm_psa_lobing_notation_pumplobe',
         }
 
     def _load_aumann_tolerances(self, variant):
