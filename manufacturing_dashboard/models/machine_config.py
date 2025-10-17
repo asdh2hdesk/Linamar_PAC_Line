@@ -436,49 +436,34 @@ class MachineConfig(models.Model):
 
     @api.model
     def sync_all_machines(self):
-        """Optimized cron job method to sync all active machines in parallel"""
+        """Continuous sync method to sync all active machines in parallel - ignores sync intervals"""
         import threading
         from concurrent.futures import ThreadPoolExecutor, as_completed
         import time
         
-        # Get all active machines
-        machines = self.search([('is_active', '=', True)])
-        if not machines:
-            _logger.info("No active machines to sync")
+        _logger.info("=== MANUFACTURING MACHINE SYNC STARTED ===")
+        _logger.info(f"Sync method called at (IST): {self.get_ist_now()}")
+        
+        try:
+            # Get all active machines
+            machines = self.search([('is_active', '=', True)])
+            _logger.info(f"Database query completed, found {len(machines)} machines")
+            
+            if not machines:
+                _logger.info("No active machines to sync")
+                return
+        except Exception as e:
+            _logger.error(f"Error in sync_all_machines: {e}")
             return
             
-        now_dt = fields.Datetime.now()
-        machines_to_sync = []
-        
-        # Pre-filter machines that need syncing
+        # Log machine details
+        _logger.info(f"Found {len(machines)} active machines:")
         for machine in machines:
-            try:
-                should_sync = False
-                if not machine.last_sync:
-                    should_sync = True
-                else:
-                    try:
-                        # Compute elapsed seconds since last sync
-                        elapsed = (now_dt - machine.last_sync).total_seconds()
-                        should_sync = elapsed >= (machine.sync_interval or 0)
-                    except Exception:
-                        # Fallback to syncing if comparison fails
-                        should_sync = True
-
-                if should_sync:
-                    machines_to_sync.append(machine)
-                else:
-                    _logger.debug(
-                        f"Skipping sync for {machine.machine_name}; next in {(machine.sync_interval or 0) - int((now_dt - machine.last_sync).total_seconds())}s"
-                    )
-            except Exception as e:
-                _logger.error(f"Error checking sync status for machine {machine.machine_name}: {str(e)}")
-        
-        if not machines_to_sync:
-            _logger.info("No machines need syncing at this time")
-            return
+            _logger.info(f"  - {machine.machine_name} ({machine.machine_type}) - Status: {machine.status}")
             
-        _logger.info(f"Starting parallel sync for {len(machines_to_sync)} machines")
+        # Sync ALL active machines continuously (ignore sync intervals)
+        machines_to_sync = machines
+        _logger.info(f"Starting continuous parallel sync for {len(machines_to_sync)} machines")
         start_time = time.time()
         
         # Use ThreadPoolExecutor for parallel processing
@@ -507,6 +492,52 @@ class MachineConfig(models.Model):
         
         total_time = time.time() - start_time
         _logger.info(f"All machine syncs completed in {total_time:.2f}s (avg: {total_time/len(machines_to_sync):.2f}s per machine)")
+        _logger.info("=== MANUFACTURING MACHINE SYNC COMPLETED ===")
+
+    @api.model
+    def manual_sync_all_machines(self):
+        """Manual trigger for syncing all machines - useful for testing"""
+        _logger.info("=== MANUAL SYNC TRIGGERED ===")
+        try:
+            self.sync_all_machines()
+            return "Manual sync completed successfully"
+        except Exception as e:
+            _logger.error(f"Manual sync failed: {e}")
+            return f"Manual sync failed: {e}"
+
+    @api.model
+    def fix_sync_mode_for_existing_machines(self):
+        """Fix sync_mode for existing machines that don't have it set"""
+        machines = self.search([('sync_mode', '=', False)])
+        if machines:
+            machines.write({'sync_mode': 'quick'})
+            _logger.info(f"Updated sync_mode to 'quick' for {len(machines)} machines")
+            return f"Updated {len(machines)} machines to use quick sync mode"
+        return "All machines already have sync_mode configured"
+
+    @api.model
+    def reset_last_sync_times(self):
+        """Reset last_sync times for all machines to fix timezone issues"""
+        machines = self.search([('is_active', '=', True)])
+        if machines:
+            # Set last_sync to None so machines will sync immediately
+            machines.write({'last_sync': False})
+            _logger.info(f"Reset last_sync times for {len(machines)} active machines")
+            return f"Reset last_sync times for {len(machines)} machines - they will sync on next cron run"
+        return "No active machines found to reset"
+
+    @api.model
+    def test_cron_functionality(self):
+        """Test method to verify cron jobs are working"""
+        _logger.info("=== CRON TEST: Manufacturing cron jobs are working! ===")
+        _logger.info(f"UTC time: {fields.Datetime.now()}")
+        _logger.info(f"IST time (local): {self.get_ist_now()}")
+        
+        # Count active machines
+        active_machines = self.search([('is_active', '=', True)])
+        _logger.info(f"Found {len(active_machines)} active machines")
+        
+        return "Cron test completed successfully"
 
     def _calculate_optimal_workers(self, machines_to_sync):
         """Calculate optimal number of workers based on machine types and system load"""
@@ -683,7 +714,7 @@ class MachineConfig(models.Model):
         # For final stations, we don't sync CSV data - they use PLC monitoring
         if self.machine_type == 'final_station':
             # Final stations only update their status, not CSV data
-            self.last_sync = self.get_ist_now()
+            self.last_sync = fields.Datetime.now()
             self.status = 'running'
             return f"Final station status updated (PLC monitoring active: {self.plc_monitoring_active})"
         
@@ -709,7 +740,7 @@ class MachineConfig(models.Model):
                 result = f"Unknown machine type: {self.machine_type}"
 
             # Update status and timing
-            self.last_sync = self.get_ist_now()
+            self.last_sync = fields.Datetime.now()
             self.status = 'running'
             
             sync_duration = time.time() - start_time
@@ -1874,22 +1905,32 @@ class MachineConfig(models.Model):
                 except Exception as e:
                     _logger.error(f"Error listing directory {d}: {e}")
 
-            # Filter files based on sync mode
+            # Filter files based on sync mode - default to quick sync for efficiency
             force_full_sync = (hasattr(self, 'sync_mode') and self.sync_mode == 'full')
             files_to_process = []
+            skipped_files_list = []
 
+            _logger.info(f"Starting file filtering for {len(all_csv_files)} CSV files (sync_mode: {'full' if force_full_sync else 'quick'})")
+            
             for csv_path in all_csv_files:
                 if self._should_process_file(csv_path, force_full_sync):
                     files_to_process.append(csv_path)
+                else:
+                    skipped_files_list.append(os.path.basename(csv_path))
 
             total_files = len(files_to_process)
-            skipped_files = len(all_csv_files) - total_files
+            skipped_files = len(skipped_files_list)
             self.sync_total_records = total_files
             self.sync_stage = f"Found {len(all_csv_files)} CSV files, processing {total_files} files, skipping {skipped_files} unchanged files"
             self.sync_progress = 15.0
             self.env.cr.commit()
 
-            _logger.info(f"Quick sync: Processing {total_files} files, skipping {skipped_files} unchanged files")
+            _logger.info(f"Aumann incremental sync: Processing {total_files} files, skipping {skipped_files} unchanged files")
+            if skipped_files > 0:
+                _logger.info(f"Skipped files (no changes): {', '.join(skipped_files_list[:10])}{'...' if len(skipped_files_list) > 10 else ''}")
+            if total_files > 0:
+                processing_files = [os.path.basename(f) for f in files_to_process]
+                _logger.info(f"Processing files: {', '.join(processing_files[:10])}{'...' if len(processing_files) > 10 else ''}")
 
             records_created = 0
 
@@ -2131,13 +2172,23 @@ class MachineConfig(models.Model):
             synced_files[file_path] = mod_time
             self.last_synced_files = json.dumps(synced_files)
 
+    def reset_sync_tracking(self):
+        """Reset sync tracking for this machine - useful for forcing full sync"""
+        if hasattr(self, 'last_synced_files'):
+            self.last_synced_files = '{}'
+            _logger.info(f"Reset sync tracking for machine {self.machine_name}")
+            return True
+        return False
+
     def _should_process_file(self, file_path, force_full_sync=False):
         """Check if file should be processed based on modification time"""
         if force_full_sync:
+            _logger.debug(f"Force full sync enabled - processing {os.path.basename(file_path)}")
             return True
         
         # If sync_mode field doesn't exist yet, process all files (backward compatibility)
         if not hasattr(self, 'sync_mode'):
+            _logger.debug(f"No sync_mode field - processing {os.path.basename(file_path)} (backward compatibility)")
             return True
         
         try:
@@ -2145,9 +2196,15 @@ class MachineConfig(models.Model):
             synced_files = self._get_last_synced_files()
             last_mod_time = synced_files.get(file_path, 0)
             
-            return current_mod_time > last_mod_time
+            should_process = current_mod_time > last_mod_time
+            if should_process:
+                _logger.debug(f"File {os.path.basename(file_path)} modified - processing (current: {current_mod_time}, last: {last_mod_time})")
+            else:
+                _logger.debug(f"File {os.path.basename(file_path)} unchanged - skipping (current: {current_mod_time}, last: {last_mod_time})")
+            
+            return should_process
         except Exception as e:
-            _logger.warning(f"Error checking file modification time for {file_path}: {e}")
+            _logger.warning(f"Error checking file modification time for {os.path.basename(file_path)}: {e}")
             return True  # Process if we can't determine
 
     def _normalize_mdb_datetime(self, mdb_datetime):

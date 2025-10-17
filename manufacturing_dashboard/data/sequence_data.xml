@@ -46,6 +46,7 @@
             <field name="machine_type">aumann</field>
             <field name="csv_file_path">\\Cp-57ff06\dc\Q50-11502-0056810,\\Cp-57ff06\dc\Q50-11502-0056823,\\Cp-57ff06\dc\Q50-11502-0056810 long,\\Cp-57ff06\dc\Q50-11502-0056823 long</field>
             <field name="sync_interval">30</field>
+            <field name="sync_mode">quick</field>
             <field name="is_active">True</field>
             <field name="status">stopped</field>
         </record>
