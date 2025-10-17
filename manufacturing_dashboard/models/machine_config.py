@@ -7,6 +7,7 @@ import json
 import logging
 import pyodbc  # or pypyodbc
 from datetime import datetime, timedelta
+import pytz
 from .plc_monitor_service import get_plc_monitor_service
 
 _logger = logging.getLogger(__name__)
@@ -17,6 +18,20 @@ class MachineConfig(models.Model):
     _name = 'manufacturing.machine.config'
     _description = 'Machine Configuration'
     _rec_name = 'machine_name'
+
+    @api.model
+    def get_ist_now(self):
+        """Get current IST datetime for consistent timezone handling"""
+        try:
+            ist = pytz.timezone('Asia/Kolkata')
+            utc_now = fields.Datetime.now()
+            # Convert UTC to IST
+            ist_now = pytz.UTC.localize(utc_now).astimezone(ist)
+            # Return as naive datetime in IST (Odoo will handle display)
+            return ist_now.replace(tzinfo=None)
+        except Exception as e:
+            _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
+            return fields.Datetime.now()
 
     machine_name = fields.Char('Machine Name', required=True)
     machine_type = fields.Selection([
@@ -58,6 +73,16 @@ class MachineConfig(models.Model):
         ('quick', 'Quick Sync (Incremental)'),
         ('full', 'Full Sync (All Files)')
     ], default='quick', string='Sync Mode')
+    
+    # Timezone configuration for datetime normalization
+    timezone = fields.Selection([
+        ('Asia/Kolkata', 'Asia/Kolkata (IST)'),
+        ('Europe/Berlin', 'Europe/Berlin (CET/CEST)'),
+        ('UTC', 'UTC'),
+        ('America/New_York', 'America/New_York (EST/EDT)'),
+        ('Asia/Tokyo', 'Asia/Tokyo (JST)'),
+    ], default='Asia/Kolkata', string='Timezone', 
+       help='Timezone for normalizing datetime values from external systems')
 
     parts_processed_today = fields.Integer('Parts Processed Today', compute='_compute_daily_stats')
     rejection_rate = fields.Float('Rejection Rate %', compute='_compute_daily_stats')
@@ -658,7 +683,7 @@ class MachineConfig(models.Model):
         # For final stations, we don't sync CSV data - they use PLC monitoring
         if self.machine_type == 'final_station':
             # Final stations only update their status, not CSV data
-            self.last_sync = fields.Datetime.now()
+            self.last_sync = self.get_ist_now()
             self.status = 'running'
             return f"Final station status updated (PLC monitoring active: {self.plc_monitoring_active})"
         
@@ -684,7 +709,7 @@ class MachineConfig(models.Model):
                 result = f"Unknown machine type: {self.machine_type}"
 
             # Update status and timing
-            self.last_sync = fields.Datetime.now()
+            self.last_sync = self.get_ist_now()
             self.status = 'running'
             
             sync_duration = time.time() - start_time
@@ -1105,7 +1130,7 @@ class MachineConfig(models.Model):
         _logger.info(f"Starting Ruhlamat MDB sync for machine: {self.machine_name}")
         
         # Initialize progress tracking
-        self.sync_start_time = fields.Datetime.now()
+        self.sync_start_time = self.get_ist_now()
         self.sync_progress = 0.0
         self.sync_stage = "Initializing sync process"
         self.sync_processed_records = 0
@@ -1193,10 +1218,12 @@ class MachineConfig(models.Model):
                         _logger.info(f"Progress: {cycle_progress:.1f}% - Processing cycle {cycle_index + 1}/{total_cycles}")
                     
                     # Parse the cycle data
+                    cycle_date = self._normalize_mdb_datetime(cycle_row.CycleDate)
+                    
                     cycle_data = {
                         'cycle_id': cycle_row.CycleId,
                         'program_name': cycle_row.ProgramName,
-                        'cycle_date': cycle_row.CycleDate,
+                        'cycle_date': cycle_date,
                         'program_id': cycle_row.ProgramId,
                         'station_id': str(cycle_row.StationId) if cycle_row.StationId else '',
                         'station_name': cycle_row.StationName or '',
@@ -1264,12 +1291,14 @@ class MachineConfig(models.Model):
                             _logger.info(f"Found {len(gaugings)} gaugings for cycle {cycle_row.CycleId}")
 
                         for gauging_index, gauging_row in enumerate(gaugings):
+                            gauging_cycle_date = self._normalize_mdb_datetime(gauging_row.CycleDate)
+                            
                             gauging_data = {
                                 'gauging_id': gauging_row.GaugingId,
                                 'cycle_id': gauging_row.CycleId,
                                 'cycle_id_ref': cycle_record.id,
                                 'program_name': gauging_row.ProgramName or '',
-                                'cycle_date': gauging_row.CycleDate,
+                                'cycle_date': gauging_cycle_date,
                                 'gauging_no': gauging_row.GaugingNo or 0,
                                 'gauging_type': gauging_row.GaugingType or '',
                                 'anchor': gauging_row.Anchor or '',
@@ -1324,7 +1353,7 @@ class MachineConfig(models.Model):
                     f"Ruhlamat MDB sync completed. Created {created_cycles} cycles and {created_gaugings} gaugings.")
                 _logger.info(f"Total processing time: {fields.Datetime.now() - self.sync_start_time}")
                 
-                self.last_sync = fields.Datetime.now()
+                self.last_sync = self.get_ist_now()
                 self.status = 'running'
 
             except pyodbc.Error as e:
@@ -1367,7 +1396,7 @@ class MachineConfig(models.Model):
         _logger.info(f"Starting optimized Ruhlamat MDB sync for machine: {self.machine_name}")
         
         # Initialize progress tracking
-        self.sync_start_time = fields.Datetime.now()
+        self.sync_start_time = self.get_ist_now()
         self.sync_progress = 0.0
         self.sync_stage = "Initializing optimized sync process"
         self.sync_processed_records = 0
@@ -1452,10 +1481,13 @@ class MachineConfig(models.Model):
                 cycle_id_to_record_id = {}
                 
                 for cycle_row in batch_cycles:
+                    # Normalize the cycle date to ensure consistent datetime format
+                    cycle_date = self._normalize_mdb_datetime(cycle_row.CycleDate)
+                    
                     cycle_data = {
                         'cycle_id': cycle_row.CycleId,
                         'program_name': cycle_row.ProgramName,
-                        'cycle_date': cycle_row.CycleDate,
+                        'cycle_date': cycle_date,
                         'program_id': cycle_row.ProgramId,
                         'station_id': str(cycle_row.StationId) if cycle_row.StationId else '',
                         'station_name': cycle_row.StationName or '',
@@ -1521,12 +1553,15 @@ class MachineConfig(models.Model):
                         # Prepare batch data for gaugings
                         gauging_batch_data = []
                         for gauging_row in all_gaugings:
+                            # Normalize the gauging cycle date as well
+                            gauging_cycle_date = self._normalize_mdb_datetime(gauging_row.CycleDate)
+                            
                             gauging_data = {
                                 'gauging_id': gauging_row.GaugingId,
                                 'cycle_id': gauging_row.CycleId,
                                 'cycle_id_ref': cycle_id_to_record_id[gauging_row.CycleId],
                                 'program_name': gauging_row.ProgramName or '',
-                                'cycle_date': gauging_row.CycleDate,
+                                'cycle_date': gauging_cycle_date,
                                 'gauging_no': gauging_row.GaugingNo or 0,
                                 'gauging_type': gauging_row.GaugingType or '',
                                 'anchor': gauging_row.Anchor or '',
@@ -1793,7 +1828,7 @@ class MachineConfig(models.Model):
         _logger.info(f"Starting Aumann data sync for machine: {self.machine_name} from path(s): {self.csv_file_path}")
         
         # Initialize progress tracking
-        self.sync_start_time = fields.Datetime.now()
+        self.sync_start_time = self.get_ist_now()
         self.sync_progress = 0.0
         self.sync_stage = "Initializing Aumann sync process"
         self.sync_processed_records = 0
@@ -2115,6 +2150,56 @@ class MachineConfig(models.Model):
             _logger.warning(f"Error checking file modification time for {file_path}: {e}")
             return True  # Process if we can't determine
 
+    def _normalize_mdb_datetime(self, mdb_datetime):
+        """Normalize MDB datetime values to ensure consistent format and timezone"""
+        try:
+            if not mdb_datetime:
+                return fields.Datetime.now()
+            
+            # If it's already a datetime object, ensure it's timezone-aware
+            if hasattr(mdb_datetime, 'year'):
+                # Convert to UTC if it's naive (no timezone info)
+                if mdb_datetime.tzinfo is None:
+                    # Use configured timezone and convert to UTC
+                    import pytz
+                    local_tz = pytz.timezone(self.timezone or 'Europe/Berlin')
+                    mdb_datetime = local_tz.localize(mdb_datetime).astimezone(pytz.UTC)
+                
+                # Convert to Odoo's expected format (naive UTC)
+                return mdb_datetime.replace(tzinfo=None)
+            
+            # If it's a string, try to parse it
+            if isinstance(mdb_datetime, str):
+                from datetime import datetime
+                # Try common MDB datetime formats
+                formats = [
+                    '%Y-%m-%d %H:%M:%S',
+                    '%Y-%m-%d %H:%M:%S.%f',
+                    '%d.%m.%Y %H:%M:%S',
+                    '%d.%m.%Y %H:%M:%S.%f',
+                    '%m/%d/%Y %H:%M:%S',
+                    '%m/%d/%Y %H:%M:%S.%f',
+                ]
+                
+                for fmt in formats:
+                    try:
+                        parsed_dt = datetime.strptime(mdb_datetime, fmt)
+                        return parsed_dt
+                    except ValueError:
+                        continue
+                
+                # If no format matches, log warning and use current time
+                _logger.warning(f"Could not parse MDB datetime: {mdb_datetime}, using current time")
+                return fields.Datetime.now()
+            
+            # Fallback to current time
+            _logger.warning(f"Unknown MDB datetime type: {type(mdb_datetime)}, using current time")
+            return fields.Datetime.now()
+            
+        except Exception as e:
+            _logger.error(f"Error normalizing MDB datetime {mdb_datetime}: {e}")
+            return fields.Datetime.now()
+
     def _extract_serial_number_from_filename(self, csv_path, row):
         """Extract serial number from filename or row data"""
         # Try to get from Seriennummer field first
@@ -2434,9 +2519,9 @@ class MachineConfig(models.Model):
             'Profile Error Lobe A32 Zone 3 - CTF 13': 'profile_error_lobe_32_zone_3',
             'Profile Error Lobe A32 Zone 4 - CTF 12': 'profile_error_lobe_32_zone_4',
             'Profile Error PumpLobe closing side - CTF 45.2': 'profile_error_pumplobe_closing_side',
-            'Profile Error PumpLobe closing side - CTF 45.2 ': 'profile_error_pumplobe_closing_side',
+            'Profile Error PumpLobe closing side - CTF 45.2 ': 'profile_error_pumplobe_closing_side_hide',
             'Profile Error PumpLobe rising side - CTF 45.1': 'profile_error_pumplobe_rising_side',
-            'Profile Error PumpLobe rising side - CTF 45.1 ': 'profile_error_pumplobe_rising_side',
+            'Profile Error PumpLobe rising side - CTF 45.1 ': 'profile_error_pumplobe_rising_side_hide',
 
             # Velocity Error Measurements - Both variants map to universal fields
             'Velocity Error Lobe E11 Zone 1 (1°) - CTF 14': 'velocity_error_lobe_11_zone_1',

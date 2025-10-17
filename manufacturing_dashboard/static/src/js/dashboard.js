@@ -336,7 +336,10 @@ export class ModernManufacturingDashboard extends Component {
         let modelName = '';
         let viewName = '';
         
-        switch(machine.type) {
+        console.log('Opening machine list view for:', machine);
+        console.log('Machine type:', machine.machine_type);
+        
+        switch(machine.machine_type) {
             case 'vici_vision':
                 modelName = 'manufacturing.vici.vision';
                 viewName = 'VICI Vision Data';
@@ -353,24 +356,37 @@ export class ModernManufacturingDashboard extends Component {
                 modelName = 'manufacturing.gauging.measurement';
                 viewName = 'Gauging Measurement Data';
                 break;
+            case 'final_station':
+                modelName = 'manufacturing.final.station.measurement';
+                viewName = 'Final Station Measurements';
+                break;
             default:
-                console.error('Unknown machine type:', machine.type);
+                console.error('Unknown machine type:', machine.machine_type);
                 return;
         }
 
-        await this.action.doAction({
-            type: 'ir.actions.act_window',
-            name: `${viewName} - ${machine.name}`,
-            res_model: modelName,
-            view_mode: 'list,form',
-            views: [[false, 'list'], [false, 'form']],
-            domain: [['machine_id', '=', machine.id]],
-            context: {
-                'default_machine_id': machine.id,
-                'search_default_machine_id': machine.id
-            },
-            target: 'current'
-        });
+        try {
+            console.log(`Opening ${viewName} for machine ${machine.name} (ID: ${machine.id})`);
+            
+            await this.action.doAction({
+                type: 'ir.actions.act_window',
+                name: `${viewName} - ${machine.name}`,
+                res_model: modelName,
+                view_mode: 'list,form',
+                views: [[false, 'list'], [false, 'form']],
+                domain: [['machine_id', '=', machine.id]],
+                context: {
+                    'default_machine_id': machine.id,
+                    'search_default_machine_id': machine.id
+                },
+                target: 'current'
+            });
+            
+            console.log(`Successfully opened ${viewName}`);
+        } catch (error) {
+            console.error('Error opening machine list view:', error);
+            this.showNotification(`Failed to open ${viewName}: ${error.message}`, 'error');
+        }
     }
 
     getStatusClass(status) {
@@ -390,7 +406,18 @@ export class ModernManufacturingDashboard extends Component {
 
     formatTime(datetime) {
         if (!datetime) return 'Never';
-        return new Date(datetime).toLocaleString();
+        // Convert to IST timezone for display
+        const date = new Date(datetime);
+        return date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
     }
 
     formatNumber(value) {

@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api
 import logging
+import pytz
 
 _logger = logging.getLogger(__name__)
 
@@ -13,8 +14,22 @@ class PartQuality(models.Model):
     _order = 'test_date desc'
     _rec_name = 'serial_number'
 
+    @api.model
+    def get_ist_now(self):
+        """Get current IST datetime for consistent timezone handling"""
+        try:
+            ist = pytz.timezone('Asia/Kolkata')
+            utc_now = fields.Datetime.now()
+            # Convert UTC to IST
+            ist_now = pytz.UTC.localize(utc_now).astimezone(ist)
+            # Return as naive datetime in IST (Odoo will handle display)
+            return ist_now.replace(tzinfo=None)
+        except Exception as e:
+            _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
+            return fields.Datetime.now()
+
     serial_number = fields.Char('Serial Number', required=True, index=True)
-    test_date = fields.Datetime('Test Date', default=fields.Datetime.now, index=True)
+    test_date = fields.Datetime('Test Date', index=True)
     
     # Part variant information
     part_variant = fields.Selection([

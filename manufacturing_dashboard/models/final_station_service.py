@@ -5,6 +5,7 @@ import struct
 import time
 import logging
 from datetime import datetime
+import pytz
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -16,6 +17,20 @@ class FinalStationService:
     Service class for Final Station operations
     Handles PLC communication, camera operations, and mode management
     """
+    
+    @staticmethod
+    def get_ist_now():
+        """Get current IST datetime for consistent timezone handling"""
+        try:
+            ist = pytz.timezone('Asia/Kolkata')
+            utc_now = datetime.utcnow()
+            # Convert UTC to IST
+            ist_now = pytz.UTC.localize(utc_now).astimezone(ist)
+            # Return as naive datetime in IST
+            return ist_now.replace(tzinfo=None)
+        except Exception as e:
+            _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
+            return datetime.now()
     
     def __init__(self, machine_record):
         self.machine = machine_record
@@ -621,23 +636,28 @@ class FinalStationService:
     # MEASUREMENT CREATION
     # =============================================================================
     
-    def create_measurement_record(self, serial_number, result, trigger_type='auto'):
+    def create_measurement_record(self, serial_number, result, trigger_type='auto', measurement_time=None):
         """Create measurement record with aggregated result"""
         try:
+            # Use provided measurement time or current IST time
+            if measurement_time is None:
+                measurement_time = self.get_ist_now()
+            
             measurement = self.machine.env['manufacturing.final.station.measurement'].create_measurement_record(
                 machine_id=self.machine.id,
                 serial_number=serial_number,
                 result=result,
                 operation_mode=self.machine.operation_mode,
                 trigger_type=trigger_type,
-                raw_data=f"Final station measurement at {datetime.now().isoformat()}"
+                raw_data=f"Final station measurement at {measurement_time.isoformat()}",
+                capture_date=measurement_time
             )
             
             if measurement:
                 # Update machine status
                 self.machine.camera_triggered = True
                 self.machine.last_serial_number = serial_number
-                self.machine.last_capture_time = datetime.now()
+                self.machine.last_capture_time = self.get_ist_now()
                 self.machine.last_result = result
                 
                 _logger.info(f"Measurement record created: Serial={serial_number}, Result={result}")
@@ -1040,7 +1060,7 @@ class FinalStationService:
             registers = self.read_all_plc_registers()
             
             # Update PLC status
-            self.machine.last_plc_communication = datetime.now()
+            self.machine.last_plc_communication = self.get_ist_now()
             self.machine._compute_plc_status()
             
             # Prepare success message

@@ -645,7 +645,18 @@ export class FinalStationDashboard extends Component {
 
     formatTime(datetime) {
         if (!datetime) return 'Never';
-        return new Date(datetime).toLocaleString();
+        // Convert to IST timezone for display
+        const date = new Date(datetime);
+        return date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
     }
 
     getResultClass(result) {

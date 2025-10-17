@@ -6,6 +6,7 @@ import barcode
 from barcode.writer import ImageWriter
 import io
 import base64
+import pytz
 
 _logger = logging.getLogger(__name__)
 
@@ -15,6 +16,20 @@ class BoxManagement(models.Model):
     _description = 'Box Management for Final Station'
     _order = 'create_date desc'
     _rec_name = 'box_number'
+
+    @api.model
+    def get_ist_now(self):
+        """Get current IST datetime for consistent timezone handling"""
+        try:
+            ist = pytz.timezone('Asia/Kolkata')
+            utc_now = fields.Datetime.now()
+            # Convert UTC to IST
+            ist_now = pytz.UTC.localize(utc_now).astimezone(ist)
+            # Return as naive datetime in IST (Odoo will handle display)
+            return ist_now.replace(tzinfo=None)
+        except Exception as e:
+            _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
+            return fields.Datetime.now()
 
     box_number = fields.Char('Box Number', required=True, index=True)
     part_variant = fields.Selection([
@@ -32,7 +47,7 @@ class BoxManagement(models.Model):
     max_capacity = fields.Integer('Max Capacity', default=540)
     
     # Box details
-    create_date = fields.Datetime('Created Date', default=fields.Datetime.now)
+    create_date = fields.Datetime('Created Date')
     complete_date = fields.Datetime('Completed Date')
     print_date = fields.Datetime('Barcode Print Date')
     

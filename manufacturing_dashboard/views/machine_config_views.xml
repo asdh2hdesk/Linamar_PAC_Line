@@ -105,6 +105,7 @@
                             <field name="csv_file_path" widget="char" placeholder="/path/to/csv/file.csv"/>
                             <field name="sync_interval" widget="integer"/>
                             <field name="sync_mode" optional="hide"/>
+                            <field name="timezone" optional="hide"/>
                             <field name="is_active"/>
                         </group>
                         <group name="status_info" string="Status Information">

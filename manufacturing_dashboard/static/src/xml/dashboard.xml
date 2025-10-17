@@ -78,8 +78,8 @@
                                     </div>
                                     <div class="stat-info">
                                         <div class="stat-value" t-esc="formatNumber(state.statistics.total_parts)"/>
-                                        <div class="stat-label">Total Parts Today</div>
-                                        <div class="stat-change">+12% from yesterday</div>
+                                        <div class="stat-label">Total Parts</div>
+                                        <!-- <div class="stat-change">+12% from yesterday</div> -->
                                     </div>
                                 </div>
                             </div>
@@ -91,7 +91,7 @@
                                     <div class="stat-info">
                                         <div class="stat-value" t-esc="formatNumber(state.statistics.passed_parts)"/>
                                         <div class="stat-label">Passed Parts</div>
-                                        <div class="stat-change">+8% quality rate</div>
+                                        <!-- <div class="stat-change">+8% quality rate</div> -->
                                     </div>
                                 </div>
                             </div>
@@ -103,7 +103,7 @@
                                     <div class="stat-info">
                                         <div class="stat-value" t-esc="formatNumber(state.statistics.rejected_parts)"/>
                                         <div class="stat-label">Rejected Parts</div>
-                                        <div class="stat-change">-3% improvement</div>
+                                        <!-- <div class="stat-change">-3% improvement</div> -->
                                     </div>
                                 </div>
                             </div>
@@ -137,7 +137,7 @@
                                             <div class="status-dot" t-att-class="getStatusClass(machine.status)"></div>
                                             <span class="status-text" t-esc="machine.status and machine.status.toUpperCase() or 'UNKNOWN'"/>
                                         </div>
-                                        <div class="machine-type clickable" t-esc="machine.machine_type" t-on-click="() => this.openMachineListView(machine)"/>
+                                        <div class="machine-type clickable" t-esc="machine.machine_type" t-on-click.stop="() => this.openMachineListView(machine)"/>
                                     </div>
                                     <div class="machine-name" t-esc="machine.name" />
 

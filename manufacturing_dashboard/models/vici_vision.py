@@ -4,6 +4,7 @@ from odoo import models, fields, api
 from odoo.modules.module import get_module_resource
 from datetime import datetime
 import csv
+import pytz
 
 
 class ViciVision(models.Model):
@@ -12,9 +13,23 @@ class ViciVision(models.Model):
     _order = 'log_date desc, log_time desc'
     _rec_name = 'serial_number'
 
+    @api.model
+    def get_ist_now(self):
+        """Get current IST datetime for consistent timezone handling"""
+        try:
+            ist = pytz.timezone('Asia/Kolkata')
+            utc_now = fields.Datetime.now()
+            # Convert UTC to IST
+            ist_now = pytz.UTC.localize(utc_now).astimezone(ist)
+            # Return as naive datetime in IST (Odoo will handle display)
+            return ist_now.replace(tzinfo=None)
+        except Exception as e:
+            _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
+            return fields.Datetime.now()
+
     serial_number = fields.Char('Serial Number', required=True, index=True)
     machine_id = fields.Many2one('manufacturing.machine.config', 'Machine', required=True)
-    test_date = fields.Datetime('Test Date', default=fields.Datetime.now, required=True)
+    test_date = fields.Datetime('Test Date', required=True)
     log_date = fields.Date('Date', index=True)
     log_time = fields.Char('Hour')
 

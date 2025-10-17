@@ -3,6 +3,7 @@
 from odoo import models, fields, api
 import logging
 from datetime import datetime
+import pytz
 
 _logger = logging.getLogger(__name__)
 
@@ -13,10 +14,24 @@ class FinalStationMeasurement(models.Model):
     _rec_name = 'serial_number'
     _order = 'capture_date desc'
 
+    @api.model
+    def get_ist_now(self):
+        """Get current IST datetime for consistent timezone handling"""
+        try:
+            ist = pytz.timezone('Asia/Kolkata')
+            utc_now = fields.Datetime.now()
+            # Convert UTC to IST
+            ist_now = pytz.UTC.localize(utc_now).astimezone(ist)
+            # Return as naive datetime in IST (Odoo will handle display)
+            return ist_now.replace(tzinfo=None)
+        except Exception as e:
+            _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
+            return fields.Datetime.now()
+
     # Basic Information
     machine_id = fields.Many2one('manufacturing.machine.config', string='Final Station', required=True)
     serial_number = fields.Char('Serial Number', required=True)
-    capture_date = fields.Datetime('Capture Date/Time', required=True, default=fields.Datetime.now)
+    capture_date = fields.Datetime('Capture Date/Time', required=True)
     result = fields.Selection([
         ('ok', 'OK'),
         ('nok', 'NOK'),
@@ -44,8 +59,8 @@ class FinalStationMeasurement(models.Model):
     rejection_reason = fields.Char('Rejection Reason')
     
     # Timestamps
-    created_date = fields.Datetime('Created Date', default=fields.Datetime.now)
-    modified_date = fields.Datetime('Modified Date', default=fields.Datetime.now)
+    created_date = fields.Datetime('Created Date')
+    modified_date = fields.Datetime('Modified Date')
     
     @api.depends('result')
     def _compute_pass_rate(self):
@@ -59,17 +74,23 @@ class FinalStationMeasurement(models.Model):
                 record.pass_rate = 0.0
 
     @api.model
-    def create_measurement_record(self, machine_id, serial_number, result='ok', operation_mode='auto', trigger_type='auto', raw_data=''):
+    def create_measurement_record(self, machine_id, serial_number, result='ok', operation_mode='auto', trigger_type='auto', raw_data='', capture_date=None):
         """Create a new measurement record"""
         try:
+            # Use provided capture_date or current IST time
+            if capture_date is None:
+                capture_date = self.get_ist_now()
+            
             measurement = self.create({
                 'machine_id': machine_id,
                 'serial_number': serial_number,
-                'capture_date': fields.Datetime.now(),
+                'capture_date': capture_date,
                 'result': result,
                 'operation_mode': operation_mode,
                 'trigger_type': trigger_type,
                 'raw_data': raw_data,
+                'created_date': self.get_ist_now(),
+                'modified_date': self.get_ist_now(),
             })
             
             _logger.info(f"Created measurement record: {serial_number} - {result}")
@@ -141,19 +162,19 @@ class FinalStationMeasurement(models.Model):
         """Mark measurement as OK"""
         self.ensure_one()
         self.result = 'ok'
-        self.modified_date = fields.Datetime.now()
+        self.modified_date = self.get_ist_now()
         _logger.info(f"Measurement {self.serial_number} marked as OK")
 
     def action_mark_nok(self):
         """Mark measurement as NOK"""
         self.ensure_one()
         self.result = 'nok'
-        self.modified_date = fields.Datetime.now()
+        self.modified_date = self.get_ist_now()
         _logger.info(f"Measurement {self.serial_number} marked as NOK")
 
     def action_mark_pending(self):
         """Mark measurement as Pending"""
         self.ensure_one()
         self.result = 'pending'
-        self.modified_date = fields.Datetime.now()
+        self.modified_date = self.get_ist_now()
         _logger.info(f"Measurement {self.serial_number} marked as Pending")

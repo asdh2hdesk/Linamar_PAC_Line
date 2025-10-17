@@ -49,17 +49,17 @@
         </record>
 
         <!-- Cron job to initialize PLC monitoring on startup -->
-<!--        <record id="cron_initialize_plc_monitoring" model="ir.cron">-->
-<!--            <field name="name">Initialize PLC Monitoring on Startup</field>-->
-<!--            <field name="model_id" ref="manufacturing_dashboard.model_manufacturing_machine_config"/>-->
-<!--            <field name="state">code</field>-->
-<!--            <field name="code">model.initialize_plc_monitoring_on_startup()</field>-->
-<!--            <field name="interval_number">1</field>-->
-<!--            <field name="interval_type">hours</field>-->
-<!--            <field name="active">True</field>-->
-<!--            <field name="priority">10</field>-->
-<!--            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M:%S')"/>-->
-<!--        </record>-->
+        <record id="cron_initialize_plc_monitoring" model="ir.cron">
+            <field name="name">Initialize PLC Monitoring on Startup</field>
+            <field name="model_id" ref="manufacturing_dashboard.model_manufacturing_machine_config"/>
+            <field name="state">code</field>
+            <field name="code">model.initialize_plc_monitoring_on_startup()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active">True</field>
+            <field name="priority">10</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
 
     </data>
 </odoo>

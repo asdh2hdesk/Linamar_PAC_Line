@@ -26,7 +26,7 @@
         <record id="machine_ruhlamat_01" model="manufacturing.machine.config">
             <field name="machine_name">Ruhlamat Press Station 01</field>
             <field name="machine_type">ruhlamat</field>
-            <field name="csv_file_path">\\Lip-engg01\8959787117\ufm_8959787117.mdbb</field>
+            <field name="csv_file_path">\\Lip-engg01\8959787117\ufm_8959787117.mdb</field>
             <field name="sync_interval">30</field>
             <field name="is_active">True</field>
             <field name="status">stopped</field>
