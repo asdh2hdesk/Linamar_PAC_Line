@@ -11,3 +11,5 @@ print("Exists :" ,os.path.exists(path))
 #EOL Machine
 path = r"\\Cp-57ff06\dc\Q50-11502-0056810"
 print("Exists :" ,os.path.exists(path))
+
+# net use Z: \\DESKTOP - QVVFPVI\CSV_Data / user: Admin sk / persistent: yes
