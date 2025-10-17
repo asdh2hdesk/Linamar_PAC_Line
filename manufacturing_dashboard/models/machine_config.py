@@ -97,6 +97,12 @@ class MachineConfig(models.Model):
         ('manual', 'Manual')
     ], default='auto', string='Operation Mode', help='Final station operation mode')
     
+    # Bypass functionality
+    is_bypassed = fields.Boolean('Bypass Machine', default=False, 
+                                help='If enabled, this machine will automatically pass all parts without processing')
+    bypass_reason = fields.Char('Bypass Reason', 
+                               help='Reason for bypassing this machine (e.g., maintenance, calibration)')
+    
         # Final Station status fields
     plc_online = fields.Boolean('PLC Online', compute='_compute_plc_status', store=True)
     last_plc_communication = fields.Datetime('Last PLC Communication')
@@ -445,12 +451,16 @@ class MachineConfig(models.Model):
         _logger.info(f"Sync method called at (IST): {self.get_ist_now()}")
         
         try:
-            # Get all active machines
-            machines = self.search([('is_active', '=', True)])
-            _logger.info(f"Database query completed, found {len(machines)} machines")
+            # Get all active machines that are not bypassed
+            machines = self.search([('is_active', '=', True), ('is_bypassed', '=', False)])
+            bypassed_machines = self.search([('is_active', '=', True), ('is_bypassed', '=', True)])
+            _logger.info(f"Database query completed, found {len(machines)} active machines, {len(bypassed_machines)} bypassed machines")
+            
+            if bypassed_machines:
+                _logger.info(f"Bypassed machines (skipped): {[m.machine_name for m in bypassed_machines]}")
             
             if not machines:
-                _logger.info("No active machines to sync")
+                _logger.info("No active non-bypassed machines to sync")
                 return
         except Exception as e:
             _logger.error(f"Error in sync_all_machines: {e}")
@@ -710,6 +720,11 @@ class MachineConfig(models.Model):
     def sync_machine_data_optimized(self):
         """Optimized sync data from CSV file based on machine type"""
         import time
+        
+        # Check if machine is bypassed
+        if self.is_bypassed:
+            _logger.info(f"Machine {self.machine_name} is bypassed, skipping sync")
+            return "Machine bypassed"
         
         # For final stations, we don't sync CSV data - they use PLC monitoring
         if self.machine_type == 'final_station':
@@ -4445,10 +4460,19 @@ class MachineConfig(models.Model):
                             new_env = api.Environment(new_cr, self.env.uid, self.env.context)
                             machine = new_env['manufacturing.machine.config'].browse(machine_id)
                             if machine.exists():
-                                # Import FinalStationService in the callback scope
-                                from .final_station_service import FinalStationService
-                                service = FinalStationService(machine)
-                                service.direct_auto_start_monitoring()
+                                # Check if machine is bypassed
+                                if machine.is_bypassed:
+                                    _logger.info(f"Machine {machine_id} is bypassed - automatically passing part")
+                                    # Generate a serial number for bypassed part
+                                    import time
+                                    serial_number = f"BYPASS_{machine_id}_{int(time.time())}"
+                                    result = machine.process_bypassed_part(serial_number)
+                                    _logger.info(f"Bypassed part {serial_number} processed with result: {result}")
+                                else:
+                                    # Import FinalStationService in the callback scope
+                                    from .final_station_service import FinalStationService
+                                    service = FinalStationService(machine)
+                                    service.direct_auto_start_monitoring()
                                 new_cr.commit()
                     else:
                         _logger.info(f"Part removed from machine {machine_id}")
@@ -4968,4 +4992,80 @@ class MachineConfig(models.Model):
                 'pass_rate': 0,
                 'reject_rate': 0,
                 'last_updated': 'Never'
+            }
+
+    def is_machine_bypassed(self):
+        """Check if this machine is currently bypassed"""
+        self.ensure_one()
+        return self.is_bypassed
+
+    def bypass_machine(self, reason=None):
+        """Bypass this machine with optional reason"""
+        self.ensure_one()
+        self.write({
+            'is_bypassed': True,
+            'bypass_reason': reason or 'Machine bypassed'
+        })
+        _logger.info(f"Machine {self.machine_name} has been bypassed. Reason: {reason or 'No reason provided'}")
+        return True
+
+    def unbypass_machine(self):
+        """Remove bypass from this machine"""
+        self.ensure_one()
+        self.write({
+            'is_bypassed': False,
+            'bypass_reason': False
+        })
+        _logger.info(f"Machine {self.machine_name} bypass has been removed")
+        return True
+
+    def process_bypassed_part(self, serial_number):
+        """Process a part when machine is bypassed - automatically pass it"""
+        self.ensure_one()
+        
+        if not self.is_bypassed:
+            return None  # Machine not bypassed, normal processing should occur
+        
+        _logger.info(f"Machine {self.machine_name} is bypassed - automatically passing part {serial_number}")
+        
+        # For final stations, create measurement record
+        if self.machine_type == 'final_station':
+            measurement_vals = {
+                'machine_id': self.id,
+                'serial_number': serial_number,
+                'capture_date': self.get_ist_now(),
+                'result': 'ok',
+                'operation_mode': 'auto',
+                'trigger_type': 'bypass',
+                'raw_data': f'Bypassed - {self.bypass_reason or "No reason provided"}',
+                'notes': f'Part automatically passed due to machine bypass. Reason: {self.bypass_reason or "No reason provided"}'
+            }
+            
+            measurement = self.env['manufacturing.final.station.measurement'].create(measurement_vals)
+            
+            # Update part quality record
+            part_quality = self.get_or_create_part_quality(serial_number)
+            if part_quality:
+                part_quality.write({
+                    'final_result': 'ok',
+                    'final_station_result': 'ok',
+                    'final_station_notes': f'Bypassed - {self.bypass_reason or "No reason provided"}'
+                })
+            
+            return {
+                'result': 'ok',
+                'serial_number': serial_number,
+                'bypassed': True,
+                'reason': self.bypass_reason,
+                'measurement_id': measurement.id
+            }
+        else:
+            # For other machine types, just log the bypass
+            _logger.info(f"Machine {self.machine_name} ({self.machine_type}) bypassed - part {serial_number} would be processed normally")
+            return {
+                'result': 'bypassed',
+                'serial_number': serial_number,
+                'bypassed': True,
+                'reason': self.bypass_reason,
+                'message': f'Machine {self.machine_name} is bypassed - sync skipped'
             }

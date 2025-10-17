@@ -169,12 +169,12 @@
                                         </div>
                                     </div>
 
-                                    <div class="machine-footer">
-                                        <div class="last-sync">
-                                            Last sync:
-                                            <t t-esc="formatTime(machine.last_sync)"/>
-                                        </div>
-                                    </div>
+<!--                                    <div class="machine-footer">-->
+<!--                                        <div class="last-sync">-->
+<!--                                            Last sync:-->
+<!--                                            <t t-esc="formatTime(machine.last_sync)"/>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
                                 </div>
                             </div>
                         </div>

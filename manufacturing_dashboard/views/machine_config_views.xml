@@ -6,13 +6,16 @@
         <field name="model">manufacturing.machine.config</field>
         <field name="arch" type="xml">
             <list decoration-success="status=='running'" decoration-danger="status=='error'"
-                  decoration-warning="status=='maintenance'" decoration-muted="status=='stopped'">
+                  decoration-warning="status=='maintenance'" decoration-muted="status=='stopped'"
+                  decoration-info="is_bypassed == True">
                 <field name="machine_name"/>
                 <field name="machine_type"/>
                 <field name="status" widget="badge"
                        decoration-success="status=='running'"
                        decoration-danger="status=='error'"
                        decoration-warning="status=='maintenance'"/>
+                <field name="is_bypassed" widget="boolean_toggle" 
+                       string="Bypassed"/>
                 <field name="parts_processed_today"/>
                 <field name="rejection_rate" widget="percentage"/>
                 <field name="last_sync" widget="relative"/>
@@ -64,6 +67,14 @@
                     <button name="check_part_presence" type="object" string="Check Part Presence" class="btn-info"
                             icon="fa-search" invisible="machine_type != 'final_station'"/>
 
+                    <button name="bypass_machine" type="object" string="Bypass Machine" class="btn-warning"
+                            icon="fa-forward" invisible="is_bypassed == True"
+                            confirm="Are you sure you want to bypass this machine? This machine will be skipped during sync operations."/>
+
+                    <button name="unbypass_machine" type="object" string="Remove Bypass" class="btn-success"
+                            icon="fa-backward" invisible="is_bypassed == False"
+                            confirm="Are you sure you want to remove the bypass? Normal processing will resume."/>
+
                     <field name="status" widget="statusbar" statusbar_visible="stopped,running,error,maintenance"/>
                 </header>
                 <sheet>
@@ -94,6 +105,9 @@
                     <widget name="web_ribbon" title="Maintenance" bg_color="bg-info"
                             invisible="status != 'maintenance'"/>
 
+                    <widget name="web_ribbon" title="BYPASSED" bg_color="bg-warning"
+                            invisible="is_bypassed == False"/>
+
 
                     <div class="oe_title">
                         <h1>
@@ -110,6 +124,8 @@
                             <field name="sync_mode" optional="hide"/>
                             <field name="timezone" optional="hide"/>
                             <field name="is_active"/>
+                            <field name="is_bypassed"/>
+                            <field name="bypass_reason" invisible="is_bypassed == False"/>
                         </group>
                         <group name="status_info" string="Status Information">
                             <field name="last_sync" widget="datetime"/>
@@ -160,7 +176,19 @@
                                     <field name="manual_cylinder_forward"/>
                                     <field name="manual_cylinder_reverse"/>
                                 </group>
+                                <group string="Bypass Controls">
+                                    <field name="is_bypassed" widget="boolean_toggle"/>
+                                    <field name="bypass_reason" placeholder="Enter reason for bypass (e.g., Maintenance, Calibration)"/>
+                                </group>
                             </group>
+
+                            <div class="alert alert-warning" role="alert" invisible="is_bypassed == False">
+                                <strong>⚠️ Machine is BYPASSED</strong>
+                                <br/>
+                                All parts will automatically pass without processing.
+                                <br/>
+                                <strong>Reason:</strong> <field name="bypass_reason" readonly="1"/>
+                            </div>
                         </page>
 
                         <page string="Measurements" name="measurements"
@@ -263,10 +291,14 @@
                 <filter name="error" string="Error" domain="[('status', '=', 'error')]"/>
                 <filter name="maintenance" string="Maintenance" domain="[('status', '=', 'maintenance')]"/>
                 <separator/>
+                <filter name="bypassed" string="Bypassed" domain="[('is_bypassed', '=', True)]"/>
+                <filter name="not_bypassed" string="Not Bypassed" domain="[('is_bypassed', '=', False)]"/>
+                <separator/>
                 <!--                <filter name="high_rejection" string="High Rejection Rate" domain="[('rejection_rate', '>', 5)]"/>-->
                 <group expand="0" string="Group By">
                     <filter string="Machine Type" name="group_type" context="{'group_by': 'machine_type'}"/>
                     <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Bypass Status" name="group_bypass" context="{'group_by': 'is_bypassed'}"/>
                 </group>
             </search>
         </field>
