@@ -99,6 +99,25 @@
                                     <field name="gauging_status"/>
                                     <field name="within_tolerance" widget="boolean_toggle"/>
                                     <field name="tolerance_status"/>
+
+<!--                                    <field name="has_spc_chart" column_invisible="1"/>-->
+
+<!--                                    &lt;!&ndash; Add SPC Chart button &ndash;&gt;-->
+<!--                                    <button name="action_create_spc_chart"-->
+<!--                                            type="object"-->
+<!--                                            string="Create SPC"-->
+<!--                                            class="btn-primary"-->
+<!--                                            icon="fa-line-chart"-->
+<!--                                            invisible="has_spc_chart"-->
+<!--                                            help="Create SPC Chart from this gauging"/>-->
+
+<!--                                    <button name="action_view_spc_chart"-->
+<!--                                            type="object"-->
+<!--                                            string="View SPC"-->
+<!--                                            class="btn-success"-->
+<!--                                            icon="fa-bar-chart"-->
+<!--                                            invisible="not has_spc_chart"-->
+<!--                                            help="View existing SPC Chart"/>-->
                                 </list>
                                 <form>
                                     <group>

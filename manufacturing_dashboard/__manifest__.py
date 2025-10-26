@@ -48,8 +48,9 @@ Features:
     'assets': {
         'web.assets_backend': [
             # Chart.js library - using unpkg CDN
-            'https://unpkg.com/chart.js@4.4.0/dist/chart.min.js',
+            # 'https://unpkg.com/chart.js@4.4.0/dist/chart.min.js',
             # Dashboard assets
+            'manufacturing_dashboard/static/lib/chartjs/chart.umd.js',
             'manufacturing_dashboard/static/src/css/dashboard.css',
             'manufacturing_dashboard/static/src/js/dashboard.js',
             'manufacturing_dashboard/static/src/xml/dashboard.xml',

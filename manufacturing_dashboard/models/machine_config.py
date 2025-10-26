@@ -3062,6 +3062,116 @@ class MachineConfig(models.Model):
             'estimated_completion': self.sync_estimated_completion.isoformat() if self.sync_estimated_completion else None,
         }
 
+    # after your _compute_daily_stats
+
+    average_oee = fields.Float("Average OEE %", compute="_compute_average_oee")
+    quality_trend = fields.Json("Quality Trend", compute="_compute_quality_trend")
+
+    @api.depends('machine_type')
+    def _compute_average_oee(self):
+        """Calculate OEE from machine-specific data"""
+        for rec in self:
+            try:
+                total_parts = 0
+                ok_parts = 0
+
+                _logger.info(f"Computing OEE for {rec.machine_name}, type: {rec.machine_type}")
+
+                # Get data based on machine type
+                if rec.machine_type == 'vici_vision':
+                    records = self.env['manufacturing.vici.vision'].search([
+                        ('machine_id', '=', rec.id)
+                    ])
+                    total_parts = len(records)
+                    ok_parts = len(records.filtered(lambda r: r.result == 'pass'))
+
+                elif rec.machine_type == 'ruhlamat':
+                    records = self.env['manufacturing.ruhlamat.press'].search([
+                        ('machine_id', '=', rec.id)
+                    ])
+                    total_parts = len(records)
+                    ok_parts = len(records.filtered(lambda r: r.ok_status == 1))
+
+                elif rec.machine_type == 'aumann':
+                    records = self.env['manufacturing.aumann.measurement'].search([
+                        ('machine_id', '=', rec.id)
+                    ])
+                    total_parts = len(records)
+                    ok_parts = len(records.filtered(lambda r: r.result == 'pass'))
+
+                elif rec.machine_type == 'gauging':
+                    records = self.env['manufacturing.gauging.measurement'].search([
+                        ('machine_id', '=', rec.id)
+                    ])
+                    total_parts = len(records)
+                    ok_parts = len(records.filtered(lambda r: r.status == 'accept'))
+
+                elif rec.machine_type == 'final_station':
+                    records = self.env['manufacturing.final.station.measurement'].search([
+                        ('machine_id', '=', rec.id)
+                    ])
+                    total_parts = len(records)
+                    ok_parts = len(records.filtered(lambda r: r.result == 'ok'))
+
+                _logger.info(f"Machine {rec.machine_name}: Found {total_parts} parts, {ok_parts} OK")
+
+                rec.average_oee = round((ok_parts / total_parts * 100), 2) if total_parts else 0.0
+
+                _logger.info(f"Machine {rec.machine_name}: OEE = {rec.average_oee}%")
+
+            except Exception as e:
+                _logger.error(f"Error computing OEE for {rec.machine_name}: {e}", exc_info=True)
+                rec.average_oee = 0.0
+
+    @api.depends('machine_type')
+    def _compute_quality_trend(self):
+        """Daily OK/Reject trend for ALL available data"""
+        for rec in self:
+            try:
+                # Get ALL parts for this machine
+                parts = self.env['manufacturing.part.quality'].search([
+                    ('machine_id', '=', rec.id)
+                ], order='test_date asc')
+
+                if not parts:
+                    rec.quality_trend = []
+                    continue
+
+                # Get first and last date
+                first_date = parts[0].test_date.date()
+                last_date = parts[-1].test_date.date()
+
+                # Generate trend data for each day
+                trend = []
+                current_date = first_date
+
+                while current_date <= last_date:
+                    day_parts = parts.filtered(
+                        lambda p: p.test_date.date() == current_date
+                    )
+
+                    if day_parts:
+                        ok_ = len(day_parts.filtered(lambda p: p.final_result in ['ok', 'pass']))
+                        ng_ = len(day_parts.filtered(lambda p: p.final_result == 'reject'))
+                        tot = len(day_parts)
+
+                        trend.append({
+                            'date': current_date.strftime('%Y-%m-%d'),
+                            'ok_rate': round((ok_ / tot * 100) if tot else 0, 2),
+                            'reject_rate': round((ng_ / tot * 100) if tot else 0, 2),
+                            'total': tot
+                        })
+
+                    current_date += timedelta(days=1)
+
+                rec.quality_trend = trend
+
+                _logger.info(f"Machine {rec.machine_name}: Quality trend computed with {len(trend)} days of data")
+
+            except Exception as e:
+                _logger.error(f"Error computing quality trend for {rec.machine_name}: {e}")
+                rec.quality_trend = []
+
     @api.model
     def get_dashboard_data(self):
         """Get dashboard data for frontend"""
@@ -3157,6 +3267,8 @@ class MachineConfig(models.Model):
                 'rejection_rate': machine_stats['rejection_rate'],
                 'last_sync': machine.last_sync.isoformat() if machine.last_sync else None,
                 'efficiency': max(0, 100 - machine_stats['rejection_rate']),
+                'average_oee': machine.average_oee,
+                'quality_trend': machine.quality_trend,
             }
 
             dashboard_data['machines'].append(machine_info)

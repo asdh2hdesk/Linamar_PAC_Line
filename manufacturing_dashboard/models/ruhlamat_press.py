@@ -4,6 +4,7 @@ from odoo import models, fields, api
 import logging
 
 _logger = logging.getLogger(__name__)
+from odoo.exceptions import UserError
 
 
 class RuhlamatPress(models.Model):
@@ -208,6 +209,20 @@ class RuhlamatGauging(models.Model):
     within_tolerance = fields.Boolean('Within Tolerance', compute='_compute_tolerance', store=True)
     tolerance_status = fields.Char('Tolerance Status', compute='_compute_tolerance', store=True)
 
+    # SPC Chart link
+    spc_chart_id = fields.Many2one(
+        'statistical.process.control',
+        string='SPC Chart',
+        readonly=True,
+        help='Linked SPC Chart for this gauging'
+    )
+
+    has_spc_chart = fields.Boolean(
+        string='Has SPC Chart',
+        compute='_compute_has_spc_chart',
+        store=True
+    )
+
     @api.depends('cycle_id')
     def _compute_cycle_ref(self):
         for record in self:
@@ -232,3 +247,199 @@ class RuhlamatGauging(models.Model):
             else:
                 record.within_tolerance = True
                 record.tolerance_status = 'No limit testing'
+
+    @api.depends('spc_chart_id')
+    def _compute_has_spc_chart(self):
+        for record in self:
+            record.has_spc_chart = bool(record.spc_chart_id)
+
+    def action_create_spc_chart(self):
+        """Create NEW SPC chart for this reading with last 30 readings as historical data"""
+        self.ensure_one()
+
+        if self.spc_chart_id:
+            return self.action_view_spc_chart()
+
+        if not self.upper_limit or not self.lower_limit:
+            raise UserError('Cannot create SPC chart: Upper and Lower limits are required.')
+
+        # Get machine name
+        machine_name = ''
+        if self.cycle_id_ref and self.cycle_id_ref.machine_id:
+            machine = self.cycle_id_ref.machine_id
+            machine_name = (
+                    getattr(machine, 'name', None) or
+                    getattr(machine, 'machine_name', None) or
+                    getattr(machine, 'display_name', None) or
+                    str(machine.id)
+            )
+
+        operation_name = f'{self.gauging_alias} - {self.gauging_type}'
+
+        # Get last 30 readings for this gauging type (including current)
+        similar_gaugings = self.env['manufacturing.ruhlamat.gauging'].search([
+            ('gauging_alias', '=', self.gauging_alias),
+            ('gauging_type', '=', self.gauging_type),
+            ('cycle_id_ref.machine_id', '=',
+             self.cycle_id_ref.machine_id.id if self.cycle_id_ref and self.cycle_id_ref.machine_id else False),
+            ('upper_limit', '=', self.upper_limit),
+            ('lower_limit', '=', self.lower_limit),
+            ('actual_y', '!=', False),  # Only records with values
+        ], order='cycle_date desc', limit=30)
+
+
+        if len(similar_gaugings) < 30:
+            _logger.warning(f"Only {len(similar_gaugings)} readings available (recommended: 30)")
+
+
+        # Create SPC record
+        spc_vals = {
+            'date': fields.Date.today(),
+            'operation': operation_name,
+            'machine_name': machine_name,
+            'usl': self.upper_limit,
+            'lsl': self.lower_limit,
+            'least_count': 0.01,
+            'is_auto_created': True,
+        }
+
+        spc_record = self.env['statistical.process.control'].create(spc_vals)
+        _logger.critical(f"Created SPC: {spc_record.name}")
+
+        # Delete auto-created empty groups
+        empty_groups = self.env['spc.measurement.group'].search([
+            ('spc_id', '=', spc_record.id),
+            ('measurement_value_ids', '=', False)
+        ])
+        if empty_groups:
+            empty_groups.unlink()
+            _logger.critical(f"Deleted {len(empty_groups)} empty groups")
+
+        # Create parameter X1
+        parameter = self.env['spc.measurement.parameter'].create({
+            'name': 'X1',
+            'sequence': 10,
+            'spc_id': spc_record.id,
+        })
+
+        # Create groups and measurements for all readings (oldest to newest)
+        for idx, gauging in enumerate(reversed(similar_gaugings), start=1):
+            # Create group
+            group = self.env['spc.measurement.group'].create({
+                'spc_id': spc_record.id,
+                'date_of_measurement': gauging.cycle_date or fields.Datetime.now(),
+            })
+
+            # Create measurement value
+            measurement = self.env['spc.measurement.value'].create({
+                'parameter_id': parameter.id,
+                'group_id': group.id,
+                'spc_id': spc_record.id,
+                'value': gauging.actual_y,
+            })
+
+            _logger.critical(f"Group {idx}: {gauging.actual_y} at {gauging.cycle_date}")
+
+        # Link ONLY the current gauging to this SPC (not all historical ones)
+        self.spc_chart_id = spc_record.id
+        _logger.critical(f"Linked current gauging (ID: {self.id}) to SPC")
+
+        # Calculate statistics
+        spc_record.action_calculate_statistics()
+
+        return {
+            'name': f'SPC Chart - {self.gauging_alias}',
+            'type': 'ir.actions.act_window',
+            'res_model': 'statistical.process.control',
+            'res_id': spc_record.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'form_view_initial_mode': 'edit'},
+        }
+
+    def _add_to_existing_spc(self, spc_record):
+        """Add this gauging to an existing SPC chart"""
+        self.ensure_one()
+
+        if self.spc_chart_id:
+            _logger.critical("Already linked - opening chart")
+            return self.action_view_spc_chart()
+
+        # Get X1 parameter
+        parameter = spc_record.parameter_ids.filtered(lambda p: p.name == 'X1')
+        if not parameter:
+            parameter = self.env['spc.measurement.parameter'].create({
+                'name': 'X1',
+                'sequence': 10,
+                'spc_id': spc_record.id,
+            })
+
+        # Get current group count
+        current_groups = len(spc_record.measurement_group_ids)
+        _logger.critical(f"Current groups: {current_groups}")
+
+        # Create new group
+        group = self.env['spc.measurement.group'].create({
+            'spc_id': spc_record.id,
+            'date_of_measurement': self.cycle_date or fields.Datetime.now(),
+        })
+
+        _logger.critical(f"Created Group {group.group_no}")
+
+        # Create measurement value
+        measurement = self.env['spc.measurement.value'].create({
+            'parameter_id': parameter.id,
+            'group_id': group.id,
+            'spc_id': spc_record.id,
+            'value': self.actual_y,
+        })
+
+        _logger.critical(f"Added value: {measurement.value}")
+
+        # Link gauging
+        self.spc_chart_id = spc_record.id
+
+        # Recalculate statistics
+        spc_record.action_calculate_statistics()
+
+        return {
+            'name': f'SPC Chart - {self.gauging_alias}',
+            'type': 'ir.actions.act_window',
+            'res_model': 'statistical.process.control',
+            'res_id': spc_record.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'form_view_initial_mode': 'edit'},
+        }
+
+    def action_view_spc_chart(self):
+        """Open existing SPC chart"""
+        self.ensure_one()
+
+        # Read the field value directly from database
+        self.env.cr.execute("""
+            SELECT spc_chart_id 
+            FROM manufacturing_ruhlamat_gauging 
+            WHERE id = %s
+        """, (self.id,))
+        result = self.env.cr.fetchone()
+
+        if not result or not result[0]:
+            raise UserError('No SPC chart linked to this gauging.')
+
+        spc_id = result[0]
+
+        # Verify the SPC record exists
+        spc_exists = self.env['statistical.process.control'].browse(spc_id).exists()
+        if not spc_exists:
+            raise UserError('The linked SPC chart no longer exists.')
+
+        return {
+            'name': f'SPC Chart - {self.gauging_alias}',
+            'type': 'ir.actions.act_window',
+            'res_model': 'statistical.process.control',
+            'res_id': spc_id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'form_view_initial_mode': 'edit'},
+        }
