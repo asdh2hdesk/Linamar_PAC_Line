@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_spc_chart_download_form" model="ir.ui.view">
+        <field name="name">spc.chart.download.form</field>
+        <field name="model">statistical.process.control</field>
+        <field name="inherit_id" ref="spc.view_statistical_process_control_form"/>
+        <field name="arch" type="xml">
+
+            <!-- X-Chart Section with Download Button -->
+            <xpath expr="//field[@name='x_chart_image']" position="before">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <button name="action_download_x_chart"
+                            type="object"
+                            string="Download"
+                            class="btn btn-primary btn-sm"
+                            icon="fa-download"
+                            invisible="x_chart_image == False"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='x_chart_image']" position="attributes">
+                <attribute name="filename">x_chart_filename</attribute>
+            </xpath>
+            <xpath expr="//field[@name='r_chart_image']" position="before">
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                    <button name="action_download_r_chart"
+                            type="object"
+                            string="Download"
+                            class="btn btn-primary btn-sm"
+                            icon="fa-download"
+                            invisible="r_chart_image == False"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='r_chart_image']" position="attributes">
+                <attribute name="filename">r_chart_filename</attribute>
+            </xpath>
+
+            <!-- Interval Frequency Chart -->
+            <xpath expr="//field[@name='interval_frequency_chart_image']" position="before">
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                    <button name="action_download_interval_frequency_chart"
+                            type="object"
+                            string="Download"
+                            class="btn btn-primary btn-sm"
+                            icon="fa-download"
+                            invisible="interval_frequency_chart_image == False"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='interval_frequency_chart_image']" position="attributes">
+                <attribute name="filename">interval_frequency_chart_filename</attribute>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

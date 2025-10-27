@@ -6,6 +6,7 @@ import json
 import pytz
 
 _logger = logging.getLogger(__name__)
+from odoo.exceptions import UserError
 
 
 class AumannMeasurement(models.Model):
@@ -573,3 +574,292 @@ class AumannMeasurement(models.Model):
                 )
             footer = '</tbody></table>'
             record.tolerance_table_html = header + ''.join(rows) + footer
+
+    tolerance_line_ids = fields.One2many(
+        'aumann.tolerance.line',
+        'measurement_id',
+        string='Tolerance Lines',
+        compute='_compute_tolerance_lines'
+    )
+
+    spc_chart_ids = fields.One2many(
+        'aumann.measurement.spc.link',
+        'measurement_id',
+        string='SPC Charts'
+    )
+
+    @api.depends('serial_number', 'test_date')
+    def _compute_tolerance_lines(self):
+        """Generate tolerance lines for display"""
+        ToleranceLine = self.env['aumann.tolerance.line']
+
+        for record in self:
+            # Delete existing transient records for this measurement
+            ToleranceLine.search([('measurement_id', '=', record.id)]).unlink()
+
+            tol = record._get_tolerances_for_serial()
+            if not tol:
+                record.tolerance_line_ids = False
+                continue
+
+            lines = []
+            for field_name, (ltl, utl) in tol.items():
+                if not hasattr(record, field_name):
+                    continue
+                value = getattr(record, field_name)
+                if value is None:
+                    continue
+
+                label = record._fields.get(field_name).string if field_name in record._fields else field_name
+
+                # Check if SPC exists - SAFE ACCESS
+                spc_chart_id = False
+                try:
+                    spc_link = record.spc_chart_ids.filtered(lambda x: x.field_name == field_name)
+                    if spc_link:
+                        spc_chart = spc_link[0].spc_chart_id
+                        # Check if it's a valid record with proper model name
+                        if spc_chart and hasattr(spc_chart,
+                                                 '_name') and spc_chart._name == 'statistical.process.control':
+                            # Use try-except for exists() check
+                            try:
+                                if spc_chart.exists():
+                                    spc_chart_id = spc_chart.id
+                                else:
+                                    # Clean up broken link
+                                    spc_link.unlink()
+                            except Exception:
+                                # exists() failed - clean up broken link
+                                spc_link.unlink()
+                except (AttributeError, IndexError, TypeError, KeyError) as e:
+                    _logger.warning(f"Error checking SPC for field {field_name}: {e}")
+                    spc_chart_id = False
+
+                line = ToleranceLine.create({
+                    'measurement_id': record.id,
+                    'field_name': field_name,
+                    'label': label,
+                    'lower_limit': ltl,
+                    'upper_limit': utl,
+                    'actual_value': value,
+                    'spc_chart_id': spc_chart_id,
+                })
+                lines.append(line.id)
+
+            record.tolerance_line_ids = [(6, 0, lines)]
+
+    def action_create_spc_for_field(self, field_name):
+        """Create SPC chart for a specific measurement field"""
+        self.ensure_one()
+
+        # Check if SPC already exists
+        existing_link = self.spc_chart_ids.filtered(lambda x: x.field_name == field_name)
+        if existing_link:
+            spc_chart = existing_link[0].spc_chart_id
+            try:
+                if spc_chart and hasattr(spc_chart, '_name') and spc_chart._name == 'statistical.process.control':
+                    if spc_chart.exists():
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'statistical.process.control',
+                            'res_id': spc_chart.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
+            except Exception as e:
+                _logger.warning(f"Error checking SPC existence for {field_name}: {e}")
+            existing_link.unlink()
+
+        field_value = getattr(self, field_name)
+        if not field_value:
+            raise UserError(f'No value available for {field_name}')
+
+        # Get tolerances
+        tol = self._get_tolerances_for_serial()
+        if field_name not in tol:
+            raise UserError(f'No tolerance defined for {field_name}')
+
+        lower_limit, upper_limit = tol[field_name]
+
+        # Get machine name
+        machine_name = ''
+        if self.machine_id:
+            for field in ['name', 'machine_name', 'display_name', 'code']:
+                if hasattr(self.machine_id, field):
+                    machine_name = getattr(self.machine_id, field, '')
+                    if machine_name:
+                        break
+            if not machine_name:
+                machine_name = f"Machine {self.machine_id.id}"
+
+        field_label = self._fields.get(field_name).string if field_name in self._fields else field_name
+
+        # Get last 50 readings + current reading = 51 total
+        similar_measurements = self.env['manufacturing.aumann.measurement'].search([
+            ('machine_id', '=', self.machine_id.id if self.machine_id else False),
+            ('part_form', '=', self.part_form),
+            (field_name, '!=', False),
+            ('id', '<=', self.id),
+        ], order='test_date desc', limit=101)
+
+        if self not in similar_measurements:
+            similar_measurements = similar_measurements[:100] | self
+        else:
+            similar_measurements = similar_measurements[:101]
+
+        _logger.info(f"Creating SPC for {field_name} with {len(similar_measurements)} measurements")
+
+        # Create SPC record
+        spc_vals = {
+            'date': fields.Date.today(),
+            'operation': f'{field_label} - {self.part_form}',
+            'machine_name': machine_name,
+            'usl': upper_limit,
+            'lsl': lower_limit,
+            'least_count': 0.001,
+            'is_auto_created': True,
+        }
+
+        spc_record = self.env['statistical.process.control'].create(spc_vals)
+
+        # Delete auto-created empty groups
+        empty_groups = self.env['spc.measurement.group'].search([
+            ('spc_id', '=', spc_record.id),
+            ('measurement_value_ids', '=', False)
+        ])
+        if empty_groups:
+            empty_groups.unlink()
+
+        # Create 5 parameters (X1, X2, X3, X4, X5)
+        parameters = []
+        for i in range(1, 6):
+            parameter = self.env['spc.measurement.parameter'].create({
+                'name': f'X{i}',
+                'sequence': i * 10,
+                'spc_id': spc_record.id,
+            })
+            parameters.append(parameter)
+
+        # Reverse to get chronological order (oldest to newest)
+        measurements_list = list(reversed(similar_measurements))
+
+        # Create groups with 5 measurements each
+        group_number = 0
+        for i in range(0, len(measurements_list), 5):
+            group_number += 1
+            chunk = measurements_list[i:i + 5]  # Get 5 measurements
+
+            # Use the first measurement's test_date for the group
+            group = self.env['spc.measurement.group'].create({
+                'spc_id': spc_record.id,
+                'date_of_measurement': chunk[0].test_date or fields.Datetime.now(),
+            })
+
+            # Create measurement values for each measurement in the chunk
+            for idx, measurement in enumerate(chunk):
+                if idx < len(parameters):  # Safety check
+                    self.env['spc.measurement.value'].create({
+                        'parameter_id': parameters[idx].id,
+                        'group_id': group.id,
+                        'spc_id': spc_record.id,
+                        'value': getattr(measurement, field_name),
+                    })
+
+        # Create link
+        self.env['aumann.measurement.spc.link'].create({
+            'measurement_id': self.id,
+            'field_name': field_name,
+            'spc_chart_id': spc_record.id,
+        })
+
+        # Calculate statistics
+        spc_record.action_calculate_statistics()
+
+        _logger.info(f"Created SPC chart {spc_record.id} for {field_name} with {group_number} groups")
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'statistical.process.control',
+            'res_id': spc_record.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+class AumannMeasurementSPCLink(models.Model):
+    _name = 'aumann.measurement.spc.link'
+    _description = 'Link between Aumann Measurements and SPC Charts'
+
+    measurement_id = fields.Many2one('manufacturing.aumann.measurement', required=True, ondelete='cascade')
+    field_name = fields.Char('Field Name', required=True)
+    spc_chart_id = fields.Many2one('statistical.process.control', 'SPC Chart', required=True, ondelete='cascade')
+
+
+class AumannToleranceLine(models.TransientModel):
+    _name = 'aumann.tolerance.line'
+    _description = 'Tolerance Line'
+
+    measurement_id = fields.Many2one('manufacturing.aumann.measurement', required=True, ondelete='cascade')
+    field_name = fields.Char('Field Name', required=True)
+    label = fields.Char('Label')
+    lower_limit = fields.Float('LTL', digits=(10, 6))
+    upper_limit = fields.Float('UTL', digits=(10, 6))
+    actual_value = fields.Float('Actual', digits=(10, 6))
+    result = fields.Char('Result', compute='_compute_result')
+    spc_chart_id = fields.Many2one('statistical.process.control', 'SPC Chart')
+    has_spc = fields.Boolean('Has SPC', compute='_compute_has_spc')
+
+    @api.depends('actual_value', 'lower_limit', 'upper_limit')
+    def _compute_result(self):
+        for line in self:
+            if line.lower_limit <= line.actual_value <= line.upper_limit:
+                line.result = 'OK'
+            else:
+                line.result = 'NOK'
+
+    @api.depends('spc_chart_id')
+    def _compute_has_spc(self):
+        for line in self:
+            try:
+                if line.spc_chart_id and line.spc_chart_id.exists():
+                    line.has_spc = True
+                else:
+                    line.has_spc = False
+            except Exception:
+                line.has_spc = False
+
+    def action_create_spc(self):
+        """Create SPC for this tolerance line"""
+        self.ensure_one()
+        return self.measurement_id.action_create_spc_for_field(self.field_name)
+
+    def action_view_spc(self):
+        """View existing SPC"""
+        self.ensure_one()
+
+        # Verify SPC chart exists
+        if not self.spc_chart_id or not self.spc_chart_id.exists():
+            raise UserError('SPC Chart no longer exists. Please create a new one.')
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'statistical.process.control',
+            'res_id': self.spc_chart_id.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+    def action_download_x_chart(self):
+        """Download X-Chart for this tolerance line"""
+        self.ensure_one()
+
+        # Verify SPC chart exists
+        if not self.spc_chart_id or not self.spc_chart_id.exists():
+            raise UserError('SPC Chart no longer exists. Please create a new one.')
+
+        spc = self.spc_chart_id
+
+        # Generate chart if not already generated
+        if not spc.x_chart_image:
+            spc.action_generate_charts()
+
+        return spc.action_download_x_chart()

@@ -14,9 +14,11 @@ export class ModernManufacturingDashboard extends Component {
             productionChart: useRef("productionChart"),
             qualityChart: useRef("qualityChart"),
             trendChart: useRef("trendChart"),
-            measurementChart: useRef("measurementChart")
+            measurementChart: useRef("measurementChart"),
+            oeeChart: useRef("oeeChart"),
+            qualityTrendChart: useRef("qualityTrendChart")
         };
-        
+
         this.state = useState({
             machines: [],
             statistics: {},
@@ -54,7 +56,7 @@ export class ModernManufacturingDashboard extends Component {
                         console.error('Error in auto refresh:', error);
                     }
                 }, 30000);
-                
+
                 // Final station data refresh removed - now handled by separate dashboard
             }
         });
@@ -75,12 +77,12 @@ export class ModernManufacturingDashboard extends Component {
     async loadDashboardData() {
         try {
             console.log('Loading dashboard data...');
-            
+
             // Add timeout to prevent hanging
-            const timeoutPromise = new Promise((_, reject) => 
+            const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Request timeout')), 10000)
             );
-            
+
             let data;
             try {
                 // Try the enhanced dashboard data method first
@@ -108,9 +110,9 @@ export class ModernManufacturingDashboard extends Component {
                     }
                 };
             }
-            
+
             console.log('Dashboard data received:', data);
-            
+
             this.state.machines = data.machines || [];
             this.state.statistics = data.statistics || {};
             this.state.error = null;
@@ -139,12 +141,12 @@ export class ModernManufacturingDashboard extends Component {
     async refreshDashboardData() {
         try {
             console.log('Refreshing dashboard data...');
-            
+
             // Add timeout to prevent hanging
-            const timeoutPromise = new Promise((_, reject) => 
+            const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Request timeout')), 10000)
             );
-            
+
             let data;
             try {
                 // Try the enhanced dashboard data method first
@@ -172,12 +174,12 @@ export class ModernManufacturingDashboard extends Component {
                     }
                 };
             }
-            
+
             console.log('Dashboard refresh data received:', data);
-            
+
             // Store current selection
             const currentSelection = this.state.selectedMachine;
-            
+
             // Update machines and statistics
             this.state.machines = data.machines || [];
             this.state.statistics = data.statistics || {};
@@ -210,7 +212,11 @@ export class ModernManufacturingDashboard extends Component {
         this.state.selectedMachine = machine;
         this.state.machineDetailData = null;
         await this.loadMachineDetail(machine.id);
-        
+        setTimeout(() => {
+            this.renderOEEChart();
+            this.createQualityTrendChart();
+        }, 300);
+
         // Final station specific data loading removed - now handled by separate dashboard
     }
 
@@ -243,14 +249,14 @@ export class ModernManufacturingDashboard extends Component {
     async onFilterChange(filter) {
         console.log('Filter changed to:', filter);
         this.state.tableFilter = filter;
-        
+
         await this.refreshDashboardData();
-        
+
         if (this.state.selectedMachine) {
             console.log('Reloading machine detail with filter:', filter);
             await this.loadMachineDetail(this.state.selectedMachine.id);
         }
-        
+
         // Update charts with the new filtered data
         this.updateCharts();
     }
@@ -259,7 +265,7 @@ export class ModernManufacturingDashboard extends Component {
         console.log('Setting up charts...');
         console.log('Chart.js available:', !!window.Chart);
         console.log('Chart constructor:', typeof window.Chart);
-        
+
         // Check if Chart.js is available immediately
         if (window.Chart && typeof window.Chart === 'function') {
             console.log('Chart.js available immediately, creating charts...');
@@ -335,10 +341,10 @@ export class ModernManufacturingDashboard extends Component {
     async openMachineListView(machine) {
         let modelName = '';
         let viewName = '';
-        
+
         console.log('Opening machine list view for:', machine);
         console.log('Machine type:', machine.machine_type);
-        
+
         switch(machine.machine_type) {
             case 'vici_vision':
                 modelName = 'manufacturing.vici.vision';
@@ -367,7 +373,7 @@ export class ModernManufacturingDashboard extends Component {
 
         try {
             console.log(`Opening ${viewName} for machine ${machine.name} (ID: ${machine.id})`);
-            
+
             await this.action.doAction({
                 type: 'ir.actions.act_window',
                 name: `${viewName} - ${machine.name}`,
@@ -381,7 +387,7 @@ export class ModernManufacturingDashboard extends Component {
                 },
                 target: 'current'
             });
-            
+
             console.log(`Successfully opened ${viewName}`);
         } catch (error) {
             console.error('Error opening machine list view:', error);
@@ -458,10 +464,10 @@ export class ModernManufacturingDashboard extends Component {
                 ${message}
             </div>
         `;
-        
+
         // Add to page
         document.body.appendChild(notification);
-        
+
         // Remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
@@ -476,7 +482,7 @@ export class ModernManufacturingDashboard extends Component {
             console.log('Creating production chart...');
             console.log('Chart.js available:', !!window.Chart);
             console.log('Chart constructor:', typeof window.Chart);
-            
+
             if (!window.Chart) {
                 console.warn('Chart.js not available, skipping chart creation');
                 return;
@@ -709,6 +715,78 @@ export class ModernManufacturingDashboard extends Component {
         }
     }
 
+    renderOEEChart() {
+        try {
+            if (!window.Chart) return;
+            const ctx = this.chartRefs.oeeChart.el?.getContext('2d');
+            if (!ctx) return;
+
+            if (this.chartInstances.oee) this.chartInstances.oee.destroy();
+
+            const oee = this.state.selectedMachine?.average_oee || 0;
+            const remaining = 100 - oee;
+
+            this.chartInstances.oee = new window.Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['OEE %', 'Loss %'],
+                    datasets: [{
+                        data: [oee, remaining],
+                        backgroundColor: ['#4CAF50', '#E0E0E0']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Average OEE Performance' },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error creating OEE chart:', error);
+        }
+    }
+
+    createQualityTrendChart() {
+        try {
+            if (!window.Chart) return;
+            const ctx = this.chartRefs.qualityTrendChart.el?.getContext('2d');
+            if (!ctx) return;
+
+            if (this.chartInstances.qualityTrend) this.chartInstances.qualityTrend.destroy();
+
+            const trend = this.state.selectedMachine?.quality_trend || [];
+            const labels = trend.map(d => d.date);
+            const okRates = trend.map(d => d.ok_rate);
+            const rejectRates = trend.map(d => d.reject_rate);
+
+            this.chartInstances.qualityTrend = new window.Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'OK Rate (%)', data: okRates, backgroundColor: 'rgba(76,175,80,0.7)' },
+                        { label: 'Reject Rate (%)', data: rejectRates, backgroundColor: 'rgba(244,67,54,0.7)' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100 },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        } catch (error) {
+            console.error('Error creating Quality Trend chart:', error);
+        }
+    }
+
+
     // Chart Update Methods
     updateCharts() {
         console.log('Updating charts...');
@@ -717,6 +795,8 @@ export class ModernManufacturingDashboard extends Component {
         this.updateTrendChart();
         this.updateMeasurementChart();
         this.updateChartTitles();
+        this.renderOEEChart();
+        this.createQualityTrendChart();
     }
 
     updateChartTitles() {
@@ -744,27 +824,27 @@ export class ModernManufacturingDashboard extends Component {
 
     updateProductionChart() {
         if (!window.Chart || !this.chartInstances.production) return;
-        
+
         const okCount = this.state.machineDetailData?.summary?.ok_count ?? this.state.selectedMachine?.ok_count ?? 0;
         const rejectCount = this.state.machineDetailData?.summary?.reject_count ?? this.state.selectedMachine?.reject_count ?? 0;
-        
+
         console.log(`Production Chart - Filter: ${this.state.tableFilter}, OK: ${okCount}, Reject: ${rejectCount}`);
-        
+
         this.chartInstances.production.data.datasets[0].data = [okCount, rejectCount];
         this.chartInstances.production.update('none');
     }
 
     updateQualityChart() {
         if (!window.Chart || !this.chartInstances.quality || !this.state.machineDetailData) return;
-        
+
         const series = this.state.machineDetailData.analytics?.production_series;
         if (!series || !Array.isArray(series.values)) {
             console.log('Quality Chart - No production series data available');
             return;
         }
-        
+
         console.log(`Quality Chart - Filter: ${this.state.tableFilter}, Labels: ${series.labels?.length || 0}, Values: ${series.values?.length || 0}`);
-        
+
         this.chartInstances.quality.data.labels = series.labels || [];
         this.chartInstances.quality.data.datasets[0].data = series.values || [];
         this.chartInstances.quality.update('none');
@@ -772,15 +852,15 @@ export class ModernManufacturingDashboard extends Component {
 
     updateTrendChart() {
         if (!window.Chart || !this.chartInstances.trend || !this.state.machineDetailData) return;
-        
+
         const series = this.state.machineDetailData.analytics?.rejection_series;
         if (!series || !Array.isArray(series.values)) {
             console.log('Trend Chart - No rejection series data available');
             return;
         }
-        
+
         console.log(`Trend Chart - Filter: ${this.state.tableFilter}, Labels: ${series.labels?.length || 0}, Values: ${series.values?.length || 0}`);
-        
+
         this.chartInstances.trend.data.labels = series.labels || [];
         this.chartInstances.trend.data.datasets[0].data = series.values || [];
         this.chartInstances.trend.update('none');
@@ -788,15 +868,15 @@ export class ModernManufacturingDashboard extends Component {
 
     updateMeasurementChart() {
         if (!window.Chart || !this.chartInstances.measurement || !this.state.machineDetailData) return;
-        
+
         const avg = this.state.machineDetailData.analytics?.measurement_avg;
         if (!avg || !Array.isArray(avg.values)) {
             console.log('Measurement Chart - No measurement average data available');
             return;
         }
-        
+
         console.log(`Measurement Chart - Filter: ${this.state.tableFilter}, Labels: ${avg.labels?.length || 0}, Values: ${avg.values?.length || 0}`);
-        
+
         this.chartInstances.measurement.data.labels = avg.labels || [];
         this.chartInstances.measurement.data.datasets[0].data = (avg.values || []).map(v => parseFloat(v) || 0);
         this.chartInstances.measurement.update('none');

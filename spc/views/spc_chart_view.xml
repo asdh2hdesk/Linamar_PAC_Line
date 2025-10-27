@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_statistical_process_control_form_inherit" model="ir.ui.view">
+        <field name="name">statistical.process.control.form.inherit</field>
+        <field name="model">statistical.process.control</field>
+        <field name="inherit_id" ref="spc.view_statistical_process_control_form"/>
+        <field name="arch" type="xml">
+            <!-- Assuming there's a notebook element; add a new page -->
+            <xpath expr="//page[@name='summary_statistics_2']" position="after">
+                <page string="Control Charts" name="control_charts" >
+                    <div style="font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #7B68EE; ">
+                        <button name="action_generate_charts" string="Generate Charts" type="object"/>
+                    </div>
+                    <group>
+                        <field name="x_chart_image" widget="image" string="X-Chart"  readonly="stage in ['to_approve','approved','completed','canceled']" />
+                        <field name="r_chart_image" widget="image" string="R-Chart" readonly="stage in ['to_approve','approved','completed','canceled']" />
+                    </group>
+                </page>
+                <page string="Interval Frequency Chart" name="interval_frequency_chart">
+                    <div style="font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #7B68EE;">
+                        <button name="action_generate_interval_frequency_chart" type="object" string="Generate Interval Frequency Chart"/>
+                    </div>
+                    <group>
+                        <field name="interval_frequency_chart_image" widget="image" string="Interval Frequency Chart" readonly="stage in ['to_approve','approved','completed','canceled']" />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

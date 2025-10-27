@@ -17,3 +17,5 @@ access_final_station_measurement_system,Manufacturing Final Station Measurement 
 access_box_management_user,Manufacturing Box Management User,model_manufacturing_box_management,base.group_user,1,1,1,0
 access_box_management_system,Manufacturing Box Management System,model_manufacturing_box_management,base.group_system,1,1,1,1
 access_qe_override_wizard_system,Manufacturing QE Override Wizard System,model_manufacturing_qe_override_wizard,base.group_system,1,1,1,1
+access_aumann_tolerance_line,access_aumann_tolerance_line,model_aumann_tolerance_line,base.group_user,1,1,1,1
+access_aumann_measurement_spc_link,access_aumann_measurement_spc_link,model_aumann_measurement_spc_link,base.group_user,1,1,1,1

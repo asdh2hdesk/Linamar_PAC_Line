@@ -59,9 +59,38 @@
 
                     <notebook>
                         <page string="Tolerance Table">
-                            <group>
-                                <field name="tolerance_table_html" nolabel="1" readonly="1"/>
-                            </group>
+                            <field name="tolerance_line_ids" nolabel="1">
+                                <list>
+                                    <field name="label"/>
+                                    <field name="lower_limit"/>
+                                    <field name="upper_limit"/>
+                                    <field name="actual_value"/>
+                                    <field name="result"
+                                           widget="badge"
+                                           decoration-success="result == 'OK'"
+                                           decoration-danger="result == 'NOK'"/>
+                                    <button name="action_create_spc"
+                                            string="Create SPC"
+                                            type="object"
+                                            class="btn-primary"
+                                            invisible="has_spc"
+                                            confirm="Create SPC chart for this measurement?"/>
+                                    <button name="action_view_spc"
+                                            string="View SPC"
+                                            type="object"
+                                            class="btn-success"
+                                            icon="fa-line-chart"
+                                            invisible="not has_spc"/>
+                                    <button name="action_download_x_chart"
+                                            type="object"
+                                            string="Download X-Chart"
+                                            class="btn-sm btn-secondary"
+                                            icon="fa-line-chart"
+                                            invisible="has_spc == False"/>
+                                    <field name="has_spc" column_invisible="1"/>
+                                    <field name="field_name" column_invisible="1"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Journal Measurements">
                             <group>
