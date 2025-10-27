@@ -548,7 +548,7 @@ class FinalStationService:
                 normalized = 'pending'
                 if result in ('pass', 'ok', True):
                     normalized = 'ok'
-                elif result in ('reject', 'nok', False):
+                elif result in ('reject', 'nok', False,'pending'):
                     normalized = 'nok'
                 elif result == 'bypass':
                     normalized = 'bypass'
@@ -954,11 +954,14 @@ class FinalStationService:
             
             all_pending = all(result == 'pending' for result in results)
             any_reject = any(result == 'reject' for result in results)
+            any_pending = any(result == 'reject' for result in results)
             all_pass_or_bypass = all(result in ('pass', 'bypass') for result in results)
             any_bypass = any(result == 'bypass' for result in results)
             
             if all_pending:
                 overall_status = 'reject'  # Reject if all stations are pending
+            if any_pending:
+                overall_status = 'reject'  # Reject if any stations are pending
             elif any_reject:
                 overall_status = 'reject'  # Reject if any station failed
             elif all_pass_or_bypass:
