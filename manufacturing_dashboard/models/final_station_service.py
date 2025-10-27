@@ -530,7 +530,10 @@ class FinalStationService:
                 })
                 _logger.info(f"Created new part quality record for serial: {serial_number}")
             
-            # Get station results from part_quality
+            # Check and update bypass status BEFORE getting station results
+            self._update_bypass_status_in_part_quality(part_quality)
+            
+            # Get station results from part_quality (now with updated bypass status)
             station_results = {
                 'vici_vision': part_quality.vici_result,
                 'ruhlamat_press': part_quality.ruhlamat_result,
@@ -538,43 +541,53 @@ class FinalStationService:
                 'gauging': part_quality.gauging_result
             }
             
-            # Convert to final station format (pass/reject -> ok/nok)
+            # Convert individual station results to unified format
+            # Normalize results: ('pass'|'ok') -> 'ok', ('reject'|'nok') -> 'nok', ('bypass') -> 'bypass', else 'pending'
             converted_results = {}
             for station, result in station_results.items():
-                if result == 'pass':
-                    converted_results[station] = 'ok'
-                elif result == 'reject':
-                    converted_results[station] = 'nok'
-                else:  # pending
-                    converted_results[station] = 'pending'
+                normalized = 'pending'
+                if result in ('pass', 'ok', True):
+                    normalized = 'ok'
+                elif result in ('reject', 'nok', False):
+                    normalized = 'nok'
+                elif result == 'bypass':
+                    normalized = 'bypass'
+                converted_results[station] = normalized
             
             # Determine final result logic:
             # - If ALL stations are pending -> NOK (reject)
             # - If ANY station is NOK -> NOK (reject)  
-            # - If ALL stations are OK -> OK (pass)
+            # - If ALL stations are OK or BYPASS -> OK (pass)
+            # - If ANY station is BYPASS and others are OK -> OK (pass)
             all_pending = all(result == 'pending' for result in converted_results.values())
             any_nok = any(result == 'nok' for result in converted_results.values())
+            all_ok_or_bypass = all(result in ('ok', 'bypass') for result in converted_results.values())
+            any_bypass = any(result == 'bypass' for result in converted_results.values())
             all_ok = all(result == 'ok' for result in converted_results.values())
             
             if all_pending:
-                final_result = 'nok'  # Reject if all stations are pending
+                final_result_plc = 'nok'  # Reject if all stations are pending
             elif any_nok:
-                final_result = 'nok'  # Reject if any station failed
-            elif all_ok:
-                final_result = 'ok'   # Pass only if all stations passed
+                final_result_plc = 'nok'  # Reject if any station failed
+            elif all_ok_or_bypass:
+                final_result_plc = 'ok'   # Pass if all stations are OK or bypassed
+            elif any_bypass and not any_nok:
+                final_result_plc = 'ok'   # Pass if any station is bypassed and no failures
             else:
-                final_result = 'nok'  # Default to reject
+                final_result_plc = 'nok'  # Default to reject
             
             # Update the part_quality record with the calculated final result
-            if part_quality.final_result != final_result:
-                part_quality.final_result = final_result
-                _logger.info(f"Updated final_result in part_quality record: {final_result}")
+            # Map PLC result to DB value ('ok' -> 'pass', 'nok' -> 'reject')
+            final_result_db = 'pass' if final_result_plc == 'ok' else 'reject'
+            if part_quality.final_result != final_result_db:
+                part_quality.final_result = final_result_db
+                _logger.info(f"Updated final_result in part_quality record: {final_result_db}")
             
             _logger.info(f"All stations results: {converted_results}")
-            _logger.info(f"Final result: {final_result}")
+            _logger.info(f"Final result (PLC): {final_result_plc}, (DB): {final_result_db}")
             
             return {
-                'final_result': final_result,
+                'final_result': final_result_plc,  # keep ok/nok for PLC writing and measurement
                 'station_results': converted_results,
                 'part_quality_id': part_quality.id,
                 'serial_number': serial_number
@@ -903,7 +916,10 @@ class FinalStationService:
                 })
                 _logger.info(f"Created new part quality record for serial: {serial_number}")
             
-            # Format station results for dashboard
+            # Check and update bypass status BEFORE getting station results for dashboard
+            self._update_bypass_status_in_part_quality(part_quality)
+            
+            # Format station results for dashboard - use actual part_quality results (now with updated bypass status)
             stations = [
                 {
                     'name': 'VICI Vision',
@@ -932,19 +948,23 @@ class FinalStationService:
             ]
             
             # Determine overall status using same logic as check_all_stations_result
+            # Use actual part_quality results
             results = [part_quality.vici_result, part_quality.ruhlamat_result, 
                       part_quality.aumann_result, part_quality.gauging_result]
             
             all_pending = all(result == 'pending' for result in results)
             any_reject = any(result == 'reject' for result in results)
-            all_pass = all(result == 'pass' for result in results)
+            all_pass_or_bypass = all(result in ('pass', 'bypass') for result in results)
+            any_bypass = any(result == 'bypass' for result in results)
             
             if all_pending:
                 overall_status = 'reject'  # Reject if all stations are pending
             elif any_reject:
                 overall_status = 'reject'  # Reject if any station failed
-            elif all_pass:
-                overall_status = 'pass'    # Pass only if all stations passed
+            elif all_pass_or_bypass:
+                overall_status = 'pass'    # Pass if all stations are pass or bypassed
+            elif any_bypass and not any_reject:
+                overall_status = 'pass'    # Pass if any station is bypassed and no failures
             else:
                 overall_status = 'reject'  # Default to reject
             
@@ -972,12 +992,66 @@ class FinalStationService:
                 'overall_status': 'pending'
             }
     
+    def _update_bypass_status_in_part_quality(self, part_quality):
+        """Update part_quality record with current bypass status for all machines"""
+        try:
+            # Map machine_type -> part_quality field
+            field_mapping = {
+                'vici_vision': 'vici_result',
+                'ruhlamat': 'ruhlamat_result',
+                'aumann': 'aumann_result',
+                'gauging': 'gauging_result'
+            }
+            
+            # Get all machines (active and inactive) and their bypass status
+            machines = self.machine.env['manufacturing.machine.config'].search([
+                ('machine_type', 'in', list(field_mapping.keys()))
+            ])
+            
+            # Update part_quality record with current bypass status
+            update_fields = {}
+            for machine in machines:
+                field_name = field_mapping.get(machine.machine_type)
+                if field_name and machine.is_bypassed:
+                    # Only update if the current value is not already 'bypass'
+                    current_value = getattr(part_quality, field_name)
+                    if current_value != 'bypass':
+                        update_fields[field_name] = 'bypass'
+                        _logger.info(f"Machine {machine.machine_name} is bypassed, updating {field_name} to 'bypass' for serial {part_quality.serial_number}")
+            
+            # Update part_quality record if any fields need to be updated
+            if update_fields:
+                part_quality.write(update_fields)
+                _logger.info(f"Updated part_quality record {part_quality.serial_number} with bypass status: {update_fields}")
+                
+        except Exception as e:
+            _logger.error(f"Error updating bypass status in part_quality: {str(e)}")
+
+    def _get_machine_bypass_status(self):
+        """Get current bypass status for all machines (active and inactive)"""
+        try:
+            # Get all machines (active and inactive) and their bypass status
+            machines = self.machine.env['manufacturing.machine.config'].search([
+                ('machine_type', 'in', ['vici_vision', 'ruhlamat', 'aumann', 'gauging'])
+            ])
+            
+            bypass_status = {}
+            for machine in machines:
+                bypass_status[machine.machine_type] = machine.is_bypassed
+            
+            return bypass_status
+        except Exception as e:
+            _logger.error(f"Error getting machine bypass status: {str(e)}")
+            return {}
+    
     def _get_status_icon(self, result):
         """Get status icon for result"""
         if result == 'pass':
             return 'fa-check-circle'
         elif result == 'reject':
             return 'fa-times-circle'
+        elif result == 'bypass':
+            return 'fa-forward'  # Use forward icon for bypass
         else:  # pending
             return 'fa-clock-o'
     
@@ -987,6 +1061,8 @@ class FinalStationService:
             return 'text-success'
         elif result == 'reject':
             return 'text-danger'
+        elif result == 'bypass':
+            return 'text-info'  # Use info color for bypass
         else:  # pending
             return 'text-warning'
     
