@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <!-- SPC Action Notification -->
+        <record id="mail_template_spc_action" model="mail.template">
+            <field name="name">SPC Action Notification</field>
+            <field name="model_id" ref="model_statistical_process_control"/>
+            <field name="subject">SPC Action: {{object.name}}</field>
+            <field name="email_from">{{user.email}}</field>
+            <field name="email_to">{{object.manager.email}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p> Dear <span style="font-weight: bold;" t-out="object.manager.name"/></p>
+                    <p>The SPC record <span style="font-weight: bold;" t-out="object.name"/> has been updated to stage_display: <span style="font-weight: bold;" t-out="object.stage_display" />.</p>
+                    <p>Action performed: <span style="font-weight: bold;" t-out="ctx.get('action_name', 'Unknown')"/></p>
+                    <p>Regards,<br/> <span style="font-weight: bold;" t-out="user.name"/></p>
+                </div>
+            </field>
+        </record>
+
+        <!-- SPC Start Notification -->
+        <record id="mail_template_spc_start" model="mail.template">
+            <field name="name">SPC Start Notification</field>
+            <field name="model_id" ref="spc.model_statistical_process_control"/>
+            <field name="subject">🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun!</field>
+            <field name="email_from">{{user.email}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>Dear <span t-out="recipient_name or 'Team Member'"/>,</p>
+                    <p>Great news! The Statistical Process Control (SPC) journey for "<span t-out="object.name"/>" has officially kicked off and is now in full swing.</p>
+                    <p><strong>Action</strong>: Start</p>
+                    <p><strong>Current Stage</strong>: <span t-out="object.stage_display" /></p>
+                    <p>Keep an eye on this one as it moves forward—exciting things ahead!</p>
+                    <p>Best regards,<br/><span t-out="user.name"/></p>
+                </div>
+            </field>
+        </record>
+
+        <!-- SPC Send for Approval Notification -->
+        <record id="mail_template_spc_send_for_approval" model="mail.template">
+            <field name="name">SPC Send for Approval Notification</field>
+            <field name="model_id" ref="spc.model_statistical_process_control"/>
+            <field name="subject">🔔 Your Input Needed: {{object.name}} Awaits Approval</field>
+            <field name="email_from">{{user.email}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>Dear <span t-out="recipient_name or 'Team Member'"/>,</p>
+                    <p>The SPC record "<span t-out="object.name"/>" is ready for your expert review—it’s been submitted for approval!</p>
+                    <p><strong>Action</strong>: Send for Approval</p>
+                    <p><strong>Current Stage</strong>: <span t-out="object.stage_display"/></p>
+                    <p>Could you please take a moment to review and give it your thumbs-up? We’d love to keep the momentum going.</p>
+                    <p>Cheers,<br/><span t-out="user.name"/></p>
+                </div>
+            </field>
+        </record>
+
+        <!-- SPC Approve Notification -->
+        <record id="mail_template_spc_approve" model="mail.template">
+            <field name="name">SPC Approve Notification</field>
+            <field name="model_id" ref="spc.model_statistical_process_control"/>
+            <field name="subject">✅ Approval Update: {{object.name}}</field>
+            <field name="email_from">{{user.email}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>Dear <span t-out="recipient_name or 'Team Member'"/>,</p>
+                    <p><span t-out="user.name"/> has approved their part of the SPC record "<span t-out="object.name"/>".</p>
+                    <p><strong>Current Stage</strong>: <span t-out="object.stage_display" /></p>
+                    <p>Thank you for staying engaged with this process!</p>
+                    <p>Regards,<br/><span t-out="user.name"/></p>
+                </div>
+            </field>
+        </record>
+
+        <!-- SPC Reject Notification -->
+        <record id="mail_template_spc_reject" model="mail.template">
+            <field name="name">SPC Reject Notification</field>
+            <field name="model_id" ref="spc.model_statistical_process_control"/>
+            <field name="subject">🔄 Rejection Update: {{object.name}}</field>
+            <field name="email_from">{{user.email}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>Dear <span t-out="recipient_name or 'Team Member'"/>,</p>
+                    <p><span t-out="user.name"/> has rejected their part of the SPC record "<span t-out="object.name"/>".</p>
+                    <p><strong>Current Stage</strong>: <span t-out="object.stage_display" /></p>
+                    <p>Please check the feedback and make necessary adjustments.</p>
+                    <p>Best,<br/><span t-out="user.name"/></p>
+                </div>
+            </field>
+        </record>
+
+        <!-- SPC Complete Notification -->
+        <record id="mail_template_spc_complete" model="mail.template">
+            <field name="name">SPC Complete Notification</field>
+            <field name="model_id" ref="spc.model_statistical_process_control"/>
+            <field name="subject">🎉 Mission Accomplished: {{object.name}} SPC is Complete!</field>
+            <field name="email_from">{{user.email}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>Dear <span t-out="recipient_name or 'Team Member'"/>,</p>
+                    <p>Time to celebrate! The SPC process for "<span t-out="object.name"/>" has crossed the finish line and is now complete.</p>
+                    <p><strong>Action</strong>: Complete</p>
+                    <p><strong>Current Stage</strong>: <span t-out="object.stage_display" /></p>
+                    <p>Thank you for your guidance throughout this process—it’s a job well done!</p>
+                    <p>Warm regards,<br/><span t-out="user.name"/></p>
+                </div>
+            </field>
+        </record>
+
+        <!-- SPC Cancel Notification -->
+        <record id="mail_template_spc_cancel" model="mail.template">
+            <field name="name">SPC Cancel Notification</field>
+            <field name="model_id" ref="spc.model_statistical_process_control"/>
+            <field name="subject">🛑 Stop the Press: {{object.name}} SPC Process Canceled</field>
+            <field name="email_from">{{user.email}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>Dear <span t-out="recipient_name or 'Team Member'"/>,</p>
+                    <p>Just a quick note: The SPC process for "<span t-out="object.name"/>" has been canceled.</p>
+                    <p><strong>Action</strong>: Cancel</p>
+                    <p><strong>Current Stage</strong>: <span t-out="object.stage_display" /></p>
+                    <p>If this wasn’t expected, feel free to reach out to the team for more details. We’re here to help!</p>
+                    <p>Regards,<br/><span t-out="user.name"/></p>
+                </div>
+            </field>
+        </record>
+</odoo>

@@ -1,0 +1,810 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <menuitem id="menu_spc_root" name="SPC" sequence="10"/>
+
+    <menuitem id="menu_spc_main" name="Statistical Process Control" parent="spc.menu_spc_root" sequence="10"/>
+    <menuitem id="menu_spc_operations" name="SPC Operations" parent="spc.menu_spc_root" sequence="20"/>
+    <menuitem id="menu_spc_configuration" name="Configuration" parent="spc.menu_spc_root" sequence="100"/>
+
+
+    <!-- Views and actions for SPC Part model -->
+    <record id="view_spc_part_form" model="ir.ui.view">
+        <field name="name">spc.part.form</field>
+        <field name="model">spc.part</field>
+        <field name="arch" type="xml">
+            <form string="SPC Part">
+                <sheet>
+                    <group>
+                        <field name="part_id"/>
+                        <field name="part_number"/>
+                        <field name="part_name_display"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_spc_part_list" model="ir.ui.view">
+        <field name="name">spc.part.list</field>
+        <field name="model">spc.part</field>
+        <field name="arch" type="xml">
+            <list string="SPC Parts">
+                <field name="part_id"/>
+                <field name="part_number"/>
+                <field name="part_name_display"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_spc_part" model="ir.actions.act_window">
+        <field name="name">SPC Parts</field>
+        <field name="res_model">spc.part</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Views and actions for Quality Characteristic model -->
+    <record id="view_quality_characteristic_form" model="ir.ui.view">
+        <field name="name">quality.characteristic.form</field>
+        <field name="model">quality.characteristic</field>
+        <field name="arch" type="xml">
+            <form string="Quality Characteristic">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_quality_characteristic_list" model="ir.ui.view">
+        <field name="name">quality.characteristic.list</field>
+        <field name="model">quality.characteristic</field>
+        <field name="arch" type="xml">
+            <list string="Quality Characteristics">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_quality_characteristic" model="ir.actions.act_window">
+        <field name="name">Quality Characteristics</field>
+        <field name="res_model">quality.characteristic</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Views and actions for Quality Standard model -->
+    <record id="view_quality_standard_form" model="ir.ui.view">
+        <field name="name">quality.standard.form</field>
+        <field name="model">quality.standard</field>
+        <field name="arch" type="xml">
+            <form string="Quality Standard">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_quality_standard_list" model="ir.ui.view">
+        <field name="name">quality.standard.list</field>
+        <field name="model">quality.standard</field>
+        <field name="arch" type="xml">
+            <list string="Quality Standards">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_quality_standard" model="ir.actions.act_window">
+        <field name="name">Quality Standards</field>
+        <field name="res_model">quality.standard</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Views and actions for Instrument Name model -->
+    <record id="view_instrument_name_form" model="ir.ui.view">
+        <field name="name">instrument.name.form</field>
+        <field name="model">instrument.name</field>
+        <field name="arch" type="xml">
+            <form string="Instrument Name">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_instrument_name_list" model="ir.ui.view">
+        <field name="name">instrument.name.list</field>
+        <field name="model">instrument.name</field>
+        <field name="arch" type="xml">
+            <list string="Instrument Names">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_instrument_name" model="ir.actions.act_window">
+        <field name="name">Instrument Names</field>
+        <field name="res_model">instrument.name</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Views and actions for SPC Measurement Value model -->
+    <record id="view_spc_measurement_value_form" model="ir.ui.view">
+        <field name="name">spc.measurement.value.form</field>
+        <field name="model">spc.measurement.value</field>
+        <field name="arch" type="xml">
+            <form string="SPC Measurement Value">
+                <sheet>
+                    <group>
+                        <field name="spc_id"/>
+                        <field name="usl" invisible="1"/>
+                        <field name="lsl" invisible="1"/>
+                        <field name="parameter_id"/>
+                        <field name="group_id"/>
+                        <field name="value"
+                        decoration-danger="value &gt; usl or value &lt; lsl"
+                    decoration-success="value &gt;= lsl and value &lt;= usl"  />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_spc_measurement_value_list" model="ir.ui.view">
+        <field name="name">spc.measurement.value.list</field>
+        <field name="model">spc.measurement.value</field>
+        <field name="arch" type="xml">
+            <list string="SPC Measurement Values">
+                <field name="spc_id" invisible="1"/>
+                <field name="usl" invisible="1"/>
+                <field name="lsl" invisible="1"/>
+                <field name="parameter_id"/>
+                <field name="group_id"/>
+                <field name="value"
+                decoration-danger="value &gt; usl or value &lt; lsl"
+                    decoration-success="value &gt;= lsl and value &lt;= usl" 
+                /> 
+            </list>
+        </field>
+    </record>
+
+    <record id="action_spc_measurement_value" model="ir.actions.act_window">
+        <field name="name">SPC Measurement Values</field>
+        <field name="res_model">spc.measurement.value</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'group_by': 'spc_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Enter your first measurement value
+            </p>
+        </field>
+    </record>
+
+    <!-- SPC Measurement Parameter Form View -->
+    <record id="view_spc_measurement_parameter_form" model="ir.ui.view">
+        <field name="name">spc.measurement.parameter.form</field>
+        <field name="model">spc.measurement.parameter</field>
+        <field name="arch" type="xml">
+            <form string="Measurement Parameter">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="spc_id" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SPC Measurement Parameter list View -->
+    <record id="view_spc_measurement_parameter_list" model="ir.ui.view">
+        <field name="name">spc.measurement.parameter.list</field>
+        <field name="model">spc.measurement.parameter</field>
+        <field name="arch" type="xml">
+            <list string="Measurement Parameters" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- SPC Measurement Group Form View -->
+    <record id="view_spc_measurement_group_form" model="ir.ui.view">
+        <field name="name">spc.measurement.group.form</field>
+        <field name="model">spc.measurement.group</field>
+        <field name="arch" type="xml">
+            <form string="Measurement Group">
+                <sheet>
+                    <group>
+                        <field name="group_no"/>
+                        <field name="date_of_measurement"/>
+                        <field name="spc_id" invisible="0" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Measured Values">
+                            <field name="measurement_value_ids">
+                                <list editable="bottom">
+                                    <field name="parameter_id" domain="[('spc_id', '=', parent.spc_id)]" options="{'no_create': True}"/>
+                                    <field name="value"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SPC Measurement Group list View -->
+    <record id="view_spc_measurement_group_list" model="ir.ui.view">
+        <field name="name">spc.measurement.group.list</field>
+        <field name="model">spc.measurement.group</field>
+        <field name="arch" type="xml">
+            <list string="Measurement Groups">
+                <field name="group_no"/>
+                <field name="date_of_measurement"/>
+                <field name="spc_id" invisible="0" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+
+                                    <!-- ######################################################### -->
+                                    <!--          Main Statistical Process Control View            -->
+                                    <!-- ######################################################### -->
+
+    <!-- Views and actions for Statistical Process Control model -->
+    <!-- Statistical Process Control Form View -->
+    <record id="view_statistical_process_control_form" model="ir.ui.view">
+        <field name="name">statistical.process.control.form</field>
+        <field name="model">statistical.process.control</field>
+        <field name="arch" type="xml">
+            <form string="Statistical Process Control">
+                <header>
+<!--                    <field name="stage" widget="statusbar" statusbar_visible="draft,in_progress,to_approve,approved,completed" statusbar_colors='{"canceled": "warning" , "draft": #199cff , "in_progress": "info", "to_approve":"warning", "approved":"green", "completed":"green"}' options="{'clickable': False}"/>-->
+                    <!-- Updated for Odoo 17+: replace deprecated attrs with direct dynamic attributes -->
+<!--                    <button name="action_start" string="Start" type="object" class="btn-primary" invisible="stage != 'draft'" confirm="Are you sure you want to start the process?" />-->
+<!--                    <button name="action_send_for_approval" string="Send for Approval" type="object" class="btn-info" invisible="stage != 'in_progress'" confirm="Send for approval?" />-->
+<!--                    <button name="action_approve" string="Approve" type="object" class="btn-success" invisible="(stage != 'to_approve') or (can_approve == False)" confirm="Approve your part?" />-->
+<!--                    <button name="action_reject" string="Reject" type="object" class="btn-danger" invisible="(stage != 'to_approve') or (can_approve == False)" confirm="Reject and return to In Progress?" />-->
+<!--                    <button name="action_complete" string="Complete" type="object" class="btn-primary" invisible="(stage != 'approved') or (is_manager == False)" confirm="Complete the process?" />-->
+<!--                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger" invisible="(stage in ('completed','canceled')) or (is_manager == False)" confirm="Cancel the process?" />-->
+<!--                    <button name="action_back_to_draft" string="Reset to Draft" type="object" class="btn-secondary" invisible="(stage != 'in_progress') or (is_manager == False)" confirm="Are you sure you want to undo to Draft?" />-->
+<!--                    <button name="action_undo" string="Undo" type="object" class="btn-secondary" invisible="(stage not in ['to_approve','approved','completed','canceled']) or (is_manager == False)" confirm="Are you sure you want to undo to In Progress?" />-->
+<!--                    <button name="action_undo" string="Undo" type="object" class="btn-secondary" invisible="stage != 'to_approve'" groups="spc.group_spc_user" confirm="Are you sure you want to undo to In Progress?" />-->
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="manager" required="1" />
+                            <field name="is_manager" invisible="1"/>
+                            <field name="approval_members" widget="many2many_tags" />
+                            <field name="date" />
+                            <!-- <field name="product_id"/> -->
+                            <field name="product_qty" invisible="1"/>
+                            <field name="part_no_id" />
+                            <field name="part_name_display" />
+                            <field name="operation" />
+                            <field name="least_count" string="Least Count (L.C.)" help="Measurement precision - enter manually" required="1" />
+                        </group>
+                        <group>
+                            <field name="quality_char_id" />
+                            <field name="standard_id" />
+                            <field name="instrument_id" />
+                            <field name="machine_name" />
+                            <field name="supplier_id" />
+                            <field name="doc_control_no" />
+                            <field name="sampling_ratio" />
+                            <field name="can_approve" invisible="1" />
+                            <field name="statistics_calculated" invisible="1"/>
+                            <field name="show_calculate_button" invisible="1"/>
+                            <field name="stage_display" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Specification Limits">
+<!--                    <div class="oe_grey" style="padding: 10px;">Set USL (Upper Specification Limit) and LSL (Lower Specification Limit)</div>-->
+<!--                        <group>-->
+<!--                        </group>-->
+                        <group>
+                            <field name="usl" required="1"/>
+                            <field name="lsl" required="1"/>
+                        </group>
+                    </group>
+                    <br/>
+                    <group>
+                        <field name="data_collection"/>
+                    </group>
+                    <notebook>
+<!--                        <page name="approval_status" string="Approval Status" groups="spc.group_spc_approver" >-->
+<!--                            <field name="approval_line_ids" readonly="1">-->
+<!--                                <list>-->
+<!--                                    <field name="user_id"/>-->
+<!--                                    <field name="state" decoration-danger="state == 'rejected'" decoration-info="state == 'pending'" decoration-success="state == 'approved'"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+                        <page string="Measurement Parameters" name="measurement_parameter">
+                            <p class="oe_grey">First, define your measurement parameters (X1, X2, X3, etc.)</p>
+                            <field name="parameter_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Measurement Groups" name="measurement_group" >
+                            <p class="oe_grey">Define your group numbers and their measurement date/time</p>
+                            <field name="measurement_group_ids" >
+                            <!-- <field name="measurement_group_ids" readonly="stage in ['in_progress','to_approve','approved','completed','canceled']" > -->
+                                <list editable="bottom">
+                                    <field name="group_no" readonly="1"/>
+                                    <field name="date_of_measurement"/>
+                                </list>
+                            </field>
+                        </page>
+                        <!-- Measurement Matrix Tab -->
+                        <page string="Measurement Matrix" name="measurement_matrix">
+                            <field name="id" invisible="1"/>
+                            <field name="measurement_value_ids" invisible="1"/>
+                            <div invisible="(parameter_ids == []) or (measurement_group_ids == [])">
+                                <p class="oe_grey">Add measurement values for each parameter and group.</p>
+                                <field name="measurement_value_ids" >
+                                    <list editable="bottom" delete="0" >
+                                        <field name="parameter_id" domain="[('spc_id', '=', parent.id)]" readonly="1"/>
+                                        <field name="group_id" domain="[('spc_id', '=', parent.id)]" readonly="1"/>
+                                        <field name="value"
+                                            decoration-danger="value &gt; parent.usl or value &lt; parent.lsl"
+                                            decoration-success="value &gt;= parent.lsl and value &lt;= parent.usl" />
+                                    </list>
+                                </field>
+                            </div>
+                        </page>
+                        <page string="Measurement Values &amp; Group Statistics" name="measurement_values_group_statistics">
+                            <field name="measurement_html" widget="html" nolabel="1"/>
+
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <div style="font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #87CEFA;">
+                                    <button name="action_calculate_statistics"
+                                            string="Calculate Statistics"
+                                            type="object"
+                                            class="oe_stat_button"
+                                            />
+                                </div>
+                            </div>
+                            <field name="group_statistics_html" widget="html" nolabel="1"/>
+                        </page>
+                        <!-- <page string="Measurement Values Table" name="measurement_values_table" invisible="(stage == 'draft') or (parameter_ids == []) or (measurement_group_ids == [])" >
+                            <field name="measurement_html" widget="html" nolabel="1"/>
+                        </page> -->
+                        <!-- <page string="Group Statistics Table" name="group_statistics_table" invisible="(stage == 'draft') or (parameter_ids == []) or (measurement_group_ids == [])" >
+                            <field name="group_stat_ids" readonly="1">
+                                <list create="0" delete="0" >
+                                    <field name="group_id"/>
+                                    <field name="stat_type"/>
+                                    <field name="value"/>
+                                </list>
+                            </field>
+                        </page> -->
+                        <page string="Summary Statistics" name="summary_statistics">
+                            <!-- Basic Statistics Summary -->
+                            <group string="Basic Statistics Summary" style="width: 100%;" invisible="statistics_calculated == False">
+                                <group style="padding: 10px; width: 50%; background: #f9f9f9; border: 1px solid #dcdcdc;">
+                                    <field name="max_large" string="Maximum Value (across all groups)" readonly="1"/>
+                                    <field name="min_small" string="Minimum Value (across all groups)" readonly="1"/>
+                                </group>
+                                <group style="padding: 10px; width: 50%; background: #f9f9f9; border: 1px solid #dcdcdc;">
+                                    <field name="avg_range" string="Average Range (across all groups)" readonly="1"/>
+                                    <field name="avg_of_avgs" string="Average of Group Averages" readonly="1"/>
+                                </group>
+                                <group style="padding: 10px; width: 50%; background: #f9f9f9; border: 1px solid #dcdcdc;">
+                                    <field name="non_conforming_parts"/>
+                                    <field name="values_above_ucl" />
+                                    <field name="values_below_lcl" />
+                                </group>
+                            </group>
+                            <br/>
+                            <div invisible="show_calculate_button == False"  style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <div invisible="show_calculate_button == False" style="font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #F0FFF0;">
+                                    <button name="action_calculate_interval_c" type="object" string="Calculate Interval (C) Manually" class="oe_stat_button" invisible="show_calculate_button == False"/>
+                                </div>
+                            </div>
+                            <!-- Advanced Statistics -->
+                            <group string="Advanced Process Statistics" style="width: 100%; margin-top: 20px;">
+                                <group>
+
+                                    <field name="process_width" string="Process Width (R)" readonly="1"
+                                        help="max_large - min_small"/>
+                                    <field name="design_centre" string="Design Centre (D)" readonly="1"
+                                        help="(USL + LSL) / 2"/>
+                                    <field name="starting_point" string="Starting Point" readonly="1"
+                                        help="Minimum value from all measurements"/>
+                                    <field name="specification_width" string="Specification Width (S)" readonly="1"
+                                        help="USL - LSL"/>
+                                    <field name="interval_c" string="Interval (C)"
+                                        help="(Process Width + Least Count) / k"/>
+                                </group>
+                                <group>
+                                    <field name="num_readings" string="No. of Readings (N)" readonly="1"
+                                        help="Total count of measurement values"/>
+                                    <field name="num_class_intervals" string="No. of Class Intervals" readonly="1"
+                                        help="1 + 3.222 × log10(N)"/>
+                                    <field name="selected_classes_k" string="Selected Classes (k)"
+                                        help="Recommended classes based on sample size"/>
+                                    <field name="index_k" string="Index (K)" readonly="1"
+                                        help="R × (D-R) / S"/>
+                                    <field name="shift_x_from_d" string="Shift of X from D" readonly="1"
+                                        help="avg_of_avgs - Design Centre"/>
+                                    <field name="lower_class_limit" string="Lower Class Limit"
+                                        help="Starting Point - (0.5 × Least Count)"/>
+                                </group>
+                            </group>
+
+                            <!-- Formula reference section -->
+                            <!-- <group string="Formula Reference" style="width: 100%; margin-top: 20px;"> -->
+                            <div name="formula_reference" class="alert alert-info" role="alert" style="width: 100%; display: flex; justify-content: space-between;" >
+                                <div name="left_side" style="width: 48%;">
+                                    <div style="font-weight: bold">Formula Reference</div>
+                                    <ul>
+                                        <li>Process Width (R) = Maximum Value - Minimum Value</li>
+                                        <li>Design Centre (D) = (USL + LSL) / 2</li>
+                                        <li>Specification Width (S) = USL - LSL</li>
+                                        <li>No. of readings ( N )  = Total count of measurement values</li>
+                                        <li>No. of Class Intervals = 1 + 3.222 × log10(N)</li>
+                                        <li>Interval (C) = (R + L.C.) / k</li>
+                                        <li>Selecting no. of classes( k )= IF(N=50,"6",IF(N=100,"7",IF(N=200,"8",IF(N=500,"9",IF(N=1000,"10")))))</li>
+                                        <li>Index (K) = R × (D-R) / S</li>
+                                        <li>Shift Of X from D = Average - Design Centre</li>
+                                        <li>Lower Class Limit = Starting Point - (0.5 × Least Count)</li>
+                                    </ul>
+                                </div>
+                                <div name="right_side" style="width: 48%;">
+                                    <div style="font-weight: bold; text-align: center">UP TO 5 SAMPLES ' D3' VALUE = 0</div>
+                                    <div style="font-weight: bold;">Control Chart Constants</div>
+                                    <field name="control_chart_constants_ids" nolabel="1">
+                                        <list editable="bottom" create="0" delete="0">
+                                            <field name="sample" readonly="1"/>
+                                            <field name="d2" readonly="1"/>
+                                            <field name="a2" readonly="1"/>
+                                            <field name="d3" readonly="1"/>
+                                            <field name="d4" readonly="1"/>
+                                        </list>
+                                    </field>
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Summary Statistics (2)" name="summary_statistics_2">
+                            <div style="font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #87CEFA;">
+                                <button name="action_generate_intervals_and_frequencies"
+                                                string="Generate Intervals &amp; Frequencies"
+                                                type="object"/>
+                            </div>
+                            <group>
+                                <div  invisible="interval_ids != []" style="display: inline-block; font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #FFDAB9;">
+                    <button name="initialize_intervals" string="Initialize Intervals" type="object" class="oe_stat_button" invisible="interval_ids != []"/>
+                                </div>
+                            </group>
+                            <div name="interval_distribution" class="alert alert-info" role="alert" style="width: 100%; display: flex; justify-content: space-between; background-color: #87CEFA" >
+                                <div name="interval_distribution" style="width: 48%;" >
+                                    <field name="interval_ids" nolabel="1" >
+                                        <list editable="bottom">
+                                            <field name="interval1" readonly="1"/>
+                                            <field name="interval2" readonly="1"/>
+                                        </list>
+                                    </field>
+                                </div>
+                                <div name="frequency_distribution" style="width: 48%;" >
+                                    <field name="frequency_ids" nolabel="1" >
+                                        <list editable="bottom">
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="frequency"/>
+                                            <field name="current_frequency" readonly="1"/>
+                                        </list>
+                                    </field>
+                                </div>
+                            </div>
+                            <div name="control_limits_capability" class="alert alert-info" role="alert" style="width: 100%; margin-top: 20px; background-color: #87CEFA">
+                                <h4>Control Limits and Process Capability</h4>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <div style="width: 48%;">
+                                        <group>
+                                            <field name="ucl_x" readonly="1"/>
+                                            <field name="lcl_x" readonly="1"/>
+                                            <field name="ucl_r" readonly="1"/>
+                                            <field name="lcl_r" readonly="1"/>
+                                        </group>
+                                    </div>
+                                    <div style="width: 48%;">
+                                        <group>
+                                            <field name="std_dev" readonly="1" style="color: #0000FF;"/>
+                                            <field name="cp" readonly="1" style="color: #0000FF;"/>
+                                            <field name="cpk_u" readonly="1" style="color: #0000FF;"/>
+                                            <field name="cpk_l" readonly="1" style="color: #0000FF;"/>
+                                            <field name="cpk" readonly="1" style="color: #0000FF;"/>
+                                        </group>
+                                    </div>
+                                </div>
+                                
+                                <!-- Formula Reference Section -->
+                                <div name="control_formulas_reference" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px;">
+                                    <h4>Control Limits and Capability Formulas</h4>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <div style="width: 48%;">
+                                            <ul>
+                                                <li><strong>U.C.L.X:</strong> X̄ + A2×R̄ = Average of Averages + (A2 × Average Range)</li>
+                                                <li><strong>L.C.L.X:</strong> X̄ - A2×R̄ = Average of Averages - (A2 × Average Range)</li>
+                                                <li><strong>U.C.L.R:</strong> R̄ × D4 = Average Range × D4</li>
+                                                <li><strong>L.C.L.R:</strong> R̄ × D3 = Average Range × D3</li>
+                                            </ul>
+                                        </div>
+                                        <div style="width: 48%;">
+                                            <ul>
+                                                <li><strong>Std.Dev.(σ):</strong> R̄ / d2 = Average Range / d2</li>
+                                                <li><strong>Cp:</strong> (USL-LSL)/(6σ) = specification_width / (6 × Std.Dev.(σ))</li>
+                                                <li><strong>Cpk U:</strong> (USL-X̄)/(3σ) = (usl - Average of Averages) / (3 × Std.Dev.(σ))</li>
+                                                <li><strong>Cpk L:</strong> (X̄-LSL)/(3σ) = (Average of Averages - lsl) / (3 × Std.Dev.(σ))</li>
+                                                <li><strong>Actual Cpk:</strong> MIN(Cpk U, Cpk L)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-warning" role="status" style="margin-top: 10px;">
+                                        <strong>Note:</strong> All constants (A2, D3, d4, d2) are taken from the largest sample size in the control chart constants table.
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Control Limits and Interval and Frequency" name="control_limits_per_group" >
+                                <field name="control_limits_lines" readonly="1">
+                                    <list create="0" delete="0">
+                                        <field name="group_id"/>
+                                        <field name="ucl_x"/>
+                                        <field name="lcl_x"/>
+                                        <field name="avg_of_avgs"/>
+                                        <field name="avg_value"/>
+                                        <field name="ucl_r"/>
+                                        <field name="lcl_r"/>
+                                        <field name="avg_range"/>
+                                        <field name="range_value"/>
+                                    </list>
+                                </field>
+                                <br/>
+                                <div style="font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #F0FFF0;">
+                                    <button name="action_update_interval_frequency_display" type="object" string="Update Interval and Frequency Display" />
+                                </div>
+                                <br/>
+                                <field name="interval_frequency_display_ids" readonly="1">
+                                    <list>
+                                        <field name="interval1"/>
+                                        <field name="interval2"/>
+                                        <field name="frequency"/>
+                                    </list>
+                                </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="view_statistical_process_control_list" model="ir.ui.view">
+        <field name="name">statistical.process.control.list</field>
+        <field name="model">statistical.process.control</field>
+        <field name="arch" type="xml">
+            <list string="Statistical Process Control">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="product_id"/>
+                <field name="part_no_id"/>
+                <field name="quality_char_id"/>
+                <field name="standard_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ####### pivot view for measurement values ############ -->
+    <record id="view_spc_measurement_value_pivot_main" model="ir.ui.view">
+        <field name="name">spc.measurement.value.pivot</field>
+        <field name="model">spc.measurement.value</field>
+        <field name="arch" type="xml">
+            <pivot string="Measurement Matrix" display_quantity="false">
+                <field name="spc_id" invisible="1"/>
+                <field name="usl" invisible="1"/>
+                <field name="lsl" invisible="1"/>
+                <field name="parameter_id" type="row" string="Parameter" readonly="1"/>
+                <field name="group_id" type="col" string="Group" readonly="1"/>
+                <field name="value"  type="measure" string=" " readonly="1"/>
+                <!-- <field name="value"  type="measure" string=" " readonly="1"
+                     decoration-danger="value &gt; usl or value &lt; lsl"
+                    decoration-success="value &gt;= lsl and value &lt;= usl"  /> -->
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_spc_measurement_pivot" model="ir.actions.act_window">
+        <field name="name">Measurement Pivot</field>
+        <field name="res_model">spc.measurement.value</field>
+        <field name="view_mode">pivot,list,form</field>
+        <field name="context">{'group_by': 'spc_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No measurement values found
+            </p>
+        </field>
+    </record>
+
+    <!-- Action for Statistical Process Control -->
+    <record id="action_statistical_process_control" model="ir.actions.act_window">
+        <field name="name">Statistical Process Control</field>
+        <field name="res_model">statistical.process.control</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Action for SPC Measurement Parameter -->
+    <record id="action_spc_measurement_parameter" model="ir.actions.act_window">
+        <field name="name">Measurement Parameters</field>
+        <field name="res_model">spc.measurement.parameter</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'group_by': 'spc_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define your first measurement parameter
+            </p>
+        </field>
+    </record>
+
+    <!-- Action for SPC Measurement Group -->
+    <record id="action_spc_measurement_group" model="ir.actions.act_window">
+        <field name="name">Measurement Groups</field>
+        <field name="res_model">spc.measurement.group</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'group_by': 'spc_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first measurement group
+            </p>
+        </field>
+    </record>
+
+
+    <!-- Pivot view for group statistics -->
+    <record id="view_spc_group_statistics_pivot" model="ir.ui.view">
+        <field name="name">spc.group.statistics.pivot</field>
+        <field name="model">spc.group.statistics</field>
+        <field name="arch" type="xml">
+            <pivot string="Measurement Statistics" display_quantity="false">
+                <field name="stat_type" type="row" readonly="1"/>
+                <field name="group_id" type="col" readonly="1"/>
+                <field name="value" type="measure" readonly="1"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Action for group statistics -->
+    <record id="action_spc_group_statistics" model="ir.actions.act_window">
+        <field name="name">Group Statistics</field>
+        <field name="res_model">spc.group.statistics</field>
+        <field name="view_mode">pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No statistics available
+            </p>
+        </field>
+    </record>
+
+    <!-- list view for group statistics -->
+    <record id="view_spc_group_statistics_list" model="ir.ui.view">
+        <field name="name">spc.group.statistics.list</field>
+        <field name="model">spc.group.statistics</field>
+        <field name="arch" type="xml">
+            <list string="Measurement Statistics">
+                <field name="group_id"/>
+                <field name="stat_type"/>
+                <field name="value"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="action_spc_group_statistics_list_view" model="ir.actions.act_window">
+        <field name="name">Group Statistics List</field>
+        <field name="res_model">spc.group.statistics</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'group_by': ['group_id']}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No statistics available
+            </p>
+        </field>
+    </record>
+
+
+    <record id="view_spc_control_chart_constants_list" model="ir.ui.view">
+        <field name="name">spc.control.chart.constants.list</field>
+        <field name="model">spc.control.chart.constants</field>
+        <field name="arch" type="xml">
+            <list string="Control Chart Constants">
+                <field name="sample"/>
+                <field name="d2"/>
+                <field name="a2"/>
+                <field name="d3"/>
+                <field name="d4"/>
+                <field name="spc_id"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="view_spc_control_chart_constants_form" model="ir.ui.view">
+        <field name="name">spc.control.chart.constants.form</field>
+        <field name="model">spc.control.chart.constants</field>
+        <field name="arch" type="xml">
+            <form string="Control Chart Constants">
+                <sheet>
+                    <group>
+                        <field name="sample"/>
+                        <field name="d2"/>
+                        <field name="a2"/>
+                        <field name="d3"/>
+                        <field name="d4"/>
+                        <field name="spc_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Control Chart Constants -->
+    <record id="action_spc_control_chart_constants" model="ir.actions.act_window">
+        <field name="name">Control Chart Constants</field>
+        <field name="res_model">spc.control.chart.constants</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'group_by': 'spc_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No control chart constants found
+            </p>
+        </field>
+    </record>
+
+    
+
+
+
+    <!-- Main Menu Items -->
+    <menuitem id="menu_statistical_process_control" action="action_statistical_process_control" parent="spc.menu_spc_main" sequence="10"/>
+
+
+    <!-- Menu Item -->
+    <menuitem id="menu_spc_measurement_group" action="action_spc_measurement_group" parent="spc.menu_spc_operations" sequence="10"/>
+    <menuitem id="menu_spc_measurement_value" action="action_spc_measurement_value" parent="spc.menu_spc_operations" sequence="20"/>
+    <menuitem id="menu_spc_measurement_parameter" action="action_spc_measurement_parameter" parent="spc.menu_spc_operations" sequence="30"/>
+    <menuitem id="menu_spc_control_chart_constants" name="Control Chart Constants" action="action_spc_group_statistics_list_view" parent="spc.menu_spc_operations" sequence="40"/>
+    <menuitem id="menu_spc_measurement_value_pivot" name="Pivot Analysis" action="action_spc_measurement_pivot" parent="spc.menu_spc_operations" sequence="50"/>
+
+
+
+    <menuitem id="menu_spc_part" action="action_spc_part" parent="spc.menu_spc_configuration" sequence="10"/>
+    <menuitem id="menu_quality_characteristic" action="action_quality_characteristic" parent="spc.menu_spc_configuration" sequence="20"/>
+    <menuitem id="menu_quality_standard" action="action_quality_standard" parent="spc.menu_spc_configuration" sequence="30"/>
+    <menuitem id="menu_instrument_name" action="action_instrument_name" parent="spc.menu_spc_configuration" sequence="40"/>
+    <menuitem id="menu_spc_control_chart_constants" name="Control Chart Constants" action="action_spc_control_chart_constants" parent="spc.menu_spc_configuration" sequence="50"/>
+
+
+</odoo>

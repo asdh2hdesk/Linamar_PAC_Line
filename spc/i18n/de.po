@@ -1,0 +1,2152 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* spc
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-07 09:23+0000\n"
+"PO-Revision-Date: 2025-06-07 09:23+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__interval_c
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "(Process Width + Least Count) / k"
+msgstr ""
+"(Process Width + Least Count) / k ((Prozessbreite + kleinste Anzahl) / k)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "(USL + LSL) / 2"
+msgstr "(USL + LSL) / 2 ((USL + LSL) / 2)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__num_class_intervals
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "1 + 3.222 × log10(N)"
+msgstr "1 + 3.222 × log10(N) (1 + 3,222 × log10 (n))"
+
+#. module: spc
+#: model:mail.template,body_html:spc.mail_template_spc_action
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"></span></p>\n"
+"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"></span> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"></span>.</p>\n"
+"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"></span></p>\n"
+"                    <p>Regards,<br> <span style=\"font-weight: bold;\" t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"></span></p>\n"
+"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"></span> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"></span>.</p>\n"
+"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"></span></p>\n"
+"                    <p>Regards,<br> <span style=\"font-weight: bold;\" t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+
+#. module: spc
+#: model:mail.template,body_html:spc.mail_template_spc_approve
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p><span t-out=\"user.name\"></span> has approved their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Thank you for staying engaged with this process!</p>\n"
+"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p><span t-out=\"user.name\"></span> has approved their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Thank you for staying engaged with this process!</p>\n"
+"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+
+#. module: spc
+#: model:mail.template,body_html:spc.mail_template_spc_reject
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p><span t-out=\"user.name\"></span> has rejected their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Please check the feedback and make necessary adjustments.</p>\n"
+"                    <p>Best,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p><span t-out=\"user.name\"></span> has rejected their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Please check the feedback and make necessary adjustments.</p>\n"
+"                    <p>Best,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+
+#. module: spc
+#: model:mail.template,body_html:spc.mail_template_spc_start
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"></span>\" has officially kicked off and is now in full swing.</p>\n"
+"                    <p><strong>Action</strong>: Start</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Keep an eye on this one as it moves forward—exciting things ahead!</p>\n"
+"                    <p>Best regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"></span>\" has officially kicked off and is now in full swing.</p>\n"
+"                    <p><strong>Action</strong>: Start</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Keep an eye on this one as it moves forward—exciting things ahead!</p>\n"
+"                    <p>Best regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+
+#. module: spc
+#: model:mail.template,body_html:spc.mail_template_spc_cancel
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"></span>\" has been canceled.</p>\n"
+"                    <p><strong>Action</strong>: Cancel</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>If this wasn’t expected, feel free to reach out to the team for more details. We’re here to help!</p>\n"
+"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"></span>\" has been canceled.</p>\n"
+"                    <p><strong>Action</strong>: Cancel</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>If this wasn’t expected, feel free to reach out to the team for more details. We’re here to help!</p>\n"
+"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+
+#. module: spc
+#: model:mail.template,body_html:spc.mail_template_spc_send_for_approval
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>The SPC record \"<span t-out=\"object.name\"></span>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
+"                    <p><strong>Action</strong>: Send for Approval</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Could you please take a moment to review and give it your thumbs-up? We’d love to keep the momentum going.</p>\n"
+"                    <p>Cheers,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>The SPC record \"<span t-out=\"object.name\"></span>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
+"                    <p><strong>Action</strong>: Send for Approval</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Could you please take a moment to review and give it your thumbs-up? We’d love to keep the momentum going.</p>\n"
+"                    <p>Cheers,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+
+#. module: spc
+#: model:mail.template,body_html:spc.mail_template_spc_complete
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"></span>\" has crossed the finish line and is now complete.</p>\n"
+"                    <p><strong>Action</strong>: Complete</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Thank you for your guidance throughout this process—it’s a job well done!</p>\n"
+"                    <p>Warm regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
+"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"></span>\" has crossed the finish line and is now complete.</p>\n"
+"                    <p><strong>Action</strong>: Complete</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Thank you for your guidance throughout this process—it’s a job well done!</p>\n"
+"                    <p>Warm regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                </div>\n"
+"            "
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "<strong>Actual Cpk:</strong> MIN(Cpk U, Cpk L)"
+msgstr "<strong>Actual Cpk:</strong> MIN(Cpk U, Cpk L)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"<strong>Cp:</strong> (USL-LSL)/(6σ) = specification_width / (6 × "
+"Std.Dev.(σ))"
+msgstr ""
+"<strong>Cp:</strong> (USL-LSL)/(6σ) = specification_width / (6 × "
+"Std.Dev.(σ))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"<strong>Cpk L:</strong> (X̄-LSL)/(3σ) = (Average of Averages - lsl) / (3 × "
+"Std.Dev.(σ))"
+msgstr ""
+"<strong>Cpk L:</strong> (X̄-LSL)/(3σ) = (Average of Averages - lsl) / (3 × "
+"Std.Dev.(σ))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"<strong>Cpk U:</strong> (USL-X̄)/(3σ) = (usl - Average of Averages) / (3 × "
+"Std.Dev.(σ))"
+msgstr ""
+"<strong>Cpk U:</strong> (USL-X̄)/(3σ) = (usl - Average of Averages) / (3 × "
+"Std.Dev.(σ))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "<strong>L.C.L.R:</strong> R̄ × D3 = Average Range × D3"
+msgstr "<strong>L.C.L.R:</strong> R̄ × D3 = Average Range × D3"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"<strong>L.C.L.X:</strong> X̄ - A2×R̄ = Average of Averages - (A2 × Average "
+"Range)"
+msgstr ""
+"<strong>L.C.L.X:</strong> X̄ - A2×R̄ = Average of Averages - (A2 × Average "
+"Range)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"<strong>Note:</strong> All constants (A2, D3, d4, d2) are taken from the "
+"largest sample size in the control chart constants table."
+msgstr ""
+"<strong>Note:</strong> All constants (A2, D3, d4, d2) are taken from the "
+"largest sample size in the control chart constants table."
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "<strong>Std.Dev.(σ):</strong> R̄ / d2 = Average Range / d2"
+msgstr "<strong>Std.Dev.(σ):</strong> R̄ / d2 = Average Range / d2"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "<strong>U.C.L.R:</strong> R̄ × D4 = Average Range × D4"
+msgstr "<strong>U.C.L.R:</strong> R̄ × D4 = Average Range × D4"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"<strong>U.C.L.X:</strong> X̄ + A2×R̄ = Average of Averages + (A2 × Average "
+"Range)"
+msgstr ""
+"<strong>U.C.L.X:</strong> X̄ + A2×R̄ = Average of Averages + (A2 × Average "
+"Range)"
+
+#. module: spc
+#: model:ir.model.constraint,message:spc.constraint_spc_measurement_value_unique_parameter_group
+msgid "A parameter can only have one value per group!"
+msgstr ""
+"A parameter can only have one value per group! (Ein Parameter kann nur einen"
+" Wert pro Gruppe haben!)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__a2
+msgid "A2"
+msgstr "A2 (A2)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__avg
+msgid "AVG"
+msgstr "AVG (Avg)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_needaction
+msgid "Action Needed"
+msgstr "Action Needed (Aktion erforderlich)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_ids
+msgid "Activities"
+msgstr "Activities (Aktivitäten)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Activity Exception Decoration (Aktivitätsausnahmedekoration)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_state
+msgid "Activity State"
+msgstr "Activity State (Aktivitätszustand)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Activity Type Icon (Aktivitätstyp -Symbol)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__cpk
+msgid "Actual Cpk"
+msgstr "Actual Cpk (Tatsächliche CPK)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__cpk
+msgid "Actual Process Capability = MIN(Cpk U, Cpk L)"
+msgstr ""
+"Actual Process Capability = MIN(Cpk U, Cpk L) (Tatsächliche Prozessfunktion "
+"= min (CPK U, CPK L))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Add measurement values for each parameter and group."
+msgstr ""
+"Add measurement values for each parameter and group. (Messwerte für jeden "
+"Parameter und jede Gruppe hinzufügen.)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Advanced Process Statistics"
+msgstr "Advanced Process Statistics (Erweiterte Prozessstatistik)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__approval_line_ids
+msgid "Approval Lines"
+msgstr "Approval Lines (Zulassungslinien)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__approval_members
+msgid "Approval Members"
+msgstr "Approval Members (Genehmigungsmitglieder)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Approval Status"
+msgstr "Approval Status (Zulassungsstatus)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Approve"
+msgstr "Approve (Genehmigen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Approve your part?"
+msgstr "Approve your part? (Genehmigen Sie Ihren Teil?)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__spc_approval_line__state__approved
+#: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__approved
+msgid "Approved"
+msgstr "Approved (Genehmigt)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Are you sure you want to start the process?"
+msgstr ""
+"Are you sure you want to start the process? (Sind Sie sicher, dass Sie den "
+"Prozess starten möchten?)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Are you sure you want to undo to Draft?"
+msgstr ""
+"Are you sure you want to undo to Draft? (Sind Sie sicher, dass Sie sich "
+"rückgängig machen möchten, um zu entwerfen?)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Are you sure you want to undo to In Progress?"
+msgstr ""
+"Are you sure you want to undo to In Progress? (Bist du sicher, dass du dich "
+"rückgängig machen willst?)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_attachment_count
+msgid "Attachment Count"
+msgstr "Attachment Count (Anhaftungszahl)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__avg_range
+msgid "Average Range"
+msgstr "Average Range (Durchschnittlicher Bereich)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Average Range (across all groups)"
+msgstr ""
+"Average Range (across all groups) (Durchschnittlicher Bereich (über alle "
+"Gruppen hinweg))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__avg_of_avgs
+msgid "Average of Averages"
+msgstr "Average of Averages (Durchschnitt der Durchschnittswerte)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Average of Group Averages"
+msgstr ""
+"Average of Group Averages (Durchschnitt der Gruppen -Durchschnittswerte)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__design_centre
+msgid "Average of USL and LSL"
+msgstr "Average of USL and LSL (Durchschnitt von USL und LSL)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__avg_value
+msgid "Avg"
+msgstr "Avg (Avg)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Basic Statistics Summary"
+msgstr "Basic Statistics Summary (Grundstatistik Zusammenfassung)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Calculate Interval (C) Manually"
+msgstr "Calculate Interval (C) Manually (Intervall (c) manuell berechnen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Calculate Statistics"
+msgstr "Calculate Statistics (Statistiken berechnen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__can_approve
+msgid "Can Approve"
+msgstr "Can Approve (Kann zustimmen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Cancel"
+msgstr "Cancel (Stornieren)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Cancel the process?"
+msgstr "Cancel the process? (Den Prozess stornieren?)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__canceled
+msgid "Canceled"
+msgstr "Canceled (Abgesagt)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/spc_extended.py:0
+#, python-format
+msgid "Cannot undo from the current state."
+msgstr ""
+"Cannot undo from the current state. (Kann nicht aus dem aktuellen Zustand "
+"rückgängig machen.)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Complete"
+msgstr "Complete (Vollständig)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Complete the process?"
+msgstr "Complete the process? (Den Prozess abschließen?)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__completed
+msgid "Completed"
+msgstr "Completed (Vollendet)"
+
+#. module: spc
+#: model:ir.ui.menu,name:spc.menu_spc_configuration
+msgid "Configuration"
+msgstr "Configuration (Konfiguration)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_spc_control_chart_constants
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__control_chart_constants_ids
+#: model:ir.ui.menu,name:spc.menu_spc_control_chart_constants
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_form
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Control Chart Constants"
+msgstr "Control Chart Constants (Kontrolldiagrammkonstanten)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
+msgid "Control Charts"
+msgstr "Control Charts (Kontrolldiagramme)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__control_limits_lines
+msgid "Control Limits Lines"
+msgstr "Control Limits Lines (Steuergrenzungsleitungen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Control Limits and Capability Formulas"
+msgstr ""
+"Control Limits and Capability Formulas (Kontrollgrenzwerte und "
+"Fähigkeitsformeln)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Control Limits and Interval and Frequency"
+msgstr ""
+"Control Limits and Interval and Frequency (Kontrollgrenzen sowie Intervall "
+"und Frequenz)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Control Limits and Process Capability"
+msgstr ""
+"Control Limits and Process Capability (Kontrollgrenzwerte und "
+"Prozessfähigkeit)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__num_readings
+msgid "Count of measurement values"
+msgstr "Count of measurement values (Anzahl der Messwerte)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__cp
+msgid "Cp"
+msgstr "Cp (CP)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__cpk_l
+msgid "Cpk L"
+msgstr "Cpk L (Cpk l)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__cpk_u
+msgid "Cpk U"
+msgstr "Cpk U (Cpk u)"
+
+#. module: spc
+#: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_group
+msgid "Create your first measurement group"
+msgstr ""
+"Create your first measurement group (Erstellen Sie Ihre erste Messgruppe)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_instrument_name__create_uid
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic__create_uid
+#: model:ir.model.fields,field_description:spc.field_quality_standard__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_interval__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__create_uid
+#: model:ir.model.fields,field_description:spc.field_spc_part__create_uid
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__create_uid
+msgid "Created by"
+msgstr "Created by (Erstellt von)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_instrument_name__create_date
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic__create_date
+#: model:ir.model.fields,field_description:spc.field_quality_standard__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_interval__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__create_date
+#: model:ir.model.fields,field_description:spc.field_spc_part__create_date
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__create_date
+msgid "Created on"
+msgstr "Created on (Erstellt auf)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__current_frequency
+msgid "Cumulative Frequency"
+msgstr "Cumulative Frequency (Kumulative Frequenz)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d3
+msgid "D3"
+msgstr "D3 (D3)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d4
+msgid "D4"
+msgstr "D4 (D4)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__data_collection
+msgid "Data Collection"
+msgstr "Data Collection (Datenerfassung)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__date
+msgid "Date"
+msgstr "Date (Datum)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__date_of_measurement
+msgid "Date/Time of Measurement"
+msgstr "Date/Time of Measurement (Datum/Uhrzeit der Messung)"
+
+#. module: spc
+#: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_parameter
+msgid "Define your first measurement parameter"
+msgstr ""
+"Define your first measurement parameter (Definieren Sie Ihren ersten "
+"Messparameter)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Define your group numbers and their measurement date/time"
+msgstr ""
+"Define your group numbers and their measurement date/time (Definieren Sie "
+"Ihre Gruppennummern und deren Messdatum/Uhrzeit)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__design_centre
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Design Centre (D)"
+msgstr "Design Centre (D) (Design Center (d))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Design Centre (D) = (USL + LSL) / 2"
+msgstr ""
+"Design Centre (D) = (USL + LSL) / 2 (Design Center (d) = (USL + LSL) / 2)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__specification_width
+msgid "Difference between USL and LSL"
+msgstr "Difference between USL and LSL (Unterschied zwischen USL und LSL)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__shift_x_from_d
+msgid "Difference between average and design center"
+msgstr ""
+"Difference between average and design center (Unterschied zwischen "
+"Durchschnitt und Designzentrum)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__process_width
+msgid "Difference between maximum and minimum values"
+msgstr ""
+"Difference between maximum and minimum values (Differenz zwischen maximalen "
+"und minimalen Werten)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_instrument_name__display_name
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic__display_name
+#: model:ir.model.fields,field_description:spc.field_quality_standard__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_interval__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__display_name
+#: model:ir.model.fields,field_description:spc.field_spc_part__display_name
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__display_name
+msgid "Display Name"
+msgstr "Display Name (Anzeigename)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__doc_control_no
+msgid "Document Control No"
+msgstr "Document Control No (Dokumentkontrolle Nr)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__draft
+msgid "Draft"
+msgstr "Draft (Entwurf)"
+
+#. module: spc
+#: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_value
+msgid "Enter your first measurement value"
+msgstr ""
+"Enter your first measurement value (Geben Sie Ihren ersten Messwert ein)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "First, define your measurement parameters (X1, X2, X3, etc.)"
+msgstr ""
+"First, define your measurement parameters (X1, X2, X3, etc.) (Definieren Sie"
+" zunächst Ihre Messparameter (x1, x2, x3 usw.))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_follower_ids
+msgid "Followers"
+msgstr "Followers (Anhänger)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Followers (Partners) (Anhänger (Partner))"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+"Font awesome icon e.g. fa-tasks (Schriftart Fantastisches Symbol z.B.FA-"
+"Tasks)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Formula Reference"
+msgstr "Formula Reference (Formelreferenz)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__frequency_ids
+msgid "Frequencies"
+msgstr "Frequencies (Frequenzen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__frequency
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__frequency
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__frequency_id
+msgid "Frequency"
+msgstr "Frequency (Frequenz)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
+msgid "Generate Charts"
+msgstr "Generate Charts (Diagramme generieren)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
+msgid "Generate Interval Frequency Chart"
+msgstr ""
+"Generate Interval Frequency Chart (Generieren Sie "
+"Intervallfrequenzdiagramme)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__group_id
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__group_id
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__group_id
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_pivot_main
+msgid "Group"
+msgstr "Group (Gruppe)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__group_no
+msgid "Group Number"
+msgstr "Group Number (Gruppennummer)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_spc_group_statistics
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__group_stat_ids
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Group Statistics"
+msgstr "Group Statistics (Gruppenstatistik)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_spc_group_statistics_tree_view
+msgid "Group Statistics List"
+msgstr "Group Statistics List (Gruppenstatistikliste)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#, python-format
+msgid "Group Statistics Pivot"
+msgstr "Group Statistics Pivot (Gruppenstatistik Pivot)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__has_message
+msgid "Has Message"
+msgstr "Has Message (Hat Nachricht)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_instrument_name__id
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic__id
+#: model:ir.model.fields,field_description:spc.field_quality_standard__id
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__id
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__id
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__id
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__id
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__id
+#: model:ir.model.fields,field_description:spc.field_spc_interval__id
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__id
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__id
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__id
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__id
+#: model:ir.model.fields,field_description:spc.field_spc_part__id
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__id
+msgid "ID"
+msgstr "ID (AUSWEIS)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_exception_icon
+msgid "Icon"
+msgstr "Icon (Symbol)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr ""
+"Icon to indicate an exception activity. (Symbol, um eine Ausnahmebaktivität "
+"anzuzeigen.)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr ""
+"If checked, new messages require your attention. (Bei Überprüfung erfordern "
+"neue Nachrichten Ihre Aufmerksamkeit.)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__message_has_error
+#: model:ir.model.fields,help:spc.field_statistical_process_control__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+"If checked, some messages have a delivery error. (Wenn man überprüft wird, "
+"haben einige Nachrichten einen Zustellfehler.)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__in_progress
+msgid "In Progress"
+msgstr "In Progress (Im Gange)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__index_k
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Index (K)"
+msgstr "Index (K) (Index (k))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Index (K) = R × (D-R) / S"
+msgstr "Index (K) = R × (D-R) / S (Index (k) = r × (d-r) / s)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Initialize Intervals"
+msgstr "Initialize Intervals (Intervalle initialisieren)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_instrument_name
+#: model:ir.model.fields,field_description:spc.field_instrument_name__name
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__instrument_id
+#: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_form
+msgid "Instrument Name"
+msgstr "Instrument Name (Instrumentenname)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_instrument_name
+#: model:ir.ui.menu,name:spc.menu_instrument_name
+#: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_tree
+msgid "Instrument Names"
+msgstr "Instrument Names (Instrumentennamen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval_id
+msgid "Interval"
+msgstr "Interval (Intervall)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_c
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Interval (C)"
+msgstr "Interval (C) (Intervall (c))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Interval (C) = (R + L.C.) / k"
+msgstr "Interval (C) = (R + L.C.) / k (Intervall (c) = (r + l.c.) / k)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#, python-format
+msgid "Interval (C) must be greater than zero."
+msgstr ""
+"Interval (C) must be greater than zero. (Intervall (c) muss größer als Null "
+"sein.)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_interval__interval2
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval2
+msgid "Interval End"
+msgstr "Interval End (Intervallende)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_frequency_chart_image
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
+msgid "Interval Frequency Chart"
+msgstr "Interval Frequency Chart (Intervallfrequenzdiagramm)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_interval__interval1
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval1
+msgid "Interval Start"
+msgstr "Interval Start (Intervallstart)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_frequency_display_ids
+msgid "Interval and Frequency Display"
+msgstr "Interval and Frequency Display (Intervall- und Frequenzanzeige)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_ids
+msgid "Intervals"
+msgstr "Intervals (Intervalle)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_is_follower
+msgid "Is Follower"
+msgstr "Is Follower (Ist Anhänger)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__is_manager
+msgid "Is Manager"
+msgstr "Is Manager (Ist Manager)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__lcl_r
+msgid "L.C.L. R"
+msgstr "L.C.L. R (L.C.L.R)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__lcl_x
+msgid "L.C.L. X"
+msgstr "L.C.L. X (L.C.L.X)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__lcl_r
+msgid "L.C.L.R"
+msgstr "L.C.L.R (L.C.L.R.)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__lcl_x
+msgid "L.C.L.X"
+msgstr "L.C.L.X (L.C.L.X)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__large
+msgid "LARGE"
+msgstr "LARGE (GROSS)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__lsl
+msgid "LSL"
+msgstr "LSL (LSL)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_instrument_name____last_update
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic____last_update
+#: model:ir.model.fields,field_description:spc.field_quality_standard____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_frequency____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_interval____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value____last_update
+#: model:ir.model.fields,field_description:spc.field_spc_part____last_update
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control____last_update
+msgid "Last Modified on"
+msgstr "Last Modified on (Zuletzt modifiziert auf)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_instrument_name__write_uid
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic__write_uid
+#: model:ir.model.fields,field_description:spc.field_quality_standard__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_interval__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__write_uid
+#: model:ir.model.fields,field_description:spc.field_spc_part__write_uid
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__write_uid
+msgid "Last Updated by"
+msgstr "Last Updated by (Zuletzt aktualisiert von)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_instrument_name__write_date
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic__write_date
+#: model:ir.model.fields,field_description:spc.field_quality_standard__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_interval__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__write_date
+#: model:ir.model.fields,field_description:spc.field_spc_part__write_date
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__write_date
+msgid "Last Updated on"
+msgstr "Last Updated on (Zuletzt aktualisiert auf)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__least_count
+msgid "Least Count"
+msgstr "Least Count (Am wenigsten)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Least Count (L.C.)"
+msgstr "Least Count (L.C.) (Am wenigsten zählen (L.C.))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__lower_class_limit
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Lower Class Limit"
+msgstr "Lower Class Limit (Grenzwert der unteren Klasse)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Lower Class Limit = Starting Point - (0.5 × Least Count)"
+msgstr ""
+"Lower Class Limit = Starting Point - (0.5 × Least Count) (Grenze mit "
+"niedrigerer Klasse = Ausgangspunkt - (0,5 × geringste Anzahl))"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__lcl_r
+msgid "Lower Control Limit for R = R̄ × D3"
+msgstr ""
+"Lower Control Limit for R = R̄ × D3 (Niedrigere Kontrollgrenze für r = r̄ × "
+"d3)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__lcl_x
+msgid "Lower Control Limit for X = X̄ - A2×R̄"
+msgstr ""
+"Lower Control Limit for X = X̄ - A2×R̄ (Niedrigere Kontrollgrenze für x = x̄"
+" - a2 × r̄)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__cpk_l
+msgid "Lower Process Capability = (X̄-LSL)/(3σ)"
+msgstr ""
+"Lower Process Capability = (X̄-LSL)/(3σ) (Niedrigere Prozessfähigkeit = "
+"(x̄-lsl)/(3σ))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__lsl
+msgid "Lower Specification Limit (LSL)"
+msgstr ""
+"Lower Specification Limit (LSL) (Niedrigere Spezifikationsgrenze (LSL))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__machine_name
+msgid "Machine Name"
+msgstr "Machine Name (Maschinenname)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_main_attachment_id
+msgid "Main Attachment"
+msgstr "Main Attachment (Hauptbefugnis)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__manager
+msgid "Manager"
+msgstr "Manager (Manager)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__max_large
+msgid "Maximum Value"
+msgstr "Maximum Value (Maximalwert)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Maximum Value (across all groups)"
+msgstr ""
+"Maximum Value (across all groups) (Maximalwert (über alle Gruppen hinweg))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__measurement_value_ids
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_form
+msgid "Measured Values"
+msgstr "Measured Values (Gemessene Werte)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_form
+msgid "Measurement Group"
+msgstr "Measurement Group (Messgruppe)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_spc_measurement_group
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__measurement_group_ids
+#: model:ir.ui.menu,name:spc.menu_spc_measurement_group
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Measurement Groups"
+msgstr "Measurement Groups (Messgruppen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_pivot_main
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Measurement Matrix"
+msgstr "Measurement Matrix (Messmatrix)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_parameter_form
+msgid "Measurement Parameter"
+msgstr "Measurement Parameter (Messparameter)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_spc_measurement_parameter
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__parameter_ids
+#: model:ir.ui.menu,name:spc.menu_spc_measurement_parameter
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_parameter_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Measurement Parameters"
+msgstr "Measurement Parameters (Messparameter)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#: model:ir.actions.act_window,name:spc.action_spc_measurement_pivot
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+#, python-format
+msgid "Measurement Pivot"
+msgstr "Measurement Pivot (Messungspivot)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_pivot
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_tree
+msgid "Measurement Statistics"
+msgstr "Measurement Statistics (Messstatistik)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__least_count
+msgid "Measurement precision"
+msgstr "Measurement precision (Messpräzision)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Measurement precision - enter manually"
+msgstr ""
+"Measurement precision - enter manually (Präzisionsmessung - manuell "
+"eingeben)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__measurement_value_ids
+msgid "Measurements"
+msgstr "Measurements (Messungen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_has_error
+msgid "Message Delivery error"
+msgstr "Message Delivery error (Meldungsergebnisfehler)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_ids
+msgid "Messages"
+msgstr "Messages (Nachrichten)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__min_small
+msgid "Minimum Value"
+msgstr "Minimum Value (Mindestwert)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Minimum Value (across all groups)"
+msgstr ""
+"Minimum Value (across all groups) (Mindestwert (über alle Gruppen hinweg))"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__starting_point
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Minimum value from all measurements"
+msgstr "Minimum value from all measurements (Mindestwert aus allen Messungen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "My Activity Deadline (Meine Aktivitätsfrist)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__name
+msgid "Name"
+msgstr "Name (Name)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#, python-format
+msgid "New"
+msgstr "New (Neu)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "Next Activity Calendar Event (Nächste Aktivitätskalenderereignis)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Next Activity Deadline (Nächste Aktivitätsfrist)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_summary
+msgid "Next Activity Summary"
+msgstr "Next Activity Summary (Nächste Aktivitätszusammenfassung)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_type_id
+msgid "Next Activity Type"
+msgstr "Next Activity Type (Nächster Aktivitätstyp)"
+
+#. module: spc
+#: model_terms:ir.actions.act_window,help:spc.action_spc_control_chart_constants
+msgid "No control chart constants found"
+msgstr ""
+"No control chart constants found (Keine Kontrolldiagrammkonstanten gefunden)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/spc_charts.py:0
+#, python-format
+msgid ""
+"No data available to generate the chart. Please update the interval and "
+"frequency display first."
+msgstr ""
+"No data available to generate the chart. Please update the interval and "
+"frequency display first. (Keine Daten verfügbar, um das Diagramm zu "
+"generieren.Bitte aktualisieren Sie zuerst die Intervall- und "
+"Frequenzanzeige.)"
+
+#. module: spc
+#: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_pivot
+msgid "No measurement values found"
+msgstr "No measurement values found (Keine Messwerte gefunden)"
+
+#. module: spc
+#: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics
+#: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics_tree_view
+msgid "No statistics available"
+msgstr "No statistics available (Keine Statistiken verfügbar)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__num_class_intervals
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "No. of Class Intervals"
+msgstr "No. of Class Intervals (Anzahl der Klassenintervalle)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "No. of Class Intervals = 1 + 3.222 × log10(N)"
+msgstr ""
+"No. of Class Intervals = 1 + 3.222 × log10(N) (Anzahl der Klassenintervalle "
+"= 1 + 3,222 × log10 (n))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conforming_parts
+msgid "No. of Non Conforming Parts"
+msgstr "No. of Non Conforming Parts (Anzahl der nicht konformen Teile)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__values_above_ucl
+msgid "No. of Parts Above UCL"
+msgstr "No. of Parts Above UCL (Anzahl der Teile über UCL)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__values_below_lcl
+msgid "No. of Parts Below LCL"
+msgstr "No. of Parts Below LCL (Anzahl der Teile unter lcl)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__num_readings
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "No. of Readings (N)"
+msgstr "No. of Readings (N) (Anzahl der Lesungen (n))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "No. of readings ( N )  = Total count of measurement values"
+msgstr ""
+"No. of readings ( N )  = Total count of measurement values (Anzahl der "
+"Messwerte (n) = Gesamtzahl der Messwerte)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conformity_ids
+msgid "Non Conformity"
+msgstr "Non Conformity (Nicht -Konformität)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conformity_count
+msgid "Non Conformity Count"
+msgstr "Non Conformity Count (Anzahl der Nichtkonformität)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Number of Actions (Anzahl der Aktionen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_has_error_counter
+msgid "Number of errors"
+msgstr "Number of errors (Anzahl der Fehler)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr ""
+"Number of messages requiring action (Anzahl der Nachrichten, die Maßnahmen "
+"erfordern)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+"Number of messages with delivery error (Anzahl der Nachrichten mit "
+"Lieferfehler)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__values_above_ucl
+msgid "Number of parts with values above Upper Control Limit"
+msgstr ""
+"Number of parts with values above Upper Control Limit (Anzahl der Teile mit "
+"Werten über der oberen Kontrollgrenze)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__values_below_lcl
+msgid "Number of parts with values below Lower Control Limit"
+msgstr ""
+"Number of parts with values below Lower Control Limit (Anzahl der Teile mit "
+"Werten unter niedrigerer Kontrollgrenze)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/spc_extended.py:0
+#, python-format
+msgid "Only the manager can cancel this document."
+msgstr ""
+"Only the manager can cancel this document. (Nur der Manager kann dieses "
+"Dokument stornieren.)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/spc_extended.py:0
+#, python-format
+msgid "Only users in the SPC Approver group can complete this document."
+msgstr ""
+"Only users in the SPC Approver group can complete this document. (Nur "
+"Benutzer in der SPC -Genehmigergruppe können dieses Dokument ausfüllen.)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__operation
+msgid "Operation"
+msgstr "Operation (Betrieb)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__parameter_id
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_pivot_main
+msgid "Parameter"
+msgstr "Parameter (Parameter)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__name
+msgid "Parameter Name"
+msgstr "Parameter Name (Parametername)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_part__part_name
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_name
+msgid "Part Name"
+msgstr "Part Name (Teilname)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_no_id
+msgid "Part No"
+msgstr "Part No (Teil Nr)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_part__name
+msgid "Part Number"
+msgstr "Part Number (Teilenummer)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__spc_approval_line__state__pending
+msgid "Pending"
+msgstr "Pending (Ausstehend)"
+
+#. module: spc
+#: model:ir.ui.menu,name:spc.menu_spc_measurement_value_pivot
+msgid "Pivot Analysis"
+msgstr "Pivot Analysis (Pivot -Analyse)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/spc_extended.py:0
+#, python-format
+msgid "Please add approval members before sending for approval."
+msgstr ""
+"Please add approval members before sending for approval. (Bitte fügen Sie "
+"die Genehmigungsmitglieder hinzu, bevor Sie zur Genehmigung senden.)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"Please define both parameters and groups first, then you can add measurement"
+" values."
+msgstr ""
+"Please define both parameters and groups first, then you can add measurement"
+" values. (Bitte definieren Sie zuerst sowohl Parameter als auch Gruppen, "
+"dann können Sie Messwerte hinzufügen.)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__cp
+msgid "Process Capability = (USL-LSL)/(6σ)"
+msgstr ""
+"Process Capability = (USL-LSL)/(6σ) (Prozessfähigkeit = (USL-LSL)/(6σ))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__process_width
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Process Width (R)"
+msgstr "Process Width (R) (Prozessbreite (R))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Process Width (R) = Maximum Value - Minimum Value"
+msgstr ""
+"Process Width (R) = Maximum Value - Minimum Value (Prozessbreite (R) = "
+"Maximalwert - Minimalwert)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__product_id
+msgid "Product"
+msgstr "Product (Produkt)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__product_qty
+msgid "Product Quantity"
+msgstr "Product Quantity (Produktmenge)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_quality_characteristic
+#: model:ir.model.fields,field_description:spc.field_quality_characteristic__name
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__quality_char_id
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_characteristic_form
+msgid "Quality Characteristic"
+msgstr "Quality Characteristic (Qualitätsmerkmal)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_quality_characteristic
+#: model:ir.ui.menu,name:spc.menu_quality_characteristic
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_characteristic_tree
+msgid "Quality Characteristics"
+msgstr "Quality Characteristics (Qualitätsmerkmale)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_quality_standard
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_standard_form
+msgid "Quality Standard"
+msgstr "Quality Standard (Qualitätsstandard)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_quality_standard
+#: model:ir.ui.menu,name:spc.menu_quality_standard
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_standard_tree
+msgid "Quality Standards"
+msgstr "Quality Standards (Qualitätsstandards)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__index_k
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "R × (D-R) / S"
+msgstr "R × (D-R) / S (R × (d-r) / s)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__avg_range
+msgid "R-BAR"
+msgstr "R-BAR (R-Bar)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
+msgid "R-Chart"
+msgstr "R-Chart (R-Chart)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__r_chart_image
+msgid "R-Chart Image"
+msgstr "R-Chart Image (R-Chart-Bild)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__range
+msgid "RANGE"
+msgstr "RANGE (REICHWEITE)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__range_value
+msgid "Range"
+msgstr "Range (Reichweite)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Recommended classes based on sample size"
+msgstr ""
+"Recommended classes based on sample size (Empfohlene Klassen basierend auf "
+"der Stichprobengröße)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Reject"
+msgstr "Reject (Ablehnen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Reject and return to In Progress?"
+msgstr ""
+"Reject and return to In Progress? (Ablehnen und zu in Arbeit zurückkehren?)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__spc_approval_line__state__rejected
+msgid "Rejected"
+msgstr "Rejected (Abgelehnt)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Reset to Draft"
+msgstr "Reset to Draft (Auf Entwurf zurücksetzen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_user_id
+msgid "Responsible User"
+msgstr "Responsible User (Verantwortungsbewusster Benutzer)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__small
+msgid "SMALL"
+msgstr "SMALL (KLEIN)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "SMS Delivery error (SMS -Lieferfehler)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_interval__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_group__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__spc_id
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__spc_id
+#: model:ir.ui.menu,name:spc.menu_spc_root
+msgid "SPC"
+msgstr "SPC (SPC)"
+
+#. module: spc
+#: model:mail.template,name:spc.mail_template_spc_action
+msgid "SPC Action Notification"
+msgstr "SPC Action Notification (SPC -Aktionsbenachrichtigung)"
+
+#. module: spc
+#: model:mail.template,subject:spc.mail_template_spc_action
+msgid "SPC Action: {{object.name}}"
+msgstr "SPC Action: {{object.name}} (SPC -Aktion: {{Object.name}})"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_approval_line
+msgid "SPC Approval Line"
+msgstr "SPC Approval Line (SPC -Zulassungslinie)"
+
+#. module: spc
+#: model:mail.template,name:spc.mail_template_spc_approve
+msgid "SPC Approve Notification"
+msgstr "SPC Approve Notification (SPC genehmigen Sie die Benachrichtigung)"
+
+#. module: spc
+#: model:res.groups,name:spc.group_spc_approver
+msgid "SPC Approves"
+msgstr "SPC Approves (SPC genehmigt)"
+
+#. module: spc
+#: model:mail.template,name:spc.mail_template_spc_cancel
+msgid "SPC Cancel Notification"
+msgstr "SPC Cancel Notification (SPC -Abbrechenbenachrichtigung)"
+
+#. module: spc
+#: model:mail.template,name:spc.mail_template_spc_complete
+msgid "SPC Complete Notification"
+msgstr "SPC Complete Notification (SPC vollständige Benachrichtigung)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_control_chart_constants
+msgid "SPC Control Chart Constants"
+msgstr "SPC Control Chart Constants (SPC -Kontrolldiagrammkonstanten)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_control_limits_line
+msgid "SPC Control Limits Line"
+msgstr "SPC Control Limits Line (SPC -Steuerungsgrenze Linie)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_frequency
+msgid "SPC Frequency"
+msgstr "SPC Frequency (SPC -Frequenz)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_group_statistics
+msgid "SPC Group Statistics"
+msgstr "SPC Group Statistics (SPC -Gruppenstatistik)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_interval
+msgid "SPC Interval"
+msgstr "SPC Interval (SPC -Intervall)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_interval_frequency_display
+msgid "SPC Interval and Frequency Display"
+msgstr ""
+"SPC Interval and Frequency Display (SPC -Intervall und Frequenzanzeige)"
+
+#. module: spc
+#: model:res.groups,name:spc.group_spc_manager
+msgid "SPC Manager"
+msgstr "SPC Manager (SPC -Manager)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_measurement_group
+msgid "SPC Measurement Group"
+msgstr "SPC Measurement Group (SPC -Messgruppe)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_measurement_parameter
+msgid "SPC Measurement Parameter"
+msgstr "SPC Measurement Parameter (SPC -Messparameter)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_measurement_value
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_form
+msgid "SPC Measurement Value"
+msgstr "SPC Measurement Value (SPC -Messwert)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_spc_measurement_value
+#: model:ir.ui.menu,name:spc.menu_spc_measurement_value
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_tree
+msgid "SPC Measurement Values"
+msgstr "SPC Measurement Values (SPC -Messwerte)"
+
+#. module: spc
+#: model:ir.ui.menu,name:spc.menu_spc_operations
+msgid "SPC Operations"
+msgstr "SPC Operations (SPC -Operationen)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_spc_part
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_part_form
+msgid "SPC Part"
+msgstr "SPC Part (SPC -Teil)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_spc_part
+#: model:ir.ui.menu,name:spc.menu_spc_part
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_part_tree
+msgid "SPC Parts"
+msgstr "SPC Parts (SPC -Teile)"
+
+#. module: spc
+#: model:mail.template,name:spc.mail_template_spc_reject
+msgid "SPC Reject Notification"
+msgstr "SPC Reject Notification (SPC ablehnen die Benachrichtigung ab)"
+
+#. module: spc
+#: model:mail.template,name:spc.mail_template_spc_send_for_approval
+msgid "SPC Send for Approval Notification"
+msgstr ""
+"SPC Send for Approval Notification (SPC zur Genehmigungsbenachrichtigung "
+"senden)"
+
+#. module: spc
+#: model:mail.template,name:spc.mail_template_spc_start
+msgid "SPC Start Notification"
+msgstr "SPC Start Notification (SPC -Startbenachrichtigung)"
+
+#. module: spc
+#: model:res.groups,name:spc.group_spc_user
+msgid "SPC User"
+msgstr "SPC User (SPC -Benutzer)"
+
+#. module: spc
+#: model:res.groups,name:spc.group_spc_viewer
+msgid "SPC Viewer"
+msgstr "SPC Viewer (SPC Viewer)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__sample
+msgid "Sample Size"
+msgstr "Sample Size (Probengröße)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__sampling_ratio
+msgid "Sampling Ratio"
+msgstr "Sampling Ratio (Stichprobenverhältnis)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Selected Classes (k)"
+msgstr "Selected Classes (k) (Ausgewählte Klassen (k))"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__selected_classes_k
+msgid "Selected number of classes based on sample size"
+msgstr ""
+"Selected number of classes based on sample size (Ausgewählte Anzahl von "
+"Klassen basierend auf der Stichprobengröße)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__selected_classes_k
+msgid "Selecting no. of Classes (k)"
+msgstr "Selecting no. of Classes (k) (Nr.von Klassen (k))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"Selecting no. of classes( k )= "
+"IF(N=50,\"6\",IF(N=100,\"7\",IF(N=200,\"8\",IF(N=500,\"9\",IF(N=1000,\"10\")))))"
+msgstr ""
+"Selecting no. of classes( k )= "
+"IF(N=50,\"6\",IF(N=100,\"7\",IF(N=200,\"8\",IF(N=500,\"9\",IF(N=1000,\"10\")))))"
+" (Nr.der Klassen (k) = if (n = 50, \"6\", if (n = 100, \"7\", if (n = 200, "
+"\"8\", if (n = 500, \"9\", if (n = 1000, \"10\"))))))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Send for Approval"
+msgstr "Send for Approval (Genehmigung senden)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Send for approval?"
+msgstr "Send for approval? (Genehmigung senden?)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_frequency__sequence
+#: model:ir.model.fields,field_description:spc.field_spc_interval__sequence
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__sequence
+msgid "Sequence"
+msgstr "Sequence (Sequenz)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"Set USL (Upper Specification Limit) and LSL (Lower Specification Limit)"
+msgstr ""
+"Set USL (Upper Specification Limit) and LSL (Lower Specification Limit) "
+"(Setzen Sie USL (obere Spezifikationsgrenze) und LSL (untere "
+"Spezifikationsgrenze))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__shift_x_from_d
+msgid "Shift Of X from D"
+msgstr "Shift Of X from D (Verschiebung von x aus d)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Shift Of X from D = Average - Design Centre"
+msgstr ""
+"Shift Of X from D = Average - Design Centre (Verschiebung von x aus d = "
+"durchschnittlich - Konstruktionszentrum)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Shift of X from D"
+msgstr "Shift of X from D (Verschiebung von x aus d)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__show_calculate_button
+msgid "Show Calculate Button"
+msgstr "Show Calculate Button (SHOW Curculate Button)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Specification Limits"
+msgstr "Specification Limits (Spezifikationsgrenzen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__specification_width
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Specification Width (S)"
+msgstr "Specification Width (S) (Spezifikationsbreite (en))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Specification Width (S) = USL - LSL"
+msgstr ""
+"Specification Width (S) = USL - LSL (Spezifikationsbreite (s) = USL - LSL)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__stage
+msgid "Stage"
+msgstr "Stage (Bühne)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__stage_display
+msgid "Stage Display"
+msgstr "Stage Display (Bühnenanzeige)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_quality_standard__name
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__standard_id
+msgid "Standard"
+msgstr "Standard (Standard)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__std_dev
+msgid "Standard Deviation = R̄ / d2"
+msgstr "Standard Deviation = R̄ / d2 (Standardabweichung = r̄ / d2)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Start"
+msgstr "Start (Start)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__starting_point
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Starting Point"
+msgstr "Starting Point (Ausgangspunkt)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__lower_class_limit
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Starting Point - (0.5 × Least Count)"
+msgstr ""
+"Starting Point - (0.5 × Least Count) (Ausgangspunkt - (0,5 × geringste "
+"Anzahl))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__state
+msgid "State"
+msgstr "State (Zustand)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__stat_type
+msgid "Statistic Type"
+msgstr "Statistic Type (Statistischer Typ)"
+
+#. module: spc
+#: model:ir.actions.act_window,name:spc.action_statistical_process_control
+#: model:ir.module.category,name:spc.spc_category
+#: model:ir.ui.menu,name:spc.menu_spc_main
+#: model:ir.ui.menu,name:spc.menu_statistical_process_control
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_tree
+msgid "Statistical Process Control"
+msgstr "Statistical Process Control (Statistische Prozesskontrolle)"
+
+#. module: spc
+#: model:ir.model,name:spc.model_statistical_process_control
+msgid "Statistical Process Control System"
+msgstr ""
+"Statistical Process Control System (Statistisches Prozesssteuerungssystem)"
+
+#. module: spc
+#: model:ir.module.category,description:spc.spc_category
+msgid "Statistical Process Control System Categories"
+msgstr ""
+"Statistical Process Control System Categories (Statistische "
+"Prozesssteuerungssystemkategorien)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__statistics_calculated
+msgid "Statistics Calculated"
+msgstr "Statistics Calculated (Statistiken berechnet)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities. (Status basierend auf Aktivitäten\n"
+"Überfällig: Fälligkeitsdatum ist bereits verabschiedet\n"
+"Heute: Aktivitätsdatum ist heute\n"
+"Geplant: zukünftige Aktivitäten.)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__std_dev
+msgid "Std.Dev.(σ)"
+msgstr "Std.Dev.(σ) (Std.dev. (Σ))"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Summary Statistics"
+msgstr "Summary Statistics (Zusammenfassungsstatistik)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Summary Statistics (2)"
+msgstr "Summary Statistics (2) (Zusammenfassungsstatistik (2))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__supplier_id
+msgid "Supplier"
+msgstr "Supplier"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/spc_extended.py:0
+#, python-format
+msgid "The document must be in the Approved stage to be completed."
+msgstr ""
+"The document must be in the Approved stage to be completed. (Das Dokument "
+"muss sich in der zugelassenen Phase befinden, um abgeschlossen zu werden.)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid ""
+"The matrix below shows parameters as rows and groups as columns. Click on "
+"any cell to enter or edit measurement values."
+msgstr ""
+"The matrix below shows parameters as rows and groups as columns. Click on "
+"any cell to enter or edit measurement values. (Die folgende Matrix zeigt "
+"Parameter als Zeilen und Gruppen als Spalten.Klicken Sie auf eine beliebige "
+"Zelle, um die Messwerte einzugeben oder zu bearbeiten.)"
+
+#. module: spc
+#: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__to_approve
+msgid "To Approve"
+msgstr "To Approve (Zu genehmigen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Total count of measurement values"
+msgstr "Total count of measurement values (Gesamtzahl der Messwerte)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr ""
+"Type of the exception activity on record. (Typ der Ausnahmeaktivität im "
+"Protokoll.)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__ucl_r
+msgid "U.C.L. R"
+msgstr "U.C.L. R (U.C.L.R)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__ucl_x
+msgid "U.C.L. X"
+msgstr "U.C.L. X (U.C.L.X)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__ucl_r
+msgid "U.C.L.R"
+msgstr "U.C.L.R (U.C.L.R)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__ucl_x
+msgid "U.C.L.X"
+msgstr "U.C.L.X (U.C.L.X)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "UP TO 5 SAMPLES ' D3' VALUE = 0"
+msgstr "UP TO 5 SAMPLES ' D3' VALUE = 0 (Bis zu 5 Proben 'D3' Wert = 0)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__usl
+msgid "USL"
+msgstr "USL (USL)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "USL - LSL"
+msgstr "USL - LSL (USL - LSL)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/models/statistical_process_control_main.py:0
+#, python-format
+msgid "USL must be greater than LSL"
+msgstr "USL must be greater than LSL (USL muss größer sein als LSL)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Undo"
+msgstr "Undo (Rückgängig machen)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Update Interval and Frequency Display"
+msgstr ""
+"Update Interval and Frequency Display (Aktualisieren Sie das Intervall und "
+"die Frequenzanzeige)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__ucl_r
+msgid "Upper Control Limit for R = R̄ × D4"
+msgstr ""
+"Upper Control Limit for R = R̄ × D4 (Obere Kontrollgrenze für r = r̄ × d4)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__ucl_x
+msgid "Upper Control Limit for X = X̄ + A2×R̄"
+msgstr ""
+"Upper Control Limit for X = X̄ + A2×R̄ (Obere Kontrollgrenze für x = x̄ + a2"
+" × r̄)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__cpk_u
+msgid "Upper Process Capability = (USL-X̄)/(3σ)"
+msgstr ""
+"Upper Process Capability = (USL-X̄)/(3σ) (Obere Prozessfähigkeit = "
+"(USL-X̄)/(3σ))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__usl
+msgid "Upper Specification Limit (USL)"
+msgstr "Upper Specification Limit (USL) (Obere Spezifikationsgrenze (USL))"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_approval_line__user_id
+msgid "User"
+msgstr "User (Benutzer)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_group_statistics__value
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_value__value
+msgid "Value"
+msgstr "Value (Wert)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__measurement_value_ids
+msgid "Values"
+msgstr "Values (Werte)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "View Statistics Pivot"
+msgstr "View Statistics Pivot (Statistik pivot anzeigen)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__website_message_ids
+msgid "Website Messages"
+msgstr "Website Messages (Website -Nachrichten)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__website_message_ids
+msgid "Website communication history"
+msgstr "Website communication history (Website -Kommunikationsgeschichte)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__avg_of_avgs
+msgid "X-BAR"
+msgstr "X-BAR (X-Bar)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
+msgid "X-Chart"
+msgstr "X-Chart (X-Chart)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__x_chart_image
+msgid "X-Chart Image"
+msgstr "X-Chart Image (X-Chart-Bild)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "avg_of_avgs - Design Centre"
+msgstr "avg_of_avgs - Design Centre (AVG_OF_AVGS - Design Center)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d2
+msgid "d2"
+msgstr "d2 (D2)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "max_large - min_small"
+msgstr "max_large - min_small (max_large - min_small)"
+
+#. module: spc
+#: model:mail.template,subject:spc.mail_template_spc_approve
+msgid "✅ Approval Update: {{object.name}}"
+msgstr ""
+"✅ Approval Update: {{object.name}} (✅ Genehmigungsaktualisierung: "
+"{{Objekt.Name}})"
+
+#. module: spc
+#: model:mail.template,subject:spc.mail_template_spc_complete
+msgid "🎉 Mission Accomplished: {{object.name}} SPC is Complete!"
+msgstr ""
+"🎉 Mission Accomplished: {{object.name}} SPC is Complete! (🎉 Mission erfüllt:"
+" {{Object.Name}} SPC ist vollständig!)"
+
+#. module: spc
+#: model:mail.template,subject:spc.mail_template_spc_reject
+msgid "🔄 Rejection Update: {{object.name}}"
+msgstr ""
+"🔄 Rejection Update: {{object.name}} (🔄 Ablehnungsaktualisierung: "
+"{{Objekt.Name}})"
+
+#. module: spc
+#: model:mail.template,subject:spc.mail_template_spc_send_for_approval
+msgid "🔔 Your Input Needed: {{object.name}} Awaits Approval"
+msgstr ""
+"🔔 Your Input Needed: {{object.name}} Awaits Approval (🔔 Ihre Eingabe "
+"benötigt: {{Object.name}} wartet auf die Genehmigung)"
+
+#. module: spc
+#: model:mail.template,subject:spc.mail_template_spc_start
+msgid "🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun!"
+msgstr ""
+"🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun! (🚀 Lass uns rollen:"
+" SPC -Prozess für {{Object.name}} hat begonnen!)"
+
+#. module: spc
+#: model:mail.template,subject:spc.mail_template_spc_cancel
+msgid "🛑 Stop the Press: {{object.name}} SPC Process Canceled"
+msgstr ""
+"🛑 Stop the Press: {{object.name}} SPC Process Canceled (🛑 Stoppen Sie den "
+"Drücken: {{Objekt.Name}} SPC -Prozess abgebrochen)"

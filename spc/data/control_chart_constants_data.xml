@@ -1,0 +1,40 @@
+<!-- data/control_chart_constants_data.xml -->
+<odoo>
+    <data noupdate="1">
+        <record id="const_sample_1" model="spc.control.chart.constants">
+            <field name="sample">1</field>
+            <field name="d2">1.123</field>
+            <field name="a2">2.560</field>
+            <field name="d3">0.0</field>
+            <field name="d4">3.270</field>
+        </record>
+        <record id="const_sample_2" model="spc.control.chart.constants">
+            <field name="sample">2</field>
+            <field name="d2">1.128</field>
+            <field name="a2">1.880</field>
+            <field name="d3">0.0</field>
+            <field name="d4">3.270</field>
+        </record>
+        <record id="const_sample_3" model="spc.control.chart.constants">
+            <field name="sample">3</field>
+            <field name="d2">1.693</field>
+            <field name="a2">1.020</field>
+            <field name="d3">0.0</field>
+            <field name="d4">2.570</field>
+        </record>
+        <record id="const_sample_4" model="spc.control.chart.constants">
+            <field name="sample">4</field>
+            <field name="d2">2.059</field>
+            <field name="a2">0.800</field>
+            <field name="d3">0.0</field>
+            <field name="d4">2.280</field>
+        </record>
+        <record id="const_sample_5" model="spc.control.chart.constants">
+            <field name="sample">5</field>
+            <field name="d2">2.326</field>
+            <field name="a2">0.590</field>
+            <field name="d3">0.0</field>
+            <field name="d4">2.110</field>
+        </record>
+    </data>
+</odoo>
