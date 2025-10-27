@@ -43,25 +43,29 @@ class PartQuality(models.Model):
     vici_result = fields.Selection([
         ('pending', 'Pending'),
         ('pass', 'Pass'),
-        ('reject', 'Reject')
+        ('reject', 'Reject'),
+        ('bypass', 'Bypass')
     ], default='pending', string='VICI Result')
 
     ruhlamat_result = fields.Selection([
         ('pending', 'Pending'),
         ('pass', 'Pass'),
-        ('reject', 'Reject')
+        ('reject', 'Reject'),
+        ('bypass', 'Bypass')
     ], default='pending', string='Ruhlamat Result')
 
     aumann_result = fields.Selection([
         ('pending', 'Pending'),
         ('pass', 'Pass'),
-        ('reject', 'Reject')
+        ('reject', 'Reject'),
+        ('bypass', 'Bypass')
     ], default='pending', string='Aumann Result')
 
     gauging_result = fields.Selection([
         ('pending', 'Pending'),
         ('pass', 'Pass'),
-        ('reject', 'Reject')
+        ('reject', 'Reject'),
+        ('bypass', 'Bypass')
     ], default='pending', string='Gauging Result')
 
     # Final result
@@ -135,17 +139,47 @@ class PartQuality(models.Model):
                 # If QE has overridden, keep current final_result
                 continue
 
+            # Use actual results from part_quality fields (bypass status is already set in the fields)
             results = [record.vici_result, record.ruhlamat_result, record.aumann_result, record.gauging_result]
 
+            # Determine final result logic:
+            # - If ANY station is reject -> reject
+            # - If ALL stations are pass or bypass -> pass
+            # - If ANY station is bypass and no reject -> pass
+            # - Otherwise -> pending
             if 'reject' in results:
                 record.final_result = 'reject'
-            elif all(result == 'pass' for result in results):
+            elif all(result in ('pass', 'bypass') for result in results):
                 record.final_result = 'pass'
+                # Automatically assign to box when part passes
+                record._assign_to_box_if_passed()
+            elif 'bypass' in results and 'reject' not in results:
+                record.final_result = 'pass'  # Pass if any station is bypassed and no failures
                 # Automatically assign to box when part passes
                 record._assign_to_box_if_passed()
             else:
                 record.final_result = 'pending'
     
+    def _get_machine_bypass_status(self):
+        """Get current bypass status for all machines"""
+        self.ensure_one()
+        
+        try:
+            # Get all active machines and their bypass status
+            machines = self.env['manufacturing.machine.config'].search([
+                ('is_active', '=', True),
+                ('machine_type', 'in', ['vici_vision', 'ruhlamat', 'aumann', 'gauging'])
+            ])
+            
+            bypass_status = {}
+            for machine in machines:
+                bypass_status[machine.machine_type] = machine.is_bypassed
+            
+            return bypass_status
+        except Exception as e:
+            _logger.error(f"Error getting machine bypass status: {str(e)}")
+            return {}
+
     def _assign_to_box_if_passed(self):
         """Assign part to box if it passes all tests"""
         self.ensure_one()

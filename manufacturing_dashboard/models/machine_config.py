@@ -5007,6 +5007,12 @@ class MachineConfig(models.Model):
             'bypass_reason': reason or 'Machine bypassed'
         })
         _logger.info(f"Machine {self.machine_name} has been bypassed. Reason: {reason or 'No reason provided'}")
+        
+        # Update all existing part_quality records with bypass status
+        self._update_part_quality_with_bypass_status()
+        
+        # Trigger recalculation of final results for all parts
+        self._trigger_final_result_recalculation()
         return True
 
     def unbypass_machine(self):
@@ -5017,6 +5023,12 @@ class MachineConfig(models.Model):
             'bypass_reason': False
         })
         _logger.info(f"Machine {self.machine_name} bypass has been removed")
+        
+        # Update all existing part_quality records to remove bypass status
+        self._update_part_quality_with_bypass_status()
+        
+        # Trigger recalculation of final results for all parts
+        self._trigger_final_result_recalculation()
         return True
 
     def process_bypassed_part(self, serial_number):
@@ -5069,3 +5081,56 @@ class MachineConfig(models.Model):
                 'reason': self.bypass_reason,
                 'message': f'Machine {self.machine_name} is bypassed - sync skipped'
             }
+
+    def _update_part_quality_with_bypass_status(self):
+        """Update all part_quality records with bypass status for this machine"""
+        self.ensure_one()
+        
+        try:
+            # Map machine_type to part_quality field
+            field_mapping = {
+                'vici_vision': 'vici_result',
+                'ruhlamat': 'ruhlamat_result',
+                'aumann': 'aumann_result',
+                'gauging': 'gauging_result'
+            }
+            
+            field_name = field_mapping.get(self.machine_type)
+            if not field_name:
+                _logger.warning(f"No field mapping found for machine type: {self.machine_type}")
+                return
+            
+            # Get all part quality records
+            parts = self.env['manufacturing.part.quality'].search([])
+            
+            if self.is_bypassed:
+                # Set bypass status for all parts
+                parts.write({field_name: 'bypass'})
+                _logger.info(f"Updated {len(parts)} part_quality records: {field_name} = 'bypass' for machine {self.machine_name}")
+            else:
+                # Remove bypass status - set back to pending for parts that were bypassed
+                parts_to_update = parts.filtered(lambda p: getattr(p, field_name) == 'bypass')
+                if parts_to_update:
+                    parts_to_update.write({field_name: 'pending'})
+                    _logger.info(f"Updated {len(parts_to_update)} part_quality records: {field_name} = 'pending' for machine {self.machine_name}")
+                else:
+                    _logger.info(f"No part_quality records found with bypass status for machine {self.machine_name}")
+            
+        except Exception as e:
+            _logger.error(f"Error updating part_quality records with bypass status: {str(e)}")
+
+    def _trigger_final_result_recalculation(self):
+        """Trigger recalculation of final results for all parts when bypass status changes"""
+        self.ensure_one()
+        
+        try:
+            # Get all part quality records that might be affected
+            parts = self.env['manufacturing.part.quality'].search([])
+            
+            # Trigger recomputation of final_result field
+            parts._compute_final_result()
+            
+            _logger.info(f"Triggered final result recalculation for {len(parts)} parts due to bypass status change on {self.machine_name}")
+            
+        except Exception as e:
+            _logger.error(f"Error triggering final result recalculation: {str(e)}")
