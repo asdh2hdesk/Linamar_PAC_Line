@@ -493,6 +493,7 @@
                                 <button name="action_generate_intervals_and_frequencies"
                                                 string="Generate Intervals &amp; Frequencies"
                                                 type="object"/>
+                                <button name="action_calculate_interval_c" type="object" string="Calculate Interval (C) Manually"/>
                             </div>
                             <group>
                                 <div  invisible="interval_ids != []" style="display: inline-block; font-weight: bold; text-align: center; border: 1px solid lightblue; padding: 5px; background-color: #FFDAB9;">
