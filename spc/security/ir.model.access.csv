@@ -1,0 +1,71 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+
+access_spc_part_manager,spc.part manager,model_spc_part,group_spc_manager,1,1,1,1
+access_spc_part_user,spc.part user,model_spc_part,group_spc_user,1,1,0,0
+access_spc_part_viewer,spc.part viewer,model_spc_part,group_spc_viewer,1,0,0,0
+
+access_quality_characteristic_manager,quality.characteristic manager,model_quality_characteristic,group_spc_manager,1,1,1,1
+access_quality_characteristic_user,quality.characteristic user,model_quality_characteristic,group_spc_user,1,1,0,0
+access_quality_characteristic_viewer,quality.characteristic viewer,model_quality_characteristic,group_spc_viewer,1,0,0,0
+
+access_quality_standard_manager,quality.standard manager,model_quality_standard,group_spc_manager,1,1,1,1
+access_quality_standard_user,quality.standard user,model_quality_standard,group_spc_user,1,1,0,0
+access_quality_standard_viewer,quality.standard viewer,model_quality_standard,group_spc_viewer,1,0,0,0
+
+access_instrument_name_manager,instrument.name manager,model_instrument_name,group_spc_manager,1,1,1,1
+access_instrument_name_user,instrument.name user,model_instrument_name,group_spc_user,1,1,0,0
+access_instrument_name_viewer,instrument.name viewer,model_instrument_name,group_spc_viewer,1,0,0,0
+
+access_spc_measurement_parameter_manager,spc.measurement.parameter manager,model_spc_measurement_parameter,group_spc_manager,1,1,1,1
+access_spc_measurement_parameter_user,spc.measurement.parameter user,model_spc_measurement_parameter,group_spc_user,1,1,1,1
+access_spc_measurement_parameter_viewer,spc.measurement.parameter viewer,model_spc_measurement_parameter,group_spc_viewer,1,0,0,0
+
+access_spc_measurement_group_manager,spc.measurement.group manager,model_spc_measurement_group,group_spc_manager,1,1,1,1
+access_spc_measurement_group_user,spc.measurement.group user,model_spc_measurement_group,group_spc_user,1,1,1,1
+access_spc_measurement_group_viewer,spc.measurement.group viewer,model_spc_measurement_group,group_spc_viewer,1,0,0,0
+
+access_spc_measurement_value_manager,spc.measurement.value manager,model_spc_measurement_value,group_spc_manager,1,1,1,1
+access_spc_measurement_value_user,spc.measurement.value user,model_spc_measurement_value,group_spc_user,1,1,1,1
+access_spc_measurement_value_viewer,spc.measurement.value viewer,model_spc_measurement_value,group_spc_viewer,1,0,0,0
+
+access_statistical_process_control_manager,statistical.process.control manager,model_statistical_process_control,group_spc_manager,1,1,1,1
+access_statistical_process_control_user,statistical.process.control user,model_statistical_process_control,group_spc_user,1,1,0,0
+access_statistical_process_control_viewer,statistical.process.control viewer,model_statistical_process_control,group_spc_viewer,1,0,0,0
+
+access_spc_approval_line_manager,spc.approval.line manager,model_spc_approval_line,group_spc_manager,1,1,1,1
+access_spc_approval_line_user,spc.approval.line user,model_spc_approval_line,group_spc_user,1,1,1,1
+access_spc_approval_line_viewer,spc.approval.line viewer,model_spc_approval_line,group_spc_viewer,1,0,0,0
+
+
+access_spc_group_statistics_manager,spc.group.statistics manager,model_spc_group_statistics,group_spc_manager,1,1,1,1
+access_spc_group_statistics_user,spc.group.statistics user,model_spc_group_statistics,group_spc_user,1,1,1,1
+access_spc_group_statistics_viewer,spc.group.statistics viewer,model_spc_group_statistics,group_spc_viewer,1,0,0,0
+
+
+access_spc_control_chart_constants_manager,spc.control.chart.constants manager,model_spc_control_chart_constants,group_spc_manager,1,1,1,1
+access_spc_control_chart_constants_user,spc.control.chart.constants user,model_spc_control_chart_constants,group_spc_user,1,1,0,0
+access_spc_control_chart_constants_viewer,spc.control.chart.constants viewer,model_spc_control_chart_constants,group_spc_viewer,1,0,0,0
+
+
+
+access_spc_interval_manager,spc.interval manager,model_spc_interval,group_spc_manager,1,1,1,1
+access_spc_interval_user,spc.interval user,model_spc_interval,group_spc_user,1,1,1,1
+access_spc_interval_viewer,spc.interval viewer,model_spc_interval,group_spc_viewer,1,0,0,0
+
+
+access_spc_frequency_manager,spc.frequency manager,model_spc_frequency,group_spc_manager,1,1,1,1
+access_spc_frequency_user,spc.frequency user,model_spc_frequency,group_spc_user,1,1,1,1
+access_spc_frequency_viewer,spc.frequency viewer,model_spc_frequency,group_spc_viewer,1,0,0,0
+
+
+access_spc_control_limits_line_manager,spc.control.limits.line manager,model_spc_control_limits_line,group_spc_manager,1,1,1,1
+access_spc_control_limits_line_user,spc.control.limits.line user,model_spc_control_limits_line,group_spc_user,1,1,1,1
+access_spc_control_limits_line_viewer,spc.control.limits.line viewer,model_spc_control_limits_line,group_spc_viewer,1,0,0,0
+
+
+
+access_spc_interval_frequency_display_manager,spc.interval frequency display manager,model_spc_interval_frequency_display,group_spc_manager,1,1,1,1
+access_spc_interval_frequency_display_user,spc.interval frequency display user,model_spc_interval_frequency_display,group_spc_user,1,1,1,1
+access_spc_interval_frequency_display_viewer,spc.interval frequency display viewer,model_spc_interval_frequency_display,group_spc_viewer,1,0,0,0
+
