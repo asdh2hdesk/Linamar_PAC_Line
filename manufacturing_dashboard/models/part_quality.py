@@ -222,3 +222,68 @@ class PartQuality(models.Model):
         #     body=f"QE Override: Result changed to {new_result}. Comments: {comments}",
         #     message_type='notification'
         # )
+
+    @api.model
+    def calculate_daily_stats(self):
+        """Calculate daily statistics for manufacturing parts"""
+        try:
+            _logger.info("Starting daily statistics calculation...")
+            
+            # Get current IST date
+            ist_now = self.get_ist_now()
+            today_start = ist_now.replace(hour=0, minute=0, second=0, microsecond=0)
+            today_end = ist_now.replace(hour=23, minute=59, second=59, microsecond=999999)
+            
+            # Get all parts tested today
+            today_parts = self.search([
+                ('test_date', '>=', today_start),
+                ('test_date', '<=', today_end)
+            ])
+            
+            if not today_parts:
+                _logger.info("No parts tested today, skipping statistics calculation")
+                return
+            
+            # Calculate statistics
+            total_parts = len(today_parts)
+            passed_parts = len(today_parts.filtered(lambda p: p.final_result == 'pass'))
+            rejected_parts = len(today_parts.filtered(lambda p: p.final_result == 'reject'))
+            pending_parts = len(today_parts.filtered(lambda p: p.final_result == 'pending'))
+            
+            # Calculate pass rate
+            pass_rate = (passed_parts / total_parts * 100) if total_parts > 0 else 0
+            
+            # Calculate statistics by part variant
+            exhaust_parts = today_parts.filtered(lambda p: p.part_variant == 'exhaust')
+            intake_parts = today_parts.filtered(lambda p: p.part_variant == 'intake')
+            
+            exhaust_passed = len(exhaust_parts.filtered(lambda p: p.final_result == 'pass'))
+            intake_passed = len(intake_parts.filtered(lambda p: p.final_result == 'pass'))
+            
+            # Calculate station-specific statistics
+            vici_passed = len(today_parts.filtered(lambda p: p.vici_result == 'pass'))
+            ruhlamat_passed = len(today_parts.filtered(lambda p: p.ruhlamat_result == 'pass'))
+            aumann_passed = len(today_parts.filtered(lambda p: p.aumann_result == 'pass'))
+            gauging_passed = len(today_parts.filtered(lambda p: p.gauging_result == 'pass'))
+            
+            # Log the statistics
+            _logger.info(f"=== Daily Statistics for {ist_now.strftime('%Y-%m-%d')} ===")
+            _logger.info(f"Total Parts Tested: {total_parts}")
+            _logger.info(f"Passed Parts: {passed_parts}")
+            _logger.info(f"Rejected Parts: {rejected_parts}")
+            _logger.info(f"Pending Parts: {pending_parts}")
+            _logger.info(f"Overall Pass Rate: {pass_rate:.2f}%")
+            _logger.info(f"Exhaust Parts: {len(exhaust_parts)} (Passed: {exhaust_passed})")
+            _logger.info(f"Intake Parts: {len(intake_parts)} (Passed: {intake_passed})")
+            _logger.info(f"VICI Passed: {vici_passed}")
+            _logger.info(f"Ruhlamat Passed: {ruhlamat_passed}")
+            _logger.info(f"Aumann Passed: {aumann_passed}")
+            _logger.info(f"Gauging Passed: {gauging_passed}")
+            _logger.info("=== End of Daily Statistics ===")
+            
+            # Store statistics in a model if needed (optional)
+            # You could create a daily_stats model to store these values
+            
+        except Exception as e:
+            _logger.error(f"Error calculating daily statistics: {str(e)}")
+            raise

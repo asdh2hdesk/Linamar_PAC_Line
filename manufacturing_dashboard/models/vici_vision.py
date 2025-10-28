@@ -185,41 +185,6 @@ class ViciVision(models.Model):
             })
 
         part_quality.vici_result = record.result
-        
-        # Recalculate final_result after updating station result
-        self._recalculate_final_result(part_quality)
-
-    def _recalculate_final_result(self, part_quality):
-        """Recalculate and update final_result based on current station results"""
-        try:
-            # Get current station results
-            results = [part_quality.vici_result, part_quality.ruhlamat_result, 
-                      part_quality.aumann_result, part_quality.gauging_result]
-            
-            # Apply the same logic as in final_station_service
-            any_pending = any(result == 'pending' for result in results)
-            any_reject = any(result == 'reject' for result in results)
-            all_pass_or_bypass = all(result in ('pass', 'bypass') for result in results)
-            any_bypass = any(result == 'bypass' for result in results)
-            
-            if any_pending:
-                new_final_result = 'reject'  # Reject if ANY station is pending
-            elif any_reject:
-                new_final_result = 'reject'  # Reject if any station failed
-            elif all_pass_or_bypass:
-                new_final_result = 'pass'    # Pass if all stations are pass or bypassed
-            elif any_bypass and not any_reject:
-                new_final_result = 'pass'    # Pass if any station is bypassed and no failures
-            else:
-                new_final_result = 'reject'  # Default to reject
-            
-            # Update final_result if it has changed
-            if part_quality.final_result != new_final_result:
-                part_quality.final_result = new_final_result
-                _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result}")
-                
-        except Exception as e:
-            _logger.error(f"Error recalculating final_result: {str(e)}")
 
     # CSV Import Logic
     def _parse_float(self, value):

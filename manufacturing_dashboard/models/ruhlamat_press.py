@@ -146,9 +146,6 @@ class RuhlamatPress(models.Model):
 
         # Update the result
         part_quality.ruhlamat_result = record.result
-        
-        # Recalculate final_result after updating station result
-        self._recalculate_final_result(part_quality)
 
 
 class RuhlamatGauging(models.Model):
