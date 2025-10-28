@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0\n"
+"Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-07 09:25+0000\n"
-"PO-Revision-Date: 2025-06-07 09:25+0000\n"
+"POT-Creation-Date: 2025-10-28 05:01+0000\n"
+"PO-Revision-Date: 2025-10-28 05:01+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "(Process Width + Least Count) / k"
 msgstr ""
-"(Process Width + Least Count) / k ((ప్రాసెస్ వెడల్పు + కనీసం లెక్క) / k)"
+"(Process Width + Least Count) / k ((ప్రాసెస్ వెడల్పు + తక్కువ కౌంట్) / కి)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -31,24 +31,24 @@ msgstr "(USL + LSL) / 2 ((USL + LSL) / 2)"
 #: model:ir.model.fields,help:spc.field_statistical_process_control__num_class_intervals
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "1 + 3.222 × log10(N)"
-msgstr "1 + 3.222 × log10(N) (1 + 3.222 × log10 (n))"
+msgstr "1 + 3.222 × log10(N) (1 + 3.222 × లాగ్10(N))"
 
 #. module: spc
 #: model:mail.template,body_html:spc.mail_template_spc_action
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"></span></p>\n"
-"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"></span> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"></span>.</p>\n"
-"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"></span></p>\n"
-"                    <p>Regards,<br> <span style=\"font-weight: bold;\" t-out=\"user.name\"></span></p>\n"
+"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"/></p>\n"
+"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"/> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"/>.</p>\n"
+"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"/></p>\n"
+"                    <p>Regards,<br/> <span style=\"font-weight: bold;\" t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"></span></p>\n"
-"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"></span> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"></span>.</p>\n"
-"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"></span></p>\n"
-"                    <p>Regards,<br> <span style=\"font-weight: bold;\" t-out=\"user.name\"></span></p>\n"
+"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"/></p>\n"
+"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"/> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"/>.</p>\n"
+"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"/></p>\n"
+"                    <p>Regards,<br/> <span style=\"font-weight: bold;\" t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -56,20 +56,20 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_approve
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has approved their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has approved their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for staying engaged with this process!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has approved their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has approved their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for staying engaged with this process!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -77,20 +77,20 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_reject
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has rejected their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has rejected their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Please check the feedback and make necessary adjustments.</p>\n"
-"                    <p>Best,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has rejected their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has rejected their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Please check the feedback and make necessary adjustments.</p>\n"
-"                    <p>Best,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -98,22 +98,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_start
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"></span>\" has officially kicked off and is now in full swing.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"/>\" has officially kicked off and is now in full swing.</p>\n"
 "                    <p><strong>Action</strong>: Start</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Keep an eye on this one as it moves forward—exciting things ahead!</p>\n"
-"                    <p>Best regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"></span>\" has officially kicked off and is now in full swing.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"/>\" has officially kicked off and is now in full swing.</p>\n"
 "                    <p><strong>Action</strong>: Start</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Keep an eye on this one as it moves forward—exciting things ahead!</p>\n"
-"                    <p>Best regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -121,22 +121,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_cancel
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"></span>\" has been canceled.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"/>\" has been canceled.</p>\n"
 "                    <p><strong>Action</strong>: Cancel</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>If this wasn’t expected, feel free to reach out to the team for more details. We’re here to help!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"></span>\" has been canceled.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"/>\" has been canceled.</p>\n"
 "                    <p><strong>Action</strong>: Cancel</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>If this wasn’t expected, feel free to reach out to the team for more details. We’re here to help!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -144,22 +144,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_send_for_approval
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>The SPC record \"<span t-out=\"object.name\"></span>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>The SPC record \"<span t-out=\"object.name\"/>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
 "                    <p><strong>Action</strong>: Send for Approval</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Could you please take a moment to review and give it your thumbs-up? We’d love to keep the momentum going.</p>\n"
-"                    <p>Cheers,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Cheers,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>The SPC record \"<span t-out=\"object.name\"></span>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>The SPC record \"<span t-out=\"object.name\"/>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
 "                    <p><strong>Action</strong>: Send for Approval</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Could you please take a moment to review and give it your thumbs-up? We’d love to keep the momentum going.</p>\n"
-"                    <p>Cheers,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Cheers,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -167,22 +167,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_complete
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"></span>\" has crossed the finish line and is now complete.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"/>\" has crossed the finish line and is now complete.</p>\n"
 "                    <p><strong>Action</strong>: Complete</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for your guidance throughout this process—it’s a job well done!</p>\n"
-"                    <p>Warm regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Warm regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"></span>\" has crossed the finish line and is now complete.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"/>\" has crossed the finish line and is now complete.</p>\n"
 "                    <p><strong>Action</strong>: Complete</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for your guidance throughout this process—it’s a job well done!</p>\n"
-"                    <p>Warm regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Warm regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -264,8 +264,8 @@ msgstr ""
 #: model:ir.model.constraint,message:spc.constraint_spc_measurement_value_unique_parameter_group
 msgid "A parameter can only have one value per group!"
 msgstr ""
-"A parameter can only have one value per group! (ఒక పరామితి ప్రతి సమూహానికి "
-"ఒక విలువను మాత్రమే కలిగి ఉంటుంది!)"
+"A parameter can only have one value per group! (ఒక పరామితి సమూహానికి ఒక "
+"విలువను మాత్రమే కలిగి ఉంటుంది!)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__a2
@@ -275,7 +275,7 @@ msgstr "A2 (A2)"
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__avg
 msgid "AVG"
-msgstr "AVG (సగటు)"
+msgstr "AVG (AVG)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_needaction
@@ -305,14 +305,14 @@ msgstr "Activity Type Icon (కార్యాచరణ రకం చిహ్�
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__cpk
 msgid "Actual Cpk"
-msgstr "Actual Cpk (అసలు CPK)"
+msgstr "Actual Cpk (వాస్తవ Cpk)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__cpk
 msgid "Actual Process Capability = MIN(Cpk U, Cpk L)"
 msgstr ""
-"Actual Process Capability = MIN(Cpk U, Cpk L) (వాస్తవ ప్రాసెస్ సామర్ధ్యం = "
-"min (CPK U, CPK L))"
+"Actual Process Capability = MIN(Cpk U, Cpk L) (వాస్తవ ప్రక్రియ సామర్థ్యం = "
+"MIN(Cpk U, Cpk L))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -329,27 +329,12 @@ msgstr "Advanced Process Statistics (అధునాతన ప్రక్రి
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__approval_line_ids
 msgid "Approval Lines"
-msgstr "Approval Lines (ఆమోద పంక్తులు)"
+msgstr "Approval Lines (ఆమోద రేఖలు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__approval_members
 msgid "Approval Members"
 msgstr "Approval Members (ఆమోదం సభ్యులు)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Approval Status"
-msgstr "Approval Status (ఆమోదం స్థితి)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Approve"
-msgstr "Approve (ఆమోదించండి)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Approve your part?"
-msgstr "Approve your part? (మీ భాగాన్ని ఆమోదించాలా?)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_approval_line__state__approved
@@ -358,30 +343,14 @@ msgid "Approved"
 msgstr "Approved (ఆమోదించబడింది)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Are you sure you want to start the process?"
-msgstr ""
-"Are you sure you want to start the process? (మీరు ఖచ్చితంగా ఈ ప్రక్రియను "
-"ప్రారంభించాలనుకుంటున్నారా?)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Are you sure you want to undo to Draft?"
-msgstr ""
-"Are you sure you want to undo to Draft? (మీరు ఖచ్చితంగా డ్రాఫ్ట్ చేయడానికి "
-"అన్డు చేయాలనుకుంటున్నారా?)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Are you sure you want to undo to In Progress?"
-msgstr ""
-"Are you sure you want to undo to In Progress? (మీరు ఖచ్చితంగా పురోగతి "
-"సాధించాలనుకుంటున్నారా?)"
-
-#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_attachment_count
 msgid "Attachment Count"
-msgstr "Attachment Count (అటాచ్మెంట్ కౌంట్)"
+msgstr "Attachment Count (అటాచ్‌మెంట్ కౌంట్)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__is_auto_created
+msgid "Auto Created from Ruhlamat"
+msgstr "Auto Created from Ruhlamat (రుహ్లమత్ నుండి ఆటో సృష్టించబడింది)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__avg_range
@@ -396,7 +365,7 @@ msgstr "Average Range (across all groups) (సగటు పరిధి (అన�
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__avg_of_avgs
 msgid "Average of Averages"
-msgstr "Average of Averages (సగటు సగటు)"
+msgstr "Average of Averages (సగటుల సగటు)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -422,7 +391,7 @@ msgstr "Basic Statistics Summary (ప్రాథమిక గణాంకాల
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Calculate Interval (C) Manually"
 msgstr ""
-"Calculate Interval (C) Manually (విరామం (సి) ను మానవీయంగా లెక్కించండి)"
+"Calculate Interval (C) Manually (ఇంటర్వెల్ (సి)ని మాన్యువల్‌గా లెక్కించండి)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -432,17 +401,7 @@ msgstr "Calculate Statistics (గణాంకాలను లెక్కిం�
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__can_approve
 msgid "Can Approve"
-msgstr "Can Approve (ఆమోదించవచ్చు)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Cancel"
-msgstr "Cancel (రద్దు చేయండి)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Cancel the process?"
-msgstr "Cancel the process? (ప్రక్రియను రద్దు చేయాలా?)"
+msgstr "Can Approve (ఆమోదించగలరు)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__canceled
@@ -451,22 +410,11 @@ msgstr "Canceled (రద్దు చేయబడింది)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Cannot undo from the current state."
 msgstr ""
 "Cannot undo from the current state. (ప్రస్తుత స్థితి నుండి చర్యరద్దు "
-"చేయలేము.)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Complete"
-msgstr "Complete (పూర్తి)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Complete the process?"
-msgstr "Complete the process? (ప్రక్రియను పూర్తి చేయాలా?)"
+"చేయలేరు.)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__completed
@@ -476,17 +424,17 @@ msgstr "Completed (పూర్తయింది)"
 #. module: spc
 #: model:ir.ui.menu,name:spc.menu_spc_configuration
 msgid "Configuration"
-msgstr "Configuration (కాన్ఫిగరేషన్)"
+msgstr "Configuration (ఆకృతీకరణ)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_control_chart_constants
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__control_chart_constants_ids
 #: model:ir.ui.menu,name:spc.menu_spc_control_chart_constants
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_form
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_list
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Control Chart Constants"
-msgstr "Control Chart Constants (కంట్రోల్ చార్ట్ స్థిరాంకాలు)"
+msgstr "Control Chart Constants (నియంత్రణ చార్ట్ స్థిరాంకాలు)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
@@ -496,7 +444,7 @@ msgstr "Control Charts (నియంత్రణ పటాలు)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__control_limits_lines
 msgid "Control Limits Lines"
-msgstr "Control Limits Lines (నియంత్రణ పరిమితులు పంక్తులు)"
+msgstr "Control Limits Lines (నియంత్రణ పరిమితుల పంక్తులు)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -510,34 +458,34 @@ msgstr ""
 msgid "Control Limits and Interval and Frequency"
 msgstr ""
 "Control Limits and Interval and Frequency (నియంత్రణ పరిమితులు మరియు విరామం "
-"మరియు పౌన .పున్యం)"
+"మరియు ఫ్రీక్వెన్సీ)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Control Limits and Process Capability"
 msgstr ""
 "Control Limits and Process Capability (నియంత్రణ పరిమితులు మరియు ప్రక్రియ "
-"సామర్ధ్యం)"
+"సామర్థ్యం)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__num_readings
 msgid "Count of measurement values"
-msgstr "Count of measurement values (కొలత విలువల సంఖ్య)"
+msgstr "Count of measurement values (కొలత విలువల గణన)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__cp
 msgid "Cp"
-msgstr "Cp (సిపి)"
+msgstr "Cp (Cp)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__cpk_l
 msgid "Cpk L"
-msgstr "Cpk L (Cpk l)"
+msgstr "Cpk L (సిపికె ఎల్)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__cpk_u
 msgid "Cpk U"
-msgstr "Cpk U (Cpk u)"
+msgstr "Cpk U (సిపికె యు)"
 
 #. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_group
@@ -562,7 +510,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:spc.field_spc_part__create_uid
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__create_uid
 msgid "Created by"
-msgstr "Created by (సృష్టించబడింది)"
+msgstr "Created by (ద్వారా సృష్టించబడింది)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_instrument_name__create_date
@@ -581,22 +529,22 @@ msgstr "Created by (సృష్టించబడింది)"
 #: model:ir.model.fields,field_description:spc.field_spc_part__create_date
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__create_date
 msgid "Created on"
-msgstr "Created on (సృష్టించబడింది)"
+msgstr "Created on (న సృష్టించబడింది)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_frequency__current_frequency
 msgid "Cumulative Frequency"
-msgstr "Cumulative Frequency (సంచిత పౌన .పున్యం)"
+msgstr "Cumulative Frequency (సంచిత ఫ్రీక్వెన్సీ)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d3
 msgid "D3"
-msgstr "D3 (డి 3)"
+msgstr "D3 (D3)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d4
 msgid "D4"
-msgstr "D4 (డి 4)"
+msgstr "D4 (D4)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__data_collection
@@ -631,7 +579,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__design_centre
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Design Centre (D)"
-msgstr "Design Centre (D) (డిజైన్ సెంటర్ (డి))"
+msgstr "Design Centre (D) (డిజైన్ సెంటర్ (D))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -683,9 +631,14 @@ msgid "Document Control No"
 msgstr "Document Control No (డాక్యుమెంట్ కంట్రోల్ నం)"
 
 #. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_chart_download_form
+msgid "Download"
+msgstr "Download (డౌన్‌లోడ్ చేయండి)"
+
+#. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__draft
 msgid "Draft"
-msgstr "Draft (ముసాయిదా)"
+msgstr "Draft (డ్రాఫ్ట్)"
 
 #. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_value
@@ -697,8 +650,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "First, define your measurement parameters (X1, X2, X3, etc.)"
 msgstr ""
-"First, define your measurement parameters (X1, X2, X3, etc.) (మొదట, మీ కొలత "
-"పారామితులను నిర్వచించండి (x1, x2, x3, మొదలైనవి))"
+"First, define your measurement parameters (X1, X2, X3, etc.) (ముందుగా, మీ "
+"కొలత పారామితులను నిర్వచించండి (X1, X2, X3, మొదలైనవి))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_follower_ids
@@ -714,17 +667,17 @@ msgstr "Followers (Partners) (అనుచరులు (భాగస్వామ
 #: model:ir.model.fields,help:spc.field_statistical_process_control__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
 msgstr ""
-"Font awesome icon e.g. fa-tasks (ఫాంట్ అద్భుత చిహ్నం ఉదా.FA- టాస్క్‌లు)"
+"Font awesome icon e.g. fa-tasks (అద్భుతమైన ఫాంట్ చిహ్నం ఉదా.ఫా-టాస్క్‌లు)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Formula Reference"
-msgstr "Formula Reference (ఫార్ములా రిఫరెన్స్)"
+msgstr "Formula Reference (ఫార్ములా సూచన)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__frequency_ids
 msgid "Frequencies"
-msgstr "Frequencies (పౌన encies పున్యాలు)"
+msgstr "Frequencies (ఫ్రీక్వెన్సీలు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_frequency__frequency
@@ -736,13 +689,21 @@ msgstr "Frequency (ఫ్రీక్వెన్సీ)"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "Generate Charts"
-msgstr "Generate Charts (చార్టులను రూపొందించండి)"
+msgstr "Generate Charts (చార్ట్‌లను రూపొందించండి)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "Generate Interval Frequency Chart"
 msgstr ""
-"Generate Interval Frequency Chart (విరామ ఫ్రీక్వెన్సీ చార్ట్ను రూపొందించండి)"
+"Generate Interval Frequency Chart (ఇంటర్వెల్ ఫ్రీక్వెన్సీ చార్ట్‌ని "
+"రూపొందించండి)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Generate Intervals & Frequencies"
+msgstr ""
+"Generate Intervals & Frequencies (విరామాలు మరియు ఫ్రీక్వెన్సీలను "
+"రూపొందించండి)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__group_id
@@ -755,26 +716,29 @@ msgstr "Group (సమూహం)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_group__group_no
 msgid "Group Number"
-msgstr "Group Number (సమూహ సంఖ్య)"
+msgstr "Group Number (సమూహం సంఖ్య)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_group_statistics
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__group_stat_ids
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Group Statistics"
 msgstr "Group Statistics (సమూహ గణాంకాలు)"
 
 #. module: spc
-#: model:ir.actions.act_window,name:spc.action_spc_group_statistics_tree_view
+#: model:ir.actions.act_window,name:spc.action_spc_group_statistics_list_view
 msgid "Group Statistics List"
 msgstr "Group Statistics List (సమూహ గణాంకాల జాబితా)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "Group Statistics Pivot"
-msgstr "Group Statistics Pivot (సమూహ గణాంకాలు పైవట్)"
+msgstr "Group Statistics Pivot (గ్రూప్ స్టాటిస్టిక్స్ పివోట్)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__group_statistics_html
+msgid "Group Statistics Table"
+msgstr "Group Statistics Table (సమూహ గణాంకాల పట్టిక)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__has_message
@@ -798,12 +762,12 @@ msgstr "Has Message (సందేశం ఉంది)"
 #: model:ir.model.fields,field_description:spc.field_spc_part__id
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__id
 msgid "ID"
-msgstr "ID (ఐడి)"
+msgstr "ID (ID)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_exception_icon
 msgid "Icon"
-msgstr "Icon (ఐకాన్)"
+msgstr "Icon (చిహ్నం)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__activity_exception_icon
@@ -816,7 +780,7 @@ msgstr ""
 #: model:ir.model.fields,help:spc.field_statistical_process_control__message_needaction
 msgid "If checked, new messages require your attention."
 msgstr ""
-"If checked, new messages require your attention. (తనిఖీ చేయబడితే, క్రొత్త "
+"If checked, new messages require your attention. (తనిఖీ చేయబడితే, కొత్త "
 "సందేశాలకు మీ శ్రద్ధ అవసరం.)"
 
 #. module: spc
@@ -825,7 +789,7 @@ msgstr ""
 msgid "If checked, some messages have a delivery error."
 msgstr ""
 "If checked, some messages have a delivery error. (తనిఖీ చేయబడితే, కొన్ని "
-"సందేశాలకు డెలివరీ లోపం ఉంటుంది.)"
+"సందేశాలలో డెలివరీ లోపం ఉంది.)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__in_progress
@@ -841,7 +805,15 @@ msgstr "Index (K) (సూచిక (కె))"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Index (K) = R × (D-R) / S"
-msgstr "Index (K) = R × (D-R) / S (సూచిక (k) = r × (d-r) / s)"
+msgstr "Index (K) = R × (D-R) / S (సూచిక (K) = R × (D-R) / S)"
+
+#. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__is_auto_created
+msgid ""
+"Indicates this SPC was automatically created from Ruhlamat gauging data"
+msgstr ""
+"Indicates this SPC was automatically created from Ruhlamat gauging data "
+"(రుహ్లమత్ గేజింగ్ డేటా నుండి ఈ SPC స్వయంచాలకంగా సృష్టించబడిందని సూచిస్తుంది)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -854,19 +826,19 @@ msgstr "Initialize Intervals (విరామాలను ప్రారంభ�
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__instrument_id
 #: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_form
 msgid "Instrument Name"
-msgstr "Instrument Name (పరికర పేరు)"
+msgstr "Instrument Name (పరికరం పేరు)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_instrument_name
 #: model:ir.ui.menu,name:spc.menu_instrument_name
-#: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_list
 msgid "Instrument Names"
-msgstr "Instrument Names (పరికర పేర్లు)"
+msgstr "Instrument Names (వాయిద్యాల పేర్లు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval_id
 msgid "Interval"
-msgstr "Interval (విరామం)"
+msgstr "Interval (ఇంటర్వెల్)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_c
@@ -877,44 +849,68 @@ msgstr "Interval (C) (విరామం (సి))"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Interval (C) = (R + L.C.) / k"
-msgstr "Interval (C) = (R + L.C.) / k (విరామం (సి) = (r + l.c.) / k)"
+msgstr "Interval (C) = (R + L.C.) / k (విరామం (C) = (R + L.C.) / k)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid ""
+"Interval (C) must be calculated first. Please ensure you have measurement "
+"values."
+msgstr ""
+"Interval (C) must be calculated first. Please ensure you have measurement "
+"values. (ఇంటర్వెల్ (సి)ని ముందుగా లెక్కించాలి.దయచేసి మీరు కొలత విలువలను "
+"కలిగి ఉన్నారని నిర్ధారించుకోండి.)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "Interval (C) must be greater than zero."
 msgstr ""
-"Interval (C) must be greater than zero. (విరామం (సి) సున్నా కంటే ఎక్కువగా "
-"ఉండాలి.)"
+"Interval (C) must be greater than zero. (విరామం (C) తప్పనిసరిగా సున్నా కంటే "
+"ఎక్కువగా ఉండాలి.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_interval__interval2
 #: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval2
 msgid "Interval End"
-msgstr "Interval End (విరామం ముగింపు)"
+msgstr "Interval End (ఇంటర్వెల్ ముగింపు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_frequency_chart_image
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "Interval Frequency Chart"
-msgstr "Interval Frequency Chart (విరామ ఫ్రీక్వెన్సీ చార్ట్)"
+msgstr "Interval Frequency Chart (ఇంటర్వెల్ ఫ్రీక్వెన్సీ చార్ట్)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_frequency_chart_filename
+msgid "Interval Frequency Chart Filename"
+msgstr ""
+"Interval Frequency Chart Filename (ఇంటర్వెల్ ఫ్రీక్వెన్సీ చార్ట్ ఫైల్ పేరు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_interval__interval1
 #: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval1
 msgid "Interval Start"
-msgstr "Interval Start (విరామం ప్రారంభం)"
+msgstr "Interval Start (ఇంటర్వెల్ ప్రారంభం)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_frequency_display_ids
 msgid "Interval and Frequency Display"
-msgstr "Interval and Frequency Display (విరామం మరియు ఫ్రీక్వెన్సీ ప్రదర్శన)"
+msgstr "Interval and Frequency Display (విరామం మరియు ఫ్రీక్వెన్సీ డిస్ప్లే)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_ids
 msgid "Intervals"
 msgstr "Intervals (విరామాలు)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Intervals, frequencies, and chart have been generated successfully."
+msgstr ""
+"Intervals, frequencies, and chart have been generated successfully. "
+"(విరామాలు, ఫ్రీక్వెన్సీలు మరియు చార్ట్ విజయవంతంగా రూపొందించబడ్డాయి.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_is_follower
@@ -929,51 +925,32 @@ msgstr "Is Manager (మేనేజర్)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__lcl_r
 msgid "L.C.L. R"
-msgstr "L.C.L. R (L.C.L.R)"
+msgstr "L.C.L. R (ఎల్.సి.ఎల్.ఆర్)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__lcl_x
 msgid "L.C.L. X"
-msgstr "L.C.L. X (L.C.L.X)"
+msgstr "L.C.L. X (ఎల్.సి.ఎల్.X)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lcl_r
 msgid "L.C.L.R"
-msgstr "L.C.L.R (L.C.L.R)"
+msgstr "L.C.L.R (ఎల్.సి.ఎల్.ఆర్)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lcl_x
 msgid "L.C.L.X"
-msgstr "L.C.L.X (L.C.L.X)"
+msgstr "L.C.L.X (ఎల్.సి.ఎల్.ఎక్స్)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__large
 msgid "LARGE"
-msgstr "LARGE (పెద్దది)"
+msgstr "LARGE (పెద్ద)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lsl
-msgid "LSL"
-msgstr "LSL (LSL)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_instrument_name____last_update
-#: model:ir.model.fields,field_description:spc.field_quality_characteristic____last_update
-#: model:ir.model.fields,field_description:spc.field_quality_standard____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_approval_line____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_frequency____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_group_statistics____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_interval____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_measurement_group____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_measurement_value____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_part____last_update
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control____last_update
-msgid "Last Modified on"
-msgstr "Last Modified on (చివరిగా సవరించబడింది)"
+msgid "LTL"
+msgstr "LTL (LTL)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_instrument_name__write_uid
@@ -1016,7 +993,7 @@ msgstr "Last Updated on (చివరిగా నవీకరించబడి
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__least_count
 msgid "Least Count"
-msgstr "Least Count (తక్కువ లెక్క)"
+msgstr "Least Count (తక్కువ కౌంట్)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -1027,35 +1004,43 @@ msgstr "Least Count (L.C.) (తక్కువ కౌంట్ (L.C.))"
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lower_class_limit
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Lower Class Limit"
-msgstr "Lower Class Limit (తక్కువ తరగతి పరిమితి)"
+msgstr "Lower Class Limit (దిగువ తరగతి పరిమితి)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Lower Class Limit = Starting Point - (0.5 × Least Count)"
 msgstr ""
-"Lower Class Limit = Starting Point - (0.5 × Least Count) (తక్కువ తరగతి "
-"పరిమితి = ప్రారంభ స్థానం - (0.5 × కనీసం కౌంట్))"
+"Lower Class Limit = Starting Point - (0.5 × Least Count) (దిగువ తరగతి "
+"పరిమితి = ప్రారంభ స్థానం - (0.5 × తక్కువ గణన))"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Lower Class Limit is not set. Please check your measurements."
+msgstr ""
+"Lower Class Limit is not set. Please check your measurements. (దిగువ తరగతి "
+"పరిమితి సెట్ చేయబడలేదు.దయచేసి మీ కొలతలను తనిఖీ చేయండి.)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__lcl_r
 msgid "Lower Control Limit for R = R̄ × D3"
 msgstr ""
-"Lower Control Limit for R = R̄ × D3 (R = R̄ × D3 కోసం తక్కువ నియంత్రణ "
+"Lower Control Limit for R = R̄ × D3 (R = R̄ × D3 కోసం దిగువ నియంత్రణ "
 "పరిమితి)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__lcl_x
 msgid "Lower Control Limit for X = X̄ - A2×R̄"
 msgstr ""
-"Lower Control Limit for X = X̄ - A2×R̄ (X = x̄ - A2 × r̄ కోసం తక్కువ "
-"నియంత్రణ పరిమితి)"
+"Lower Control Limit for X = X̄ - A2×R̄ (X = X̄ - A2×R̄ కోసం దిగువ నియంత్రణ "
+"పరిమితి)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__cpk_l
 msgid "Lower Process Capability = (X̄-LSL)/(3σ)"
 msgstr ""
-"Lower Process Capability = (X̄-LSL)/(3σ) (తక్కువ ప్రాసెస్ సామర్ధ్యం = "
-"(x̄-lsl)/(3σ))"
+"Lower Process Capability = (X̄-LSL)/(3σ) (దిగువ ప్రక్రియ సామర్థ్యం = "
+"(X̄-LSL)/(3σ))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_value__lsl
@@ -1065,12 +1050,7 @@ msgstr "Lower Specification Limit (LSL) (తక్కువ స్పెసి�
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__machine_name
 msgid "Machine Name"
-msgstr "Machine Name (యంత్ర పేరు)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_main_attachment_id
-msgid "Main Attachment"
-msgstr "Main Attachment (ప్రధాన అటాచ్మెంట్)"
+msgstr "Machine Name (యంత్రం పేరు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__manager
@@ -1102,7 +1082,7 @@ msgstr "Measurement Group (కొలత సమూహం)"
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_group
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__measurement_group_ids
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_group
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_list
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Measurement Groups"
 msgstr "Measurement Groups (కొలత సమూహాలు)"
@@ -1122,25 +1102,33 @@ msgstr "Measurement Parameter (కొలత పరామితి)"
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_parameter
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__parameter_ids
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_parameter
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_parameter_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_parameter_list
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Measurement Parameters"
 msgstr "Measurement Parameters (కొలత పారామితులు)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_pivot
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-#, python-format
 msgid "Measurement Pivot"
-msgstr "Measurement Pivot (కొలత పైవట్)"
+msgstr "Measurement Pivot (కొలత పివట్)"
 
 #. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_list
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_pivot
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_tree
 msgid "Measurement Statistics"
 msgstr "Measurement Statistics (కొలత గణాంకాలు)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Measurement Values & Group Statistics"
+msgstr "Measurement Values & Group Statistics (కొలత విలువలు & సమూహ గణాంకాలు)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__measurement_html
+msgid "Measurement Values Table"
+msgstr "Measurement Values Table (కొలత విలువల పట్టిక)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__least_count
@@ -1177,13 +1165,13 @@ msgstr "Minimum Value (కనీస విలువ)"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Minimum Value (across all groups)"
-msgstr "Minimum Value (across all groups) (కనీస విలువ (అన్ని సమూహాలలో))"
+msgstr "Minimum Value (across all groups) (కనిష్ట విలువ (అన్ని సమూహాలలో))"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__starting_point
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Minimum value from all measurements"
-msgstr "Minimum value from all measurements (అన్ని కొలతల నుండి కనీస విలువ)"
+msgstr "Minimum value from all measurements (అన్ని కొలతల నుండి కనిష్ట విలువ)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__my_activity_date_deadline
@@ -1197,18 +1185,9 @@ msgstr "Name (పేరు)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "New"
-msgstr "New (క్రొత్తది)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_calendar_event_id
-msgid "Next Activity Calendar Event"
-msgstr "Next Activity Calendar Event (తదుపరి కార్యాచరణ క్యాలెండర్ ఈవెంట్)"
+msgstr "New (కొత్తది)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_date_deadline
@@ -1226,31 +1205,63 @@ msgid "Next Activity Type"
 msgstr "Next Activity Type (తదుపరి కార్యాచరణ రకం)"
 
 #. module: spc
-#: model_terms:ir.actions.act_window,help:spc.action_spc_control_chart_constants
-msgid "No control chart constants found"
+#. odoo-python
+#: code:addons/spc/spc/models/spc_charts.py:0
+msgid "No Interval Frequency Chart available. Please generate chart first."
 msgstr ""
-"No control chart constants found (కంట్రోల్ చార్ట్ స్థిరాంకాలు కనుగొనబడలేదు)"
+"No Interval Frequency Chart available. Please generate chart first. "
+"(ఇంటర్వెల్ ఫ్రీక్వెన్సీ చార్ట్ అందుబాటులో లేదు.దయచేసి ముందుగా చార్ట్‌ని "
+"రూపొందించండి.)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_charts.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_charts.py:0
+msgid "No R-Chart available. Please generate charts first."
+msgstr ""
+"No R-Chart available. Please generate charts first. (R-చార్ట్ అందుబాటులో "
+"లేదు.దయచేసి ముందుగా చార్ట్‌లను రూపొందించండి.)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/spc_charts.py:0
+msgid "No X-Chart available. Please generate charts first."
+msgstr ""
+"No X-Chart available. Please generate charts first. (X-చార్ట్ అందుబాటులో "
+"లేదు.దయచేసి ముందుగా చార్ట్‌లను రూపొందించండి.)"
+
+#. module: spc
+#: model_terms:ir.actions.act_window,help:spc.action_spc_control_chart_constants
+msgid "No control chart constants found"
+msgstr ""
+"No control chart constants found (నియంత్రణ చార్ట్ స్థిరాంకాలు కనుగొనబడలేదు)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/spc_charts.py:0
 msgid ""
 "No data available to generate the chart. Please update the interval and "
 "frequency display first."
 msgstr ""
 "No data available to generate the chart. Please update the interval and "
-"frequency display first. (చార్ట్ ఉత్పత్తి చేయడానికి డేటా అందుబాటులో "
-"లేదు.దయచేసి మొదట విరామం మరియు ఫ్రీక్వెన్సీ ప్రదర్శనను నవీకరించండి.)"
+"frequency display first. (చార్ట్‌ను రూపొందించడానికి డేటా అందుబాటులో "
+"లేదు.దయచేసి ముందుగా విరామం మరియు ఫ్రీక్వెన్సీ ప్రదర్శనను నవీకరించండి.)"
 
 #. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_pivot
 msgid "No measurement values found"
-msgstr "No measurement values found (కొలత విలువలు కనుగొనబడలేదు)"
+msgstr "No measurement values found (కొలత విలువలు ఏవీ కనుగొనబడలేదు)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "No measurement values found. Please add measurements first."
+msgstr ""
+"No measurement values found. Please add measurements first. (కొలత విలువలు "
+"ఏవీ కనుగొనబడలేదు.దయచేసి ముందుగా కొలతలను జోడించండి.)"
 
 #. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics
-#: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics_tree_view
+#: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics_list_view
 msgid "No statistics available"
 msgstr "No statistics available (గణాంకాలు అందుబాటులో లేవు)"
 
@@ -1265,12 +1276,12 @@ msgstr "No. of Class Intervals (తరగతి విరామాల సంఖ�
 msgid "No. of Class Intervals = 1 + 3.222 × log10(N)"
 msgstr ""
 "No. of Class Intervals = 1 + 3.222 × log10(N) (తరగతి విరామాల సంఖ్య = 1 + "
-"3.222 × log10 (n))"
+"3.222 × లాగ్10(N))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conforming_parts
 msgid "No. of Non Conforming Parts"
-msgstr "No. of Non Conforming Parts (కాని భాగాల సంఖ్య)"
+msgstr "No. of Non Conforming Parts (నాన్ కన్ఫార్మింగ్ భాగాల సంఖ్య)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__values_above_ucl
@@ -1286,29 +1297,27 @@ msgstr "No. of Parts Below LCL (LCL క్రింద భాగాల సంఖ
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__num_readings
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "No. of Readings (N)"
-msgstr "No. of Readings (N) (రీడింగుల సంఖ్య (ఎన్))"
+msgstr "No. of Readings (N) (రీడింగ్‌ల సంఖ్య (N))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "No. of readings ( N )  = Total count of measurement values"
 msgstr ""
-"No. of readings ( N )  = Total count of measurement values (రీడింగుల సంఖ్య "
-"(n) = కొలత విలువల మొత్తం గణన)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conformity_ids
-msgid "Non Conformity"
-msgstr "Non Conformity (నాన్ కన్ఫార్మిటీ)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conformity_count
-msgid "Non Conformity Count"
-msgstr "Non Conformity Count (నాన్ కన్ఫార్మిటీ లెక్కింపు)"
+"No. of readings ( N )  = Total count of measurement values (రీడింగుల సంఖ్య ("
+" N ) = కొలత విలువల మొత్తం గణన)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_needaction_counter
 msgid "Number of Actions"
 msgstr "Number of Actions (చర్యల సంఖ్య)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Number of classes (k) is not properly set."
+msgstr ""
+"Number of classes (k) is not properly set. (తరగతుల సంఖ్య (k) సరిగ్గా సెట్ "
+"చేయబడలేదు.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_has_error_counter
@@ -1323,39 +1332,38 @@ msgstr "Number of messages requiring action (చర్య అవసరమయ్�
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "Number of messages with delivery error (డెలివరీ లోపంతో సందేశాల సంఖ్య)"
+msgstr ""
+"Number of messages with delivery error (డెలివరీ లోపం ఉన్న సందేశాల సంఖ్య)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__values_above_ucl
 msgid "Number of parts with values above Upper Control Limit"
 msgstr ""
 "Number of parts with values above Upper Control Limit (ఎగువ నియంత్రణ పరిమితి"
-" పైన విలువలతో ఉన్న భాగాల సంఖ్య)"
+" కంటే ఎక్కువ విలువలు కలిగిన భాగాల సంఖ్య)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__values_below_lcl
 msgid "Number of parts with values below Lower Control Limit"
 msgstr ""
-"Number of parts with values below Lower Control Limit (తక్కువ నియంత్రణ "
-"పరిమితి కంటే తక్కువ విలువలతో ఉన్న భాగాల సంఖ్య)"
+"Number of parts with values below Lower Control Limit (దిగువ నియంత్రణ "
+"పరిమితి కంటే తక్కువ విలువలతో భాగాల సంఖ్య)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Only the manager can cancel this document."
 msgstr ""
 "Only the manager can cancel this document. (మేనేజర్ మాత్రమే ఈ పత్రాన్ని "
-"రద్దు చేయగలడు.)"
+"రద్దు చేయగలరు.)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Only users in the SPC Approver group can complete this document."
 msgstr ""
-"Only users in the SPC Approver group can complete this document. (SPC ఆమోదం "
-"సమూహంలోని వినియోగదారులు మాత్రమే ఈ పత్రాన్ని పూర్తి చేయగలరు.)"
+"Only users in the SPC Approver group can complete this document. (SPC "
+"ఆమోదించే సమూహంలోని వినియోగదారులు మాత్రమే ఈ పత్రాన్ని పూర్తి చేయగలరు.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__operation
@@ -1371,13 +1379,19 @@ msgstr "Parameter (పరామితి)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__name
 msgid "Parameter Name"
-msgstr "Parameter Name (పారామితి పేరు)"
+msgstr "Parameter Name (పారామీటర్ పేరు)"
 
 #. module: spc
-#: model:ir.model.fields,field_description:spc.field_spc_part__part_name
+#: model:ir.model.fields,field_description:spc.field_spc_part__part_id
+msgid "Part"
+msgstr "Part (భాగం)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_part__part_name_display
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_name
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_name_display
 msgid "Part Name"
-msgstr "Part Name (పార్ట్ పేరు)"
+msgstr "Part Name (భాగం పేరు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_no_id
@@ -1385,7 +1399,7 @@ msgid "Part No"
 msgstr "Part No (పార్ట్ నం)"
 
 #. module: spc
-#: model:ir.model.fields,field_description:spc.field_spc_part__name
+#: model:ir.model.fields,field_description:spc.field_spc_part__part_number
 msgid "Part Number"
 msgstr "Part Number (పార్ట్ నంబర్)"
 
@@ -1397,32 +1411,21 @@ msgstr "Pending (పెండింగ్‌లో ఉంది)"
 #. module: spc
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_value_pivot
 msgid "Pivot Analysis"
-msgstr "Pivot Analysis (పివట్ విశ్లేషణ)"
+msgstr "Pivot Analysis (పివోట్ విశ్లేషణ)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Please add approval members before sending for approval."
 msgstr ""
 "Please add approval members before sending for approval. (దయచేసి ఆమోదం కోసం "
-"పంపే ముందు ఆమోదం సభ్యులను జోడించండి.)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid ""
-"Please define both parameters and groups first, then you can add measurement"
-" values."
-msgstr ""
-"Please define both parameters and groups first, then you can add measurement"
-" values. (దయచేసి మొదట పారామితులు మరియు సమూహాలు రెండింటినీ నిర్వచించండి, ఆపై "
-"మీరు కొలత విలువలను జోడించవచ్చు.)"
+"పంపే ముందు ఆమోద సభ్యులను జోడించండి.)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__cp
 msgid "Process Capability = (USL-LSL)/(6σ)"
 msgstr ""
-"Process Capability = (USL-LSL)/(6σ) (ప్రాసెస్ సామర్ధ్యం = (USL-LSL)/(6σ))"
+"Process Capability = (USL-LSL)/(6σ) (ప్రక్రియ సామర్థ్యం = (USL-LSL)/(6σ))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__process_width
@@ -1434,7 +1437,7 @@ msgstr "Process Width (R) (ప్రాసెస్ వెడల్పు (R))"
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Process Width (R) = Maximum Value - Minimum Value"
 msgstr ""
-"Process Width (R) = Maximum Value - Minimum Value (ప్రాసెస్ వెడల్పు (R) = "
+"Process Width (R) = Maximum Value - Minimum Value (ప్రక్రియ వెడల్పు (R) = "
 "గరిష్ట విలువ - కనిష్ట విలువ)"
 
 #. module: spc
@@ -1458,7 +1461,7 @@ msgstr "Quality Characteristic (నాణ్యత లక్షణం)"
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_quality_characteristic
 #: model:ir.ui.menu,name:spc.menu_quality_characteristic
-#: model_terms:ir.ui.view,arch_db:spc.view_quality_characteristic_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_characteristic_list
 msgid "Quality Characteristics"
 msgstr "Quality Characteristics (నాణ్యత లక్షణాలు)"
 
@@ -1471,7 +1474,7 @@ msgstr "Quality Standard (నాణ్యత ప్రమాణం)"
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_quality_standard
 #: model:ir.ui.menu,name:spc.menu_quality_standard
-#: model_terms:ir.ui.view,arch_db:spc.view_quality_standard_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_standard_list
 msgid "Quality Standards"
 msgstr "Quality Standards (నాణ్యత ప్రమాణాలు)"
 
@@ -1479,22 +1482,27 @@ msgstr "Quality Standards (నాణ్యత ప్రమాణాలు)"
 #: model:ir.model.fields,help:spc.field_statistical_process_control__index_k
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "R × (D-R) / S"
-msgstr "R × (D-R) / S (R × (D-R) / s)"
+msgstr "R × (D-R) / S (R × (D-R) / S)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__avg_range
 msgid "R-BAR"
-msgstr "R-BAR (R-bar)"
+msgstr "R-BAR (R-BAR)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "R-Chart"
-msgstr "R-Chart (R- చార్ట్)"
+msgstr "R-Chart (R-చార్ట్)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__r_chart_filename
+msgid "R-Chart Filename"
+msgstr "R-Chart Filename (R-చార్ట్ ఫైల్ పేరు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__r_chart_image
 msgid "R-Chart Image"
-msgstr "R-Chart Image (R- చార్ట్ చిత్రం)"
+msgstr "R-Chart Image (R-చార్ట్ చిత్రం)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__range
@@ -1507,33 +1515,21 @@ msgid "Range"
 msgstr "Range (పరిధి)"
 
 #. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__rating_ids
+msgid "Ratings"
+msgstr "Ratings (రేటింగ్‌లు)"
+
+#. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Recommended classes based on sample size"
 msgstr ""
 "Recommended classes based on sample size (నమూనా పరిమాణం ఆధారంగా సిఫార్సు "
-"చేసిన తరగతులు)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Reject"
-msgstr "Reject (తిరస్కరించండి)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Reject and return to In Progress?"
-msgstr ""
-"Reject and return to In Progress? (తిరస్కరించండి మరియు పురోగతికి తిరిగి "
-"వచ్చారా?)"
+"చేయబడిన తరగతులు)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_approval_line__state__rejected
 msgid "Rejected"
 msgstr "Rejected (తిరస్కరించబడింది)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Reset to Draft"
-msgstr "Reset to Draft (ముసాయిదాకు రీసెట్ చేయండి)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_user_id
@@ -1563,17 +1559,17 @@ msgstr "SMS Delivery error (SMS డెలివరీ లోపం)"
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_value__spc_id
 #: model:ir.ui.menu,name:spc.menu_spc_root
 msgid "SPC"
-msgstr "SPC (Spc)"
+msgstr "SPC (SPC)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_action
 msgid "SPC Action Notification"
-msgstr "SPC Action Notification (SPC చర్య నోటిఫికేషన్)"
+msgstr "SPC Action Notification (SPC యాక్షన్ నోటిఫికేషన్)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_action
 msgid "SPC Action: {{object.name}}"
-msgstr "SPC Action: {{object.name}} (SPC చర్య: {{ఆబ్జెక్ట్.నేమ్}})"
+msgstr "SPC Action: {{object.name}} (SPC చర్య: {{object.name}})"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_approval_line
@@ -1583,17 +1579,17 @@ msgstr "SPC Approval Line (SPC ఆమోదం లైన్)"
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_approve
 msgid "SPC Approve Notification"
-msgstr "SPC Approve Notification (SPC నోటిఫికేషన్‌ను ఆమోదించండి)"
+msgstr "SPC Approve Notification (SPC నోటిఫికేషన్‌ను ఆమోదించింది)"
 
 #. module: spc
 #: model:res.groups,name:spc.group_spc_approver
 msgid "SPC Approves"
-msgstr "SPC Approves (SPC ఆమోదిస్తుంది)"
+msgstr "SPC Approves (SPC ఆమోదించింది)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_cancel
 msgid "SPC Cancel Notification"
-msgstr "SPC Cancel Notification (SPC నోటిఫికేషన్‌ను రద్దు చేయండి)"
+msgstr "SPC Cancel Notification (SPC రద్దు నోటిఫికేషన్)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_complete
@@ -1603,12 +1599,12 @@ msgstr "SPC Complete Notification (SPC పూర్తి నోటిఫిక�
 #. module: spc
 #: model:ir.model,name:spc.model_spc_control_chart_constants
 msgid "SPC Control Chart Constants"
-msgstr "SPC Control Chart Constants (SPC కంట్రోల్ చార్ట్ స్థిరాంకాలు)"
+msgstr "SPC Control Chart Constants (SPC నియంత్రణ చార్ట్ స్థిరాంకాలు)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_control_limits_line
 msgid "SPC Control Limits Line"
-msgstr "SPC Control Limits Line (SPC నియంత్రణ పరిమితుల రేఖ)"
+msgstr "SPC Control Limits Line (SPC కంట్రోల్ లిమిట్స్ లైన్)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_frequency
@@ -1618,7 +1614,7 @@ msgstr "SPC Frequency (SPC ఫ్రీక్వెన్సీ)"
 #. module: spc
 #: model:ir.model,name:spc.model_spc_group_statistics
 msgid "SPC Group Statistics"
-msgstr "SPC Group Statistics (SPC గ్రూప్ స్టాటిస్టిక్స్)"
+msgstr "SPC Group Statistics (SPC గ్రూప్ గణాంకాలు)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_interval
@@ -1639,7 +1635,7 @@ msgstr "SPC Manager (SPC మేనేజర్)"
 #. module: spc
 #: model:ir.model,name:spc.model_spc_measurement_group
 msgid "SPC Measurement Group"
-msgstr "SPC Measurement Group (SPC కొలత సమూహం)"
+msgstr "SPC Measurement Group (SPC మెజర్‌మెంట్ గ్రూప్)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_measurement_parameter
@@ -1655,7 +1651,7 @@ msgstr "SPC Measurement Value (SPC కొలత విలువ)"
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_value
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_value
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_list
 msgid "SPC Measurement Values"
 msgstr "SPC Measurement Values (SPC కొలత విలువలు)"
 
@@ -1673,20 +1669,19 @@ msgstr "SPC Part (SPC భాగం)"
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_part
 #: model:ir.ui.menu,name:spc.menu_spc_part
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_part_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_part_list
 msgid "SPC Parts"
 msgstr "SPC Parts (SPC భాగాలు)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_reject
 msgid "SPC Reject Notification"
-msgstr "SPC Reject Notification (SPC నోటిఫికేషన్‌ను తిరస్కరించింది)"
+msgstr "SPC Reject Notification (SPC తిరస్కరణ నోటిఫికేషన్)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_send_for_approval
 msgid "SPC Send for Approval Notification"
-msgstr ""
-"SPC Send for Approval Notification (SPC ఆమోదం నోటిఫికేషన్ కోసం పంపుతుంది)"
+msgstr "SPC Send for Approval Notification (SPC ఆమోద నోటిఫికేషన్ కోసం పంపండి)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_start
@@ -1701,7 +1696,7 @@ msgstr "SPC User (SPC వినియోగదారు)"
 #. module: spc
 #: model:res.groups,name:spc.group_spc_viewer
 msgid "SPC Viewer"
-msgstr "SPC Viewer (SPC వీక్షకుడు)"
+msgstr "SPC Viewer (SPC వ్యూయర్)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__sample
@@ -1728,7 +1723,7 @@ msgstr ""
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__selected_classes_k
 msgid "Selecting no. of Classes (k)"
-msgstr "Selecting no. of Classes (k) (NO ఎంచుకోవడం.తరగతులు (కె))"
+msgstr "Selecting no. of Classes (k) (సంఖ్యను ఎంచుకోవడం.తరగతులు (k))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -1738,18 +1733,8 @@ msgid ""
 msgstr ""
 "Selecting no. of classes( k )= "
 "IF(N=50,\"6\",IF(N=100,\"7\",IF(N=200,\"8\",IF(N=500,\"9\",IF(N=1000,\"10\")))))"
-" (NO ఎంచుకోవడం.యొక్క తరగతులు (k) = if (n = 50, \"6\", if (n = 100, \"7\", if"
-" (n = 200, \"8\", if (n = 500, \"9\", if (n = 1000, \"10\"))))))))"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Send for Approval"
-msgstr "Send for Approval (ఆమోదం కోసం పంపండి)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Send for approval?"
-msgstr "Send for approval? (ఆమోదం కోసం పంపాలా?)"
+" (సంఖ్యను ఎంచుకోవడం.తరగతులు( k )= "
+"IF(N=50,\"6\",IF(N=100,\"7\",IF(N=200,\"8\",IF(N=500,\"9\",IF(N=1000,\"10\"))))))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_frequency__sequence
@@ -1759,35 +1744,26 @@ msgid "Sequence"
 msgstr "Sequence (క్రమం)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid ""
-"Set USL (Upper Specification Limit) and LSL (Lower Specification Limit)"
-msgstr ""
-"Set USL (Upper Specification Limit) and LSL (Lower Specification Limit) (USL"
-" (ఎగువ స్పెసిఫికేషన్ పరిమితి) మరియు LSL (తక్కువ స్పెసిఫికేషన్ పరిమితి) సెట్ "
-"చేయండి)"
-
-#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__shift_x_from_d
 msgid "Shift Of X from D"
-msgstr "Shift Of X from D (D నుండి X యొక్క షిఫ్ట్)"
+msgstr "Shift Of X from D (D నుండి X యొక్క మార్పు)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Shift Of X from D = Average - Design Centre"
 msgstr ""
-"Shift Of X from D = Average - Design Centre (X యొక్క షిఫ్ట్ D = సగటు - "
-"డిజైన్ సెంటర్ నుండి)"
+"Shift Of X from D = Average - Design Centre (D = సగటు నుండి X యొక్క మార్పు -"
+" డిజైన్ కేంద్రం)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Shift of X from D"
-msgstr "Shift of X from D (D నుండి X యొక్క షిఫ్ట్)"
+msgstr "Shift of X from D (D నుండి X యొక్క మార్పు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__show_calculate_button
 msgid "Show Calculate Button"
-msgstr "Show Calculate Button (లెక్కించు బటన్ చూపించు)"
+msgstr "Show Calculate Button (గణించు బటన్‌ను చూపు)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -1798,19 +1774,18 @@ msgstr "Specification Limits (స్పెసిఫికేషన్ పరి�
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__specification_width
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Specification Width (S)"
-msgstr "Specification Width (S) (స్పెసిఫికేషన్ వెడల్పు (లు))"
+msgstr "Specification Width (S) (స్పెసిఫికేషన్ వెడల్పు (S))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Specification Width (S) = USL - LSL"
 msgstr ""
-"Specification Width (S) = USL - LSL (స్పెసిఫికేషన్ వెడల్పు (లు) = యుఎస్ఎల్ -"
-" ఎల్ఎస్ఎల్)"
+"Specification Width (S) = USL - LSL (స్పెసిఫికేషన్ వెడల్పు (S) = USL - LSL)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__stage
 msgid "Stage"
-msgstr "Stage (దశ)"
+msgstr "Stage (వేదిక)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__stage_display
@@ -1821,17 +1796,12 @@ msgstr "Stage Display (స్టేజ్ డిస్ప్లే)"
 #: model:ir.model.fields,field_description:spc.field_quality_standard__name
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__standard_id
 msgid "Standard"
-msgstr "Standard (ప్రామాణిక)"
+msgstr "Standard (ప్రామాణికం)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__std_dev
 msgid "Standard Deviation = R̄ / d2"
-msgstr "Standard Deviation = R̄ / d2 (ప్రామాణిక విచలనం = r̄ / d2)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Start"
-msgstr "Start (ప్రారంభించండి)"
+msgstr "Standard Deviation = R̄ / d2 (ప్రామాణిక విచలనం = R̄ / d2)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__starting_point
@@ -1844,7 +1814,7 @@ msgstr "Starting Point (ప్రారంభ స్థానం)"
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Starting Point - (0.5 × Least Count)"
 msgstr ""
-"Starting Point - (0.5 × Least Count) (ప్రారంభ స్థానం - (0.5 × కనీసం కౌంట్))"
+"Starting Point - (0.5 × Least Count) (ప్రారంభ స్థానం - (0.5 × అత్యల్ప గణన))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_approval_line__state
@@ -1854,7 +1824,7 @@ msgstr "State (రాష్ట్రం)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_group_statistics__stat_type
 msgid "Statistic Type"
-msgstr "Statistic Type (గణాంక రకం)"
+msgstr "Statistic Type (గణాంకాల రకం)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_statistical_process_control
@@ -1862,21 +1832,21 @@ msgstr "Statistic Type (గణాంక రకం)"
 #: model:ir.ui.menu,name:spc.menu_spc_main
 #: model:ir.ui.menu,name:spc.menu_statistical_process_control
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_list
 msgid "Statistical Process Control"
 msgstr "Statistical Process Control (గణాంక ప్రక్రియ నియంత్రణ)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_statistical_process_control
 msgid "Statistical Process Control System"
-msgstr "Statistical Process Control System (గజ్జ ప్రక్రియ)"
+msgstr "Statistical Process Control System (గణాంక ప్రక్రియ నియంత్రణ వ్యవస్థ)"
 
 #. module: spc
 #: model:ir.module.category,description:spc.spc_category
 msgid "Statistical Process Control System Categories"
 msgstr ""
-"Statistical Process Control System Categories (గణాంక ప్రక్రియ నియంత్రణ "
-"వ్యవస్థ వర్గాలు)"
+"Statistical Process Control System Categories (స్టాటిస్టికల్ ప్రాసెస్ "
+"కంట్రోల్ సిస్టమ్ కేటగిరీలు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__statistics_calculated
@@ -1895,24 +1865,30 @@ msgstr ""
 "Overdue: Due date is already passed\n"
 "Today: Activity date is today\n"
 "Planned: Future activities. (కార్యకలాపాల ఆధారంగా స్థితి\n"
-"మీరిన: గడువు తేదీ ఇప్పటికే ఆమోదించబడింది\n"
-"ఈ రోజు: కార్యాచరణ తేదీ ఈ రోజు\n"
+"గడువు ముగిసింది: గడువు తేదీ ఇప్పటికే ముగిసింది\n"
+"ఈరోజు: కార్యాచరణ తేదీ ఈరోజు\n"
 "ప్రణాళిక: భవిష్యత్ కార్యకలాపాలు.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__std_dev
 msgid "Std.Dev.(σ)"
-msgstr "Std.Dev.(σ) (Std.dev. (Σ))"
+msgstr "Std.Dev.(σ) (Std.Dev.(σ))"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Success"
+msgstr "Success (విజయం)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Summary Statistics"
-msgstr "Summary Statistics (సారాంశ గణాంకాలు)"
+msgstr "Summary Statistics (సారాంశం గణాంకాలు)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Summary Statistics (2)"
-msgstr "Summary Statistics (2) (సారాంశ గణాంకాలు (2))"
+msgstr "Summary Statistics (2) (సారాంశం గణాంకాలు (2))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__supplier_id
@@ -1921,23 +1897,11 @@ msgstr "Supplier (సరఫరాదారు)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "The document must be in the Approved stage to be completed."
 msgstr ""
-"The document must be in the Approved stage to be completed. (పత్రం పూర్తి "
-"చేయవలసిన ఆమోదించబడిన దశలో ఉండాలి.)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid ""
-"The matrix below shows parameters as rows and groups as columns. Click on "
-"any cell to enter or edit measurement values."
-msgstr ""
-"The matrix below shows parameters as rows and groups as columns. Click on "
-"any cell to enter or edit measurement values. (దిగువ మాతృక పారామితులను "
-"వరుసలుగా మరియు సమూహాలను నిలువు వరుసలుగా చూపిస్తుంది.కొలత విలువలను నమోదు "
-"చేయడానికి లేదా సవరించడానికి ఏదైనా సెల్ పై క్లిక్ చేయండి.)"
+"The document must be in the Approved stage to be completed. (పూర్తి "
+"చేయడానికి పత్రం తప్పనిసరిగా ఆమోదించబడిన దశలో ఉండాలి.)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__to_approve
@@ -1953,38 +1917,33 @@ msgstr "Total count of measurement values (కొలత విలువల మ�
 #: model:ir.model.fields,help:spc.field_statistical_process_control__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr ""
-"Type of the exception activity on record. (రికార్డులో మినహాయింపు కార్యాచరణ "
-"రకం.)"
+"Type of the exception activity on record. (రికార్డులో ఉన్న మినహాయింపు "
+"కార్యాచరణ రకం.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__ucl_r
 msgid "U.C.L. R"
-msgstr "U.C.L. R (U.C.L.R)"
+msgstr "U.C.L. R (యు.సి.ఎల్.ఆర్)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__ucl_x
 msgid "U.C.L. X"
-msgstr "U.C.L. X (U.C.L.X)"
+msgstr "U.C.L. X (యు.సి.ఎల్.X)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__ucl_r
 msgid "U.C.L.R"
-msgstr "U.C.L.R (U.C.L.R)"
+msgstr "U.C.L.R (యు.సి.ఎల్.ఆర్)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__ucl_x
 msgid "U.C.L.X"
-msgstr "U.C.L.X (U.C.L.X)"
+msgstr "U.C.L.X (యు.సి.ఎల్.ఎక్స్)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "UP TO 5 SAMPLES ' D3' VALUE = 0"
 msgstr "UP TO 5 SAMPLES ' D3' VALUE = 0 (5 నమూనాల వరకు 'D3' విలువ = 0)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__usl
-msgid "USL"
-msgstr "USL (యుఎస్ఎల్)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -1993,49 +1952,47 @@ msgstr "USL - LSL (USL - LSL)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "USL must be greater than LSL"
 msgstr ""
-"USL must be greater than LSL (యుఎస్ఎల్ ఎల్ఎస్ఎల్ కంటే ఎక్కువగా ఉండాలి)"
+"USL must be greater than LSL (USL తప్పనిసరిగా LSL కంటే ఎక్కువగా ఉండాలి)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Undo"
-msgstr "Undo (అన్డు)"
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__usl
+msgid "UTL"
+msgstr "UTL (UTL)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Update Interval and Frequency Display"
 msgstr ""
-"Update Interval and Frequency Display (విరామం మరియు ఫ్రీక్వెన్సీ ప్రదర్శనను "
-"నవీకరించండి)"
+"Update Interval and Frequency Display (విరామం మరియు ఫ్రీక్వెన్సీ డిస్‌ప్లేని"
+" నవీకరించండి)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__ucl_r
 msgid "Upper Control Limit for R = R̄ × D4"
 msgstr ""
-"Upper Control Limit for R = R̄ × D4 (R = r̄ × d4 కోసం ఎగువ నియంత్రణ పరిమితి)"
+"Upper Control Limit for R = R̄ × D4 (R = R̄ × D4 కోసం ఎగువ నియంత్రణ పరిమితి)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__ucl_x
 msgid "Upper Control Limit for X = X̄ + A2×R̄"
 msgstr ""
-"Upper Control Limit for X = X̄ + A2×R̄ (X = x̄ + a2 × r̄ కోసం ఎగువ నియంత్రణ "
+"Upper Control Limit for X = X̄ + A2×R̄ (X = X̄ + A2×R̄ కోసం ఎగువ నియంత్రణ "
 "పరిమితి)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__cpk_u
 msgid "Upper Process Capability = (USL-X̄)/(3σ)"
 msgstr ""
-"Upper Process Capability = (USL-X̄)/(3σ) (ఎగువ ప్రాసెస్ సామర్ధ్యం = "
+"Upper Process Capability = (USL-X̄)/(3σ) (ఎగువ ప్రక్రియ సామర్థ్యం = "
 "(USL-X̄)/(3σ))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_value__usl
 msgid "Upper Specification Limit (USL)"
-msgstr ""
-"Upper Specification Limit (USL) (ఎగువ స్పెసిఫికేషన్ పరిమితి (యుఎస్ఎల్))"
+msgstr "Upper Specification Limit (USL) (ఎగువ స్పెసిఫికేషన్ పరిమితి (USL))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_approval_line__user_id
@@ -2054,11 +2011,6 @@ msgid "Values"
 msgstr "Values (విలువలు)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "View Statistics Pivot"
-msgstr "View Statistics Pivot (గణాంకాలను చూడండి పైవట్)"
-
-#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__website_message_ids
 msgid "Website Messages"
 msgstr "Website Messages (వెబ్‌సైట్ సందేశాలు)"
@@ -2071,17 +2023,22 @@ msgstr "Website communication history (వెబ్‌సైట్ కమ్య�
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__avg_of_avgs
 msgid "X-BAR"
-msgstr "X-BAR (ఎక్స్-బార్)"
+msgstr "X-BAR (X-BAR)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "X-Chart"
-msgstr "X-Chart (ఎక్స్-చార్ట్)"
+msgstr "X-Chart (X-చార్ట్)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__x_chart_filename
+msgid "X-Chart Filename"
+msgstr "X-Chart Filename (X-చార్ట్ ఫైల్ పేరు)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__x_chart_image
 msgid "X-Chart Image"
-msgstr "X-Chart Image (ఎక్స్-చార్ట్ చిత్రం)"
+msgstr "X-Chart Image (X-చార్ట్ చిత్రం)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -2091,50 +2048,49 @@ msgstr "avg_of_avgs - Design Centre (avg_of_avgs - డిజైన్ సెం�
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d2
 msgid "d2"
-msgstr "d2 (డి 2)"
+msgstr "d2 (d2)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "max_large - min_small"
-msgstr "max_large - min_small (MAX_LARGE - MIN_SMALL)"
+msgstr "max_large - min_small (max_large - min_small)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_approve
 msgid "✅ Approval Update: {{object.name}}"
 msgstr ""
-"✅ Approval Update: {{object.name}} (Update ఆమోదం నవీకరణ: {{ఆబ్జెక్ట్.నేమ్}})"
+"✅ Approval Update: {{object.name}} (✅ ఆమోదం అప్‌డేట్: {{object.name}})"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_complete
 msgid "🎉 Mission Accomplished: {{object.name}} SPC is Complete!"
 msgstr ""
-"🎉 Mission Accomplished: {{object.name}} SPC is Complete! (Mission మిషన్ "
-"సాధించారు: {{ఆబ్జెక్ట్.నేమ్}} SPC పూర్తయింది!)"
+"🎉 Mission Accomplished: {{object.name}} SPC is Complete! (🎉 లక్ష్యం "
+"పూర్తయింది: {{object.name}} SPC పూర్తయింది!)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_reject
 msgid "🔄 Rejection Update: {{object.name}}"
 msgstr ""
-"🔄 Rejection Update: {{object.name}} (Updent తిరస్కరణ నవీకరణ: "
-"{{ఆబ్జెక్ట్.నేమ్}})"
+"🔄 Rejection Update: {{object.name}} (🔄 తిరస్కరణ నవీకరణ: {{object.name}})"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_send_for_approval
 msgid "🔔 Your Input Needed: {{object.name}} Awaits Approval"
 msgstr ""
-"🔔 Your Input Needed: {{object.name}} Awaits Approval (Inp మీ ఇన్పుట్ అవసరం: "
-"{{ఆబ్జెక్ట్.నేమ్} a ఆమోదం కోసం వేచి ఉంది)"
+"🔔 Your Input Needed: {{object.name}} Awaits Approval (🔔 మీ ఇన్‌పుట్ అవసరం: "
+"{{object.name}} ఆమోదం కోసం వేచి ఉంది)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_start
 msgid "🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun!"
 msgstr ""
-"🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun! (Roll రోల్ చేద్దాం:"
-" {{object.name} for కోసం SPC ప్రాసెస్ ప్రారంభమైంది!)"
+"🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun! (🚀 లెట్స్ రోల్: "
+"{{object.name}} కోసం SPC ప్రక్రియ ప్రారంభమైంది!)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_cancel
 msgid "🛑 Stop the Press: {{object.name}} SPC Process Canceled"
 msgstr ""
-"🛑 Stop the Press: {{object.name}} SPC Process Canceled (Press ప్రెస్‌ను "
-"ఆపండి: {{ఆబ్జెక్ట్.నేమ్}} SPC ప్రాసెస్ రద్దు చేయబడింది)"
+"🛑 Stop the Press: {{object.name}} SPC Process Canceled (🛑 నొక్కడం ఆపండి: "
+"{{object.name}} SPC ప్రక్రియ రద్దు చేయబడింది)"

@@ -12,6 +12,7 @@ class RuhlamatPress(models.Model):
     _description = 'Ruhlamat Press System Data'
     _order = 'cycle_date desc'
     _rec_name = 'part_id1'
+    _inherit = "translation.mixin"
 
     # Primary fields from Cycles table
     cycle_id = fields.Integer('Cycle ID', required=True, index=True)
@@ -20,10 +21,10 @@ class RuhlamatPress(models.Model):
     program_id = fields.Integer('Program ID')
     station_id = fields.Char('Station ID')
     station_name = fields.Char('Station Name')
-    station_label = fields.Char('Station Label')
+    station_label = fields.Char('Station Label',translate=True)
 
     # Part IDs (serial numbers)
-    part_id1 = fields.Char('Part ID 1 (Serial Number)', index=True)
+    part_id1 = fields.Char('Part ID 1 (Serial Number)', index=True,translate=True)
     part_id2 = fields.Char('Part ID 2')
     part_id3 = fields.Char('Part ID 3')
     part_id4 = fields.Char('Part ID 4')
@@ -153,6 +154,7 @@ class RuhlamatGauging(models.Model):
     _description = 'Ruhlamat Gauging Data'
     _order = 'gauging_id'
     _rec_name = 'gauging_alias'
+    _inherit = "translation.mixin"
 
     # Primary fields
     gauging_id = fields.Integer('Gauging ID', required=True, index=True)
@@ -166,16 +168,16 @@ class RuhlamatGauging(models.Model):
     program_name = fields.Char('Program Name')
     cycle_date = fields.Datetime('Cycle Date')
     gauging_no = fields.Integer('Gauging No')
-    gauging_type = fields.Char('Gauging Type')
+    gauging_type = fields.Char('Gauging Type',translate=True)
     anchor = fields.Char('Anchor')
     ok_status = fields.Integer('OK Status')
     gauging_status = fields.Integer('Gauging Status')
 
     # Measurement values
     actual_x = fields.Float('Actual X', digits=(10, 4))
-    signal_x_unit = fields.Char('Signal X Unit')
+    signal_x_unit = fields.Char('Signal X Unit',translate=True)
     actual_y = fields.Float('Actual Y', digits=(10, 6))
-    signal_y_unit = fields.Char('Signal Y Unit')
+    signal_y_unit = fields.Char('Signal Y Unit',translate=True)
 
     # Limits
     limit_testing = fields.Integer('Limit Testing')
@@ -186,7 +188,7 @@ class RuhlamatGauging(models.Model):
 
     # Additional info
     running_no = fields.Integer('Running No')
-    gauging_alias = fields.Char('Gauging Alias')
+    gauging_alias = fields.Char('Gauging Alias',translate=True)
     signal_x_name = fields.Char('Signal X Name')
     signal_y_name = fields.Char('Signal Y Name')
     signal_x_id = fields.Integer('Signal X ID')
@@ -207,7 +209,7 @@ class RuhlamatGauging(models.Model):
 
     # Computed fields
     within_tolerance = fields.Boolean('Within Tolerance', compute='_compute_tolerance', store=True)
-    tolerance_status = fields.Char('Tolerance Status', compute='_compute_tolerance', store=True)
+    tolerance_status = fields.Char('Tolerance Status', compute='_compute_tolerance', store=True,translate=True)
 
     # SPC Chart link
     spc_chart_id = fields.Many2one(

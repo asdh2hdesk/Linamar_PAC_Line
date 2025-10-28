@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0\n"
+"Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-06 08:18+0000\n"
-"PO-Revision-Date: 2025-06-06 08:18+0000\n"
+"POT-Creation-Date: 2025-10-28 04:58+0000\n"
+"PO-Revision-Date: 2025-10-28 04:58+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -20,36 +20,35 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "(Process Width + Least Count) / k"
 msgstr ""
-" (Process Width + Least Count) / k ((प्रक्रिया चौड़ाई + कम से कम गिनती) / "
-"के)"
+" (Process Width + Least Count) / k ((प्रक्रिया चौड़ाई + न्यूनतम गणना) / के)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "(USL + LSL) / 2"
-msgstr " (USL + LSL) / 2 ((USL + LSL) / 2)"
+msgstr " (USL + LSL) / 2 ((यूएसएल+एलएसएल)/2)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__num_class_intervals
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "1 + 3.222 × log10(N)"
-msgstr " 1 + 3.222 × log10(N) (1 + 3.222 × लॉग 10 (एन))"
+msgstr " 1 + 3.222 × log10(N) (1 + 3.222 × लॉग10(एन))"
 
 #. module: spc
 #: model:mail.template,body_html:spc.mail_template_spc_action
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"></span></p>\n"
-"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"></span> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"></span>.</p>\n"
-"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"></span></p>\n"
-"                    <p>Regards,<br> <span style=\"font-weight: bold;\" t-out=\"user.name\"></span></p>\n"
+"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"/></p>\n"
+"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"/> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"/>.</p>\n"
+"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"/></p>\n"
+"                    <p>Regards,<br/> <span style=\"font-weight: bold;\" t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"></span></p>\n"
-"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"></span> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"></span>.</p>\n"
-"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"></span></p>\n"
-"                    <p>Regards,<br> <span style=\"font-weight: bold;\" t-out=\"user.name\"></span></p>\n"
+"                    <p> Dear <span style=\"font-weight: bold;\" t-out=\"object.manager.name\"/></p>\n"
+"                    <p>The SPC record <span style=\"font-weight: bold;\" t-out=\"object.name\"/> has been updated to stage_display: <span style=\"font-weight: bold;\" t-out=\"object.stage_display\"/>.</p>\n"
+"                    <p>Action performed: <span style=\"font-weight: bold;\" t-out=\"ctx.get('action_name', 'Unknown')\"/></p>\n"
+"                    <p>Regards,<br/> <span style=\"font-weight: bold;\" t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -57,20 +56,20 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_approve
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has approved their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has approved their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for staying engaged with this process!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has approved their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has approved their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for staying engaged with this process!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -78,20 +77,20 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_reject
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has rejected their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has rejected their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Please check the feedback and make necessary adjustments.</p>\n"
-"                    <p>Best,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p><span t-out=\"user.name\"></span> has rejected their part of the SPC record \"<span t-out=\"object.name\"></span>\".</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p><span t-out=\"user.name\"/> has rejected their part of the SPC record \"<span t-out=\"object.name\"/>\".</p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Please check the feedback and make necessary adjustments.</p>\n"
-"                    <p>Best,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -99,22 +98,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_start
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"></span>\" has officially kicked off and is now in full swing.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"/>\" has officially kicked off and is now in full swing.</p>\n"
 "                    <p><strong>Action</strong>: Start</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Keep an eye on this one as it moves forward—exciting things ahead!</p>\n"
-"                    <p>Best regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"></span>\" has officially kicked off and is now in full swing.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Great news! The Statistical Process Control (SPC) journey for \"<span t-out=\"object.name\"/>\" has officially kicked off and is now in full swing.</p>\n"
 "                    <p><strong>Action</strong>: Start</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Keep an eye on this one as it moves forward—exciting things ahead!</p>\n"
-"                    <p>Best regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Best regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -122,22 +121,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_cancel
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"></span>\" has been canceled.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"/>\" has been canceled.</p>\n"
 "                    <p><strong>Action</strong>: Cancel</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>If this wasn’t expected, feel free to reach out to the team for more details. We’re here to help!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"></span>\" has been canceled.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Just a quick note: The SPC process for \"<span t-out=\"object.name\"/>\" has been canceled.</p>\n"
 "                    <p><strong>Action</strong>: Cancel</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>If this wasn’t expected, feel free to reach out to the team for more details. We’re here to help!</p>\n"
-"                    <p>Regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -145,22 +144,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_send_for_approval
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>The SPC record \"<span t-out=\"object.name\"></span>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>The SPC record \"<span t-out=\"object.name\"/>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
 "                    <p><strong>Action</strong>: Send for Approval</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Could you please take a moment to review and give it your thumbs-up? We’d love to keep the momentum going.</p>\n"
-"                    <p>Cheers,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Cheers,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>The SPC record \"<span t-out=\"object.name\"></span>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>The SPC record \"<span t-out=\"object.name\"/>\" is ready for your expert review—it’s been submitted for approval!</p>\n"
 "                    <p><strong>Action</strong>: Send for Approval</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Could you please take a moment to review and give it your thumbs-up? We’d love to keep the momentum going.</p>\n"
-"                    <p>Cheers,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Cheers,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -168,22 +167,22 @@ msgstr ""
 #: model:mail.template,body_html:spc.mail_template_spc_complete
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"></span>\" has crossed the finish line and is now complete.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"/>\" has crossed the finish line and is now complete.</p>\n"
 "                    <p><strong>Action</strong>: Complete</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for your guidance throughout this process—it’s a job well done!</p>\n"
-"                    <p>Warm regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Warm regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"></span>,</p>\n"
-"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"></span>\" has crossed the finish line and is now complete.</p>\n"
+"                    <p>Dear <span t-out=\"recipient_name or 'Team Member'\"/>,</p>\n"
+"                    <p>Time to celebrate! The SPC process for \"<span t-out=\"object.name\"/>\" has crossed the finish line and is now complete.</p>\n"
 "                    <p><strong>Action</strong>: Complete</p>\n"
-"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"></span></p>\n"
+"                    <p><strong>Current Stage</strong>: <span t-out=\"object.stage_display\"/></p>\n"
 "                    <p>Thank you for your guidance throughout this process—it’s a job well done!</p>\n"
-"                    <p>Warm regards,<br><span t-out=\"user.name\"></span></p>\n"
+"                    <p>Warm regards,<br/><span t-out=\"user.name\"/></p>\n"
 "                </div>\n"
 "            "
 
@@ -271,7 +270,7 @@ msgstr ""
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__a2
 msgid "A2"
-msgstr " A2 (ए 2)"
+msgstr " A2 (ए2)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_group_statistics__stat_type__avg
@@ -296,12 +295,12 @@ msgstr " Activity Exception Decoration (गतिविधि अपवाद �
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_state
 msgid "Activity State"
-msgstr " Activity State (गतिविधि अवस्था)"
+msgstr " Activity State (गतिविधि स्थिति)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_type_icon
 msgid "Activity Type Icon"
-msgstr " Activity Type Icon (गतिविधि प्रकार आइकन)"
+msgstr " Activity Type Icon (गतिविधि प्रकार चिह्न)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__cpk
@@ -313,7 +312,7 @@ msgstr " Actual Cpk (वास्तविक सीपीके)"
 msgid "Actual Process Capability = MIN(Cpk U, Cpk L)"
 msgstr ""
 " Actual Process Capability = MIN(Cpk U, Cpk L) (वास्तविक प्रक्रिया क्षमता = "
-"मिनट (CPK U, CPK L))"
+"न्यूनतम(सीपीके यू, सीपीके एल))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -330,27 +329,12 @@ msgstr " Advanced Process Statistics (उन्नत प्रक्रिय�
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__approval_line_ids
 msgid "Approval Lines"
-msgstr " Approval Lines (अनुमोदन रेखाएँ)"
+msgstr " Approval Lines (अनुमोदन पंक्तियाँ)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__approval_members
 msgid "Approval Members"
 msgstr " Approval Members (अनुमोदन सदस्य)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Approval Status"
-msgstr " Approval Status (अनुमोदन की स्थिति)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Approve"
-msgstr " Approve (मंज़ूरी देना)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Approve your part?"
-msgstr " Approve your part? (अपने हिस्से को मंजूरी दें?)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_approval_line__state__approved
@@ -359,35 +343,19 @@ msgid "Approved"
 msgstr " Approved (अनुमत)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Are you sure you want to start the process?"
-msgstr ""
-" Are you sure you want to start the process? (क्या आप सुनिश्चित हैं कि आप "
-"प्रक्रिया शुरू करना चाहते हैं?)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Are you sure you want to undo to Draft?"
-msgstr ""
-" Are you sure you want to undo to Draft? (क्या आप सुनिश्चित हैं कि आप "
-"ड्राफ्ट करना चाहते हैं?)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Are you sure you want to undo to In Progress?"
-msgstr ""
-" Are you sure you want to undo to In Progress? (क्या आप सुनिश्चित हैं कि आप "
-"प्रगति में पूर्ववत करना चाहते हैं?)"
-
-#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_attachment_count
 msgid "Attachment Count"
 msgstr " Attachment Count (अनुलग्नक गणना)"
 
 #. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__is_auto_created
+msgid "Auto Created from Ruhlamat"
+msgstr " Auto Created from Ruhlamat (रूहलमत से स्वतः निर्मित)"
+
+#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__avg_range
 msgid "Average Range"
-msgstr " Average Range (औसत सीमा)"
+msgstr " Average Range (औसत रेंज)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -397,7 +365,7 @@ msgstr " Average Range (across all groups) (औसत सीमा (सभी �
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__avg_of_avgs
 msgid "Average of Averages"
-msgstr " Average of Averages (औसत औसत)"
+msgstr " Average of Averages (औसत का औसत)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -417,18 +385,18 @@ msgstr " Avg (औसत)"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Basic Statistics Summary"
-msgstr " Basic Statistics Summary (मूल सांख्यिकी सारांश)"
+msgstr " Basic Statistics Summary (बुनियादी सांख्यिकी सारांश)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Calculate Interval (C) Manually"
 msgstr ""
-" Calculate Interval (C) Manually (अंतराल की गणना करें (c) मैन्युअल रूप से)"
+" Calculate Interval (C) Manually (अंतराल (सी) की गणना मैन्युअल रूप से करें)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Calculate Statistics"
-msgstr " Calculate Statistics (आंकड़ों की गणना करें)"
+msgstr " Calculate Statistics (सांख्यिकी की गणना करें)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__can_approve
@@ -436,38 +404,17 @@ msgid "Can Approve"
 msgstr " Can Approve (अनुमोदन कर सकते हैं)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Cancel"
-msgstr " Cancel (रद्द करना)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Cancel the process?"
-msgstr " Cancel the process? (प्रक्रिया रद्द करें?)"
-
-#. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__canceled
 msgid "Canceled"
-msgstr " Canceled (रद्द)"
+msgstr " Canceled (रद्द कर दिया गया)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Cannot undo from the current state."
 msgstr ""
-" Cannot undo from the current state. (वर्तमान स्थिति से पूर्ववत नहीं कर "
-"सकते।)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Complete"
-msgstr " Complete (पूरा)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Complete the process?"
-msgstr " Complete the process? (प्रक्रिया को पूरा करें?)"
+" Cannot undo from the current state. (वर्तमान स्थिति से पूर्ववत नहीं किया जा"
+" सकता.)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__completed
@@ -484,7 +431,7 @@ msgstr " Configuration (विन्यास)"
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__control_chart_constants_ids
 #: model:ir.ui.menu,name:spc.menu_spc_control_chart_constants
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_form
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_control_chart_constants_list
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Control Chart Constants"
 msgstr " Control Chart Constants (नियंत्रण चार्ट स्थिरांक)"
@@ -503,25 +450,25 @@ msgstr " Control Limits Lines (नियंत्रण सीमा रेख�
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Control Limits and Capability Formulas"
 msgstr ""
-" Control Limits and Capability Formulas (नियंत्रण सीमा और क्षमता सूत्र)"
+" Control Limits and Capability Formulas (नियंत्रण सीमाएँ और क्षमता सूत्र)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Control Limits and Interval and Frequency"
 msgstr ""
-" Control Limits and Interval and Frequency (नियंत्रण सीमा और अंतराल और "
+" Control Limits and Interval and Frequency (नियंत्रण सीमाएँ और अंतराल और "
 "आवृत्ति)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Control Limits and Process Capability"
 msgstr ""
-" Control Limits and Process Capability (नियंत्रण सीमा और प्रक्रिया क्षमता)"
+" Control Limits and Process Capability (नियंत्रण सीमाएँ और प्रक्रिया क्षमता)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__num_readings
 msgid "Count of measurement values"
-msgstr " Count of measurement values (माप मूल्यों की गणना)"
+msgstr " Count of measurement values (माप मानों की गणना)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__cp
@@ -589,12 +536,12 @@ msgstr " Cumulative Frequency (संचयी आवृत्ति)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d3
 msgid "D3"
-msgstr " D3 (डी 3)"
+msgstr " D3 (डी3)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d4
 msgid "D4"
-msgstr " D4 (डी 4)"
+msgstr " D4 (डी4)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__data_collection
@@ -609,33 +556,33 @@ msgstr " Date (तारीख)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_group__date_of_measurement
 msgid "Date/Time of Measurement"
-msgstr " Date/Time of Measurement (माप की दिनांक/समय)"
+msgstr " Date/Time of Measurement (माप की तिथि/समय)"
 
 #. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_parameter
 msgid "Define your first measurement parameter"
 msgstr ""
-" Define your first measurement parameter (अपने पहले माप पैरामीटर को परिभाषित"
-" करें)"
+" Define your first measurement parameter (अपना पहला माप पैरामीटर परिभाषित "
+"करें)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Define your group numbers and their measurement date/time"
 msgstr ""
-" Define your group numbers and their measurement date/time (अपने समूह "
-"संख्याओं और उनके माप तिथि/समय को परिभाषित करें)"
+" Define your group numbers and their measurement date/time (अपने समूह की "
+"संख्याएं और उनकी माप तिथि/समय निर्धारित करें)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__design_centre
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Design Centre (D)"
-msgstr " Design Centre (D) (डिजाइन केंद्र (डी))"
+msgstr " Design Centre (D) (डिज़ाइन सेंटर (डी))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Design Centre (D) = (USL + LSL) / 2"
 msgstr ""
-" Design Centre (D) = (USL + LSL) / 2 (डिजाइन केंद्र (डी) = (यूएसएल + एलएसएल)"
+" Design Centre (D) = (USL + LSL) / 2 (डिज़ाइन सेंटर (डी) = (यूएसएल + एलएसएल)"
 " / 2)"
 
 #. module: spc
@@ -647,7 +594,7 @@ msgstr " Difference between USL and LSL (यूएसएल और एलएस�
 #: model:ir.model.fields,help:spc.field_statistical_process_control__shift_x_from_d
 msgid "Difference between average and design center"
 msgstr ""
-" Difference between average and design center (औसत और डिजाइन केंद्र के बीच "
+" Difference between average and design center (औसत और डिज़ाइन केंद्र के बीच "
 "अंतर)"
 
 #. module: spc
@@ -679,7 +626,12 @@ msgstr " Display Name (प्रदर्शित होने वाला न
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__doc_control_no
 msgid "Document Control No"
-msgstr " Document Control No (दस्तावेज़ नियंत्रण सं।)"
+msgstr " Document Control No (दस्तावेज़ नियंत्रण संख्या)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_chart_download_form
+msgid "Download"
+msgstr " Download (डाउनलोड करना)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__draft
@@ -696,7 +648,7 @@ msgstr " Enter your first measurement value (अपना पहला माप
 msgid "First, define your measurement parameters (X1, X2, X3, etc.)"
 msgstr ""
 " First, define your measurement parameters (X1, X2, X3, etc.) (सबसे पहले, "
-"अपने माप मापदंडों को परिभाषित करें (x1, x2, x3, आदि))"
+"अपने माप मापदंडों को परिभाषित करें (X1, X2, X3, आदि))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_follower_ids
@@ -706,12 +658,12 @@ msgstr " Followers (समर्थक)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_partner_ids
 msgid "Followers (Partners)"
-msgstr " Followers (Partners) (अनुयायी (भागीदार))"
+msgstr " Followers (Partners) (अनुयायी (साझेदार))"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr " Font awesome icon e.g. fa-tasks (फ़ॉन्ट भयानक आइकन उदा।एफए-टास्क)"
+msgstr " Font awesome icon e.g. fa-tasks (फ़ॉन्ट अद्भुत आइकन उदा.fa-कार्य)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -733,13 +685,18 @@ msgstr " Frequency (आवृत्ति)"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "Generate Charts"
-msgstr " Generate Charts (चार्ट उत्पन्न करें)"
+msgstr " Generate Charts (चार्ट जनरेट करें)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "Generate Interval Frequency Chart"
 msgstr ""
 " Generate Interval Frequency Chart (अंतराल आवृत्ति चार्ट उत्पन्न करें)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Generate Intervals & Frequencies"
+msgstr " Generate Intervals & Frequencies (अंतराल और आवृत्तियाँ उत्पन्न करें)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__group_id
@@ -752,26 +709,29 @@ msgstr " Group (समूह)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_group__group_no
 msgid "Group Number"
-msgstr " Group Number (समूह संख्या)"
+msgstr " Group Number (समूह क्रमांक)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_group_statistics
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__group_stat_ids
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Group Statistics"
 msgstr " Group Statistics (समूह सांख्यिकी)"
 
 #. module: spc
-#: model:ir.actions.act_window,name:spc.action_spc_group_statistics_tree_view
+#: model:ir.actions.act_window,name:spc.action_spc_group_statistics_list_view
 msgid "Group Statistics List"
 msgstr " Group Statistics List (समूह सांख्यिकी सूची)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "Group Statistics Pivot"
 msgstr " Group Statistics Pivot (समूह सांख्यिकी धुरी)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__group_statistics_html
+msgid "Group Statistics Table"
+msgstr " Group Statistics Table (समूह सांख्यिकी तालिका)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__has_message
@@ -806,23 +766,23 @@ msgstr " Icon (आइकन)"
 #: model:ir.model.fields,help:spc.field_statistical_process_control__activity_exception_icon
 msgid "Icon to indicate an exception activity."
 msgstr ""
-" Icon to indicate an exception activity. (एक अपवाद गतिविधि को इंगित करने के "
-"लिए आइकन।)"
+" Icon to indicate an exception activity. (अपवाद गतिविधि को इंगित करने के लिए"
+" चिह्न.)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__message_needaction
 msgid "If checked, new messages require your attention."
 msgstr ""
-" If checked, new messages require your attention. (यदि जाँच की जाती है, तो "
-"नए संदेशों को आपके ध्यान की आवश्यकता होती है।)"
+" If checked, new messages require your attention. (यदि जाँच की जाए, तो नए "
+"संदेशों पर आपका ध्यान आवश्यक है।)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__message_has_error
 #: model:ir.model.fields,help:spc.field_statistical_process_control__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
 msgstr ""
-" If checked, some messages have a delivery error. (यदि जाँच की जाती है, तो "
-"कुछ संदेशों में डिलीवरी त्रुटि होती है।)"
+" If checked, some messages have a delivery error. (यदि जाँच की जाए, तो कुछ "
+"संदेशों में डिलीवरी त्रुटि है।)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__in_progress
@@ -833,7 +793,7 @@ msgstr " In Progress (प्रगति पर है)"
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__index_k
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Index (K)"
-msgstr " Index (K) (सूचकांक (k))"
+msgstr " Index (K) (सूचकांक (के))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -841,9 +801,18 @@ msgid "Index (K) = R × (D-R) / S"
 msgstr " Index (K) = R × (D-R) / S (सूचकांक (के) = आर × (डी-आर) / एस)"
 
 #. module: spc
+#: model:ir.model.fields,help:spc.field_statistical_process_control__is_auto_created
+msgid ""
+"Indicates this SPC was automatically created from Ruhlamat gauging data"
+msgstr ""
+" Indicates this SPC was automatically created from Ruhlamat gauging data "
+"(इंगित करता है कि यह एसपीसी रूहलामत गेजिंग डेटा से स्वचालित रूप से बनाई गई "
+"थी)"
+
+#. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Initialize Intervals"
-msgstr " Initialize Intervals (इनिशियलाइज़ अंतराल)"
+msgstr " Initialize Intervals (अंतराल प्रारंभ करें)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_instrument_name
@@ -851,14 +820,14 @@ msgstr " Initialize Intervals (इनिशियलाइज़ अंतरा
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__instrument_id
 #: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_form
 msgid "Instrument Name"
-msgstr " Instrument Name (साधन का नाम)"
+msgstr " Instrument Name (उपकरण का नाम)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_instrument_name
 #: model:ir.ui.menu,name:spc.menu_instrument_name
-#: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_instrument_name_list
 msgid "Instrument Names"
-msgstr " Instrument Names (साधन नाम)"
+msgstr " Instrument Names (उपकरण के नाम)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval_id
@@ -874,28 +843,43 @@ msgstr " Interval (C) (अंतराल (सी))"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Interval (C) = (R + L.C.) / k"
-msgstr " Interval (C) = (R + L.C.) / k (अंतराल (c) = (r + l.c.) / k)"
+msgstr " Interval (C) = (R + L.C.) / k (अंतराल (सी) = (आर + एल.सी.) / के)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid ""
+"Interval (C) must be calculated first. Please ensure you have measurement "
+"values."
+msgstr ""
+" Interval (C) must be calculated first. Please ensure you have measurement "
+"values. (अंतराल (सी) की गणना पहले की जानी चाहिए।कृपया सुनिश्चित करें कि आपके"
+" पास माप मान हैं।)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "Interval (C) must be greater than zero."
 msgstr ""
-" Interval (C) must be greater than zero. (अंतराल (c) शून्य से अधिक होना "
-"चाहिए।)"
+" Interval (C) must be greater than zero. (अंतराल (सी) शून्य से अधिक होना "
+"चाहिए.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_interval__interval2
 #: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display__interval2
 msgid "Interval End"
-msgstr " Interval End (अंतराल अंत)"
+msgstr " Interval End (अंतराल समाप्ति)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_frequency_chart_image
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form_inherit
 msgid "Interval Frequency Chart"
 msgstr " Interval Frequency Chart (अंतराल आवृत्ति चार्ट)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__interval_frequency_chart_filename
+msgid "Interval Frequency Chart Filename"
+msgstr " Interval Frequency Chart Filename (अंतराल आवृत्ति चार्ट फ़ाइल नाम)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_interval__interval1
@@ -914,6 +898,14 @@ msgid "Intervals"
 msgstr " Intervals (अंतराल)"
 
 #. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Intervals, frequencies, and chart have been generated successfully."
+msgstr ""
+" Intervals, frequencies, and chart have been generated successfully. "
+"(अंतराल, आवृत्तियाँ और चार्ट सफलतापूर्वक तैयार किए गए हैं।)"
+
+#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_is_follower
 msgid "Is Follower"
 msgstr " Is Follower (अनुयायी है)"
@@ -921,7 +913,7 @@ msgstr " Is Follower (अनुयायी है)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__is_manager
 msgid "Is Manager"
-msgstr " Is Manager (प्रबंधक है)"
+msgstr " Is Manager (मैनेजर है)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__lcl_r
@@ -936,7 +928,7 @@ msgstr " L.C.L. X (एल.सी.एल.एक्स)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lcl_r
 msgid "L.C.L.R"
-msgstr " L.C.L.R (एल.सी.एल.आर.)"
+msgstr " L.C.L.R (एल.सी.एल.आर)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lcl_x
@@ -950,27 +942,8 @@ msgstr " LARGE (बड़ा)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lsl
-msgid "LSL"
-msgstr " LSL (आंदोलन)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_instrument_name____last_update
-#: model:ir.model.fields,field_description:spc.field_quality_characteristic____last_update
-#: model:ir.model.fields,field_description:spc.field_quality_standard____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_approval_line____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_control_limits_line____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_frequency____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_group_statistics____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_interval____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_interval_frequency_display____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_measurement_group____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_measurement_value____last_update
-#: model:ir.model.fields,field_description:spc.field_spc_part____last_update
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control____last_update
-msgid "Last Modified on"
-msgstr " Last Modified on (अंतिम रूप से संशोधित)"
+msgid "LTL"
+msgstr " LTL (एल टी एल)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_instrument_name__write_uid
@@ -989,7 +962,7 @@ msgstr " Last Modified on (अंतिम रूप से संशोधि�
 #: model:ir.model.fields,field_description:spc.field_spc_part__write_uid
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__write_uid
 msgid "Last Updated by"
-msgstr " Last Updated by (द्वारा अंतिम अद्यतन किया गया)"
+msgstr " Last Updated by (अंतिम बार अद्यतन किया गया)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_instrument_name__write_date
@@ -1013,60 +986,64 @@ msgstr " Last Updated on (अंतिम बार अद्यतन किय
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__least_count
 msgid "Least Count"
-msgstr " Least Count (कम से कम गिनती)"
+msgstr " Least Count (न्यूनतम गणना)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Least Count (L.C.)"
-msgstr " Least Count (L.C.) (कम से कम गिनती (एल.सी.))"
+msgstr " Least Count (L.C.) (न्यूनतम गणना (L.C.))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__lower_class_limit
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Lower Class Limit"
-msgstr " Lower Class Limit (निम्न वर्ग सीमा)"
+msgstr " Lower Class Limit (निचली कक्षा की सीमा)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Lower Class Limit = Starting Point - (0.5 × Least Count)"
 msgstr ""
-" Lower Class Limit = Starting Point - (0.5 × Least Count) (निम्न वर्ग सीमा ="
-" प्रारंभिक बिंदु - (0.5 × कम से कम गिनती))"
+" Lower Class Limit = Starting Point - (0.5 × Least Count) (निचली कक्षा सीमा "
+"= प्रारंभिक बिंदु - (0.5 × न्यूनतम गणना))"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Lower Class Limit is not set. Please check your measurements."
+msgstr ""
+" Lower Class Limit is not set. Please check your measurements. (निचली कक्षा "
+"की सीमा निर्धारित नहीं है.कृपया अपना माप जांचें.)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__lcl_r
 msgid "Lower Control Limit for R = R̄ × D3"
 msgstr ""
-" Lower Control Limit for R = R̄ × D3 (R = R̄ × D3 के लिए कम नियंत्रण सीमा)"
+" Lower Control Limit for R = R̄ × D3 (R के लिए निचली नियंत्रण सीमा = R̄ × "
+"D3)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__lcl_x
 msgid "Lower Control Limit for X = X̄ - A2×R̄"
 msgstr ""
-" Lower Control Limit for X = X̄ - A2×R̄ (X = x̄ - A2 × R̄ के लिए कम नियंत्रण"
-" सीमा)"
+" Lower Control Limit for X = X̄ - A2×R̄ (X = X̄ - A2×R̄ के लिए निचली "
+"नियंत्रण सीमा)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__cpk_l
 msgid "Lower Process Capability = (X̄-LSL)/(3σ)"
 msgstr ""
-" Lower Process Capability = (X̄-LSL)/(3σ) (कम प्रक्रिया क्षमता = "
-"(x̄-lsl)/(3)))"
+" Lower Process Capability = (X̄-LSL)/(3σ) (निचली प्रक्रिया क्षमता = "
+"(X̄-LSL)/(3σ))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_value__lsl
 msgid "Lower Specification Limit (LSL)"
-msgstr " Lower Specification Limit (LSL) (कम विनिर्देश सीमा (एलएसएल))"
+msgstr " Lower Specification Limit (LSL) (निचली विशिष्टता सीमा (एलएसएल))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__machine_name
 msgid "Machine Name"
 msgstr " Machine Name (मशीन का नाम)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_main_attachment_id
-msgid "Main Attachment"
-msgstr " Main Attachment (मुख्य अनुलग्नक)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__manager
@@ -1087,56 +1064,64 @@ msgstr " Maximum Value (across all groups) (अधिकतम मूल्य (
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_group__measurement_value_ids
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_form
 msgid "Measured Values"
-msgstr " Measured Values (मापा मान)"
+msgstr " Measured Values (मापे गए मान)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_form
 msgid "Measurement Group"
-msgstr " Measurement Group (माप समूह)"
+msgstr " Measurement Group (मापन समूह)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_group
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__measurement_group_ids
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_group
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_group_list
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Measurement Groups"
-msgstr " Measurement Groups (माप समूह)"
+msgstr " Measurement Groups (मापन समूह)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_pivot_main
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Measurement Matrix"
-msgstr " Measurement Matrix (माप मैट्रिक्स)"
+msgstr " Measurement Matrix (मापन मैट्रिक्स)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_parameter_form
 msgid "Measurement Parameter"
-msgstr " Measurement Parameter (माप -प्राचन)"
+msgstr " Measurement Parameter (मापन पैरामीटर)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_parameter
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__parameter_ids
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_parameter
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_parameter_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_parameter_list
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Measurement Parameters"
-msgstr " Measurement Parameters (माप -मापदंड)"
+msgstr " Measurement Parameters (माप पैरामीटर)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_pivot
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-#, python-format
 msgid "Measurement Pivot"
-msgstr " Measurement Pivot (मापन पिवट)"
+msgstr " Measurement Pivot (माप धुरी)"
 
 #. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_list
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_pivot
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_group_statistics_tree
 msgid "Measurement Statistics"
 msgstr " Measurement Statistics (माप सांख्यिकी)"
+
+#. module: spc
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
+msgid "Measurement Values & Group Statistics"
+msgstr " Measurement Values & Group Statistics (मापन मान एवं समूह सांख्यिकी)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__measurement_html
+msgid "Measurement Values Table"
+msgstr " Measurement Values Table (माप मान तालिका)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__least_count
@@ -1147,8 +1132,8 @@ msgstr " Measurement precision (माप परिशुद्धता)"
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Measurement precision - enter manually"
 msgstr ""
-" Measurement precision - enter manually (मापन परिशुद्धता - मैन्युअल रूप से "
-"दर्ज करें)"
+" Measurement precision - enter manually (माप सटीकता - मैन्युअल रूप से दर्ज "
+"करें)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__measurement_value_ids
@@ -1179,7 +1164,7 @@ msgstr " Minimum Value (across all groups) (न्यूनतम मूल्�
 #: model:ir.model.fields,help:spc.field_statistical_process_control__starting_point
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Minimum value from all measurements"
-msgstr " Minimum value from all measurements (सभी मापों से न्यूनतम मूल्य)"
+msgstr " Minimum value from all measurements (सभी मापों से न्यूनतम मान)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__my_activity_date_deadline
@@ -1193,18 +1178,9 @@ msgstr " Name (नाम)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "New"
 msgstr " New (नया)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_calendar_event_id
-msgid "Next Activity Calendar Event"
-msgstr " Next Activity Calendar Event (अगली गतिविधि कैलेंडर घटना)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_date_deadline
@@ -1222,6 +1198,30 @@ msgid "Next Activity Type"
 msgstr " Next Activity Type (अगली गतिविधि प्रकार)"
 
 #. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/spc_charts.py:0
+msgid "No Interval Frequency Chart available. Please generate chart first."
+msgstr ""
+" No Interval Frequency Chart available. Please generate chart first. (कोई "
+"अंतराल आवृत्ति चार्ट उपलब्ध नहीं है.कृपया पहले चार्ट जनरेट करें.)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/spc_charts.py:0
+msgid "No R-Chart available. Please generate charts first."
+msgstr ""
+" No R-Chart available. Please generate charts first. (कोई आर-चार्ट उपलब्ध "
+"नहीं है.कृपया पहले चार्ट तैयार करें.)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/spc_charts.py:0
+msgid "No X-Chart available. Please generate charts first."
+msgstr ""
+" No X-Chart available. Please generate charts first. (कोई एक्स-चार्ट उपलब्ध "
+"नहीं है.कृपया पहले चार्ट तैयार करें.)"
+
+#. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_control_chart_constants
 msgid "No control chart constants found"
 msgstr ""
@@ -1229,15 +1229,14 @@ msgstr ""
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_charts.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_charts.py:0
 msgid ""
 "No data available to generate the chart. Please update the interval and "
 "frequency display first."
 msgstr ""
 " No data available to generate the chart. Please update the interval and "
-"frequency display first. (चार्ट उत्पन्न करने के लिए कोई डेटा उपलब्ध नहीं "
-"है।कृपया पहले अंतराल और आवृत्ति प्रदर्शन को अपडेट करें।)"
+"frequency display first. (चार्ट जनरेट करने के लिए कोई डेटा उपलब्ध नहीं "
+"है.कृपया पहले अंतराल और आवृत्ति डिस्प्ले को अपडेट करें।)"
 
 #. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_measurement_pivot
@@ -1245,8 +1244,16 @@ msgid "No measurement values found"
 msgstr " No measurement values found (कोई माप मान नहीं मिला)"
 
 #. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "No measurement values found. Please add measurements first."
+msgstr ""
+" No measurement values found. Please add measurements first. (कोई माप मान "
+"नहीं मिला.कृपया पहले माप जोड़ें.)"
+
+#. module: spc
 #: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics
-#: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics_tree_view
+#: model_terms:ir.actions.act_window,help:spc.action_spc_group_statistics_list_view
 msgid "No statistics available"
 msgstr " No statistics available (कोई आँकड़े उपलब्ध नहीं हैं)"
 
@@ -1254,29 +1261,29 @@ msgstr " No statistics available (कोई आँकड़े उपलब्�
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__num_class_intervals
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "No. of Class Intervals"
-msgstr " No. of Class Intervals (वर्ग अंतराल की संख्या)"
+msgstr " No. of Class Intervals (कक्षा अंतरालों की संख्या)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "No. of Class Intervals = 1 + 3.222 × log10(N)"
 msgstr ""
-" No. of Class Intervals = 1 + 3.222 × log10(N) (वर्ग अंतराल की संख्या = 1 + "
-"3.222 × log10 (एन))"
+" No. of Class Intervals = 1 + 3.222 × log10(N) (वर्ग अंतरालों की संख्या = 1 "
+"+ 3.222 × log10(N))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conforming_parts
 msgid "No. of Non Conforming Parts"
-msgstr " No. of Non Conforming Parts (गैर -अनुरूप भागों की संख्या)"
+msgstr " No. of Non Conforming Parts (गैर अनुरूप भागों की संख्या)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__values_above_ucl
 msgid "No. of Parts Above UCL"
-msgstr " No. of Parts Above UCL (UCL के ऊपर भागों की संख्या)"
+msgstr " No. of Parts Above UCL (यूसीएल से ऊपर के हिस्सों की संख्या)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__values_below_lcl
 msgid "No. of Parts Below LCL"
-msgstr " No. of Parts Below LCL (एलसीएल के नीचे के हिस्सों की संख्या)"
+msgstr " No. of Parts Below LCL (एलसीएल से नीचे के हिस्सों की संख्या)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__num_readings
@@ -1289,22 +1296,20 @@ msgstr " No. of Readings (N) (रीडिंग की संख्या (ए�
 msgid "No. of readings ( N )  = Total count of measurement values"
 msgstr ""
 " No. of readings ( N )  = Total count of measurement values (रीडिंग की "
-"संख्या (एन) = माप मूल्यों की कुल गणना)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conformity_ids
-msgid "Non Conformity"
-msgstr " Non Conformity (अनन्य अनुरूपता)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__non_conformity_count
-msgid "Non Conformity Count"
-msgstr " Non Conformity Count (गैर -अनुरूपता गणना)"
+"संख्या (एन) = माप मूल्यों की कुल गिनती)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_needaction_counter
 msgid "Number of Actions"
-msgstr " Number of Actions (कार्यों की संख्या)"
+msgstr " Number of Actions (कार्रवाइयों की संख्या)"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Number of classes (k) is not properly set."
+msgstr ""
+" Number of classes (k) is not properly set. (कक्षाओं की संख्या (k) ठीक से "
+"निर्धारित नहीं है।)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_has_error_counter
@@ -1322,7 +1327,7 @@ msgstr ""
 #: model:ir.model.fields,help:spc.field_statistical_process_control__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr ""
-" Number of messages with delivery error (वितरण त्रुटि के साथ संदेशों की "
+" Number of messages with delivery error (वितरण त्रुटि वाले संदेशों की "
 "संख्या)"
 
 #. module: spc
@@ -1330,32 +1335,30 @@ msgstr ""
 msgid "Number of parts with values above Upper Control Limit"
 msgstr ""
 " Number of parts with values above Upper Control Limit (ऊपरी नियंत्रण सीमा "
-"से ऊपर के मूल्यों के साथ भागों की संख्या)"
+"से ऊपर मान वाले भागों की संख्या)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__values_below_lcl
 msgid "Number of parts with values below Lower Control Limit"
 msgstr ""
-" Number of parts with values below Lower Control Limit (कम नियंत्रण सीमा से "
-"नीचे के मूल्यों के साथ भागों की संख्या)"
+" Number of parts with values below Lower Control Limit (निचली नियंत्रण सीमा "
+"से नीचे मान वाले भागों की संख्या)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Only the manager can cancel this document."
 msgstr ""
 " Only the manager can cancel this document. (केवल प्रबंधक ही इस दस्तावेज़ को"
-" रद्द कर सकता है।)"
+" रद्द कर सकता है.)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Only users in the SPC Approver group can complete this document."
 msgstr ""
-" Only users in the SPC Approver group can complete this document. (केवल SPC "
-"अनुमोदन समूह में उपयोगकर्ता इस दस्तावेज़ को पूरा कर सकते हैं।)"
+" Only users in the SPC Approver group can complete this document. (केवल "
+"एसपीसी अनुमोदन समूह के उपयोगकर्ता ही इस दस्तावेज़ को पूरा कर सकते हैं।)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__operation
@@ -1374,18 +1377,24 @@ msgid "Parameter Name"
 msgstr " Parameter Name (मापदण्ड नाम)"
 
 #. module: spc
-#: model:ir.model.fields,field_description:spc.field_spc_part__part_name
+#: model:ir.model.fields,field_description:spc.field_spc_part__part_id
+msgid "Part"
+msgstr " Part (भाग)"
+
+#. module: spc
+#: model:ir.model.fields,field_description:spc.field_spc_part__part_name_display
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_name
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_name_display
 msgid "Part Name"
 msgstr " Part Name (नाम का हिस्सा)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__part_no_id
 msgid "Part No"
-msgstr " Part No (भाग नहीं)"
+msgstr " Part No (भाग संख्या)"
 
 #. module: spc
-#: model:ir.model.fields,field_description:spc.field_spc_part__name
+#: model:ir.model.fields,field_description:spc.field_spc_part__part_number
 msgid "Part Number"
 msgstr " Part Number (भाग संख्या)"
 
@@ -1401,34 +1410,24 @@ msgstr " Pivot Analysis (धुरी विश्लेषण)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "Please add approval members before sending for approval."
 msgstr ""
-" Please add approval members before sending for approval. (अनुमोदन के लिए "
-"भेजने से पहले कृपया अनुमोदन सदस्यों को जोड़ें।)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid ""
-"Please define both parameters and groups first, then you can add measurement"
-" values."
-msgstr ""
-" Please define both parameters and groups first, then you can add "
-"measurement values. (कृपया पहले दोनों मापदंडों और समूहों को परिभाषित करें, "
-"फिर आप माप मान जोड़ सकते हैं।)"
+" Please add approval members before sending for approval. (कृपया अनुमोदन के "
+"लिए भेजने से पहले अनुमोदन सदस्य जोड़ें।)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__cp
 msgid "Process Capability = (USL-LSL)/(6σ)"
 msgstr ""
-" Process Capability = (USL-LSL)/(6σ) (प्रक्रिया क्षमता = (USL-LSL)/(6)))"
+" Process Capability = (USL-LSL)/(6σ) (प्रक्रिया क्षमता = (यूएसएल-"
+"एलएसएल)/(6σ))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__process_width
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Process Width (R)"
-msgstr " Process Width (R) (प्रक्रिया चौड़ाई)"
+msgstr " Process Width (R) (प्रक्रिया चौड़ाई (आर))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -1453,14 +1452,14 @@ msgstr " Product Quantity (उत्पाद गुणवत्ता)"
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__quality_char_id
 #: model_terms:ir.ui.view,arch_db:spc.view_quality_characteristic_form
 msgid "Quality Characteristic"
-msgstr " Quality Characteristic (गुणवत्ता की विशेषता)"
+msgstr " Quality Characteristic (गुणवत्ता विशेषता)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_quality_characteristic
 #: model:ir.ui.menu,name:spc.menu_quality_characteristic
-#: model_terms:ir.ui.view,arch_db:spc.view_quality_characteristic_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_characteristic_list
 msgid "Quality Characteristics"
-msgstr " Quality Characteristics (गुणवत्ता विशेषताओं)"
+msgstr " Quality Characteristics (गुणवत्ता विशेषताएँ)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_quality_standard
@@ -1471,7 +1470,7 @@ msgstr " Quality Standard (गुणवत्ता मानक)"
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_quality_standard
 #: model:ir.ui.menu,name:spc.menu_quality_standard
-#: model_terms:ir.ui.view,arch_db:spc.view_quality_standard_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_quality_standard_list
 msgid "Quality Standards"
 msgstr " Quality Standards (गुणवत्ता मानक)"
 
@@ -1492,6 +1491,11 @@ msgid "R-Chart"
 msgstr " R-Chart (आर-चार्ट)"
 
 #. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__r_chart_filename
+msgid "R-Chart Filename"
+msgstr " R-Chart Filename (आर-चार्ट फ़ाइल नाम)"
+
+#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__r_chart_image
 msgid "R-Chart Image"
 msgstr " R-Chart Image (आर-चार्ट छवि)"
@@ -1507,6 +1511,11 @@ msgid "Range"
 msgstr " Range (श्रेणी)"
 
 #. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__rating_ids
+msgid "Ratings"
+msgstr " Ratings (रेटिंग)"
+
+#. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Recommended classes based on sample size"
 msgstr ""
@@ -1514,25 +1523,9 @@ msgstr ""
 "कक्षाएं)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Reject"
-msgstr " Reject (अस्वीकार करना)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Reject and return to In Progress?"
-msgstr ""
-" Reject and return to In Progress? (अस्वीकार करें और प्रगति में लौटें?)"
-
-#. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__spc_approval_line__state__rejected
 msgid "Rejected"
 msgstr " Rejected (अस्वीकार कर दिया)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Reset to Draft"
-msgstr " Reset to Draft (मसौदा तैयार करना)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__activity_user_id
@@ -1547,7 +1540,7 @@ msgstr " SMALL (छोटा)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr " SMS Delivery error (एसएमएस वितरण त्रुटि)"
+msgstr " SMS Delivery error (एसएमएस डिलिवरी त्रुटि)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_approval_line__spc_id
@@ -1567,17 +1560,17 @@ msgstr " SPC (छठे वेतन आयोग)"
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_action
 msgid "SPC Action Notification"
-msgstr " SPC Action Notification (एसपीसी एक्शन अधिसूचना)"
+msgstr " SPC Action Notification (एसपीसी कार्रवाई अधिसूचना)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_action
 msgid "SPC Action: {{object.name}}"
-msgstr " SPC Action: {{object.name}} (एसपीसी एक्शन: {{object.name}}})"
+msgstr " SPC Action: {{object.name}} (एसपीसी कार्रवाई: {{ऑब्जेक्ट.नाम}})"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_approval_line
 msgid "SPC Approval Line"
-msgstr " SPC Approval Line (एसपीसी अनुमोदन लाइन)"
+msgstr " SPC Approval Line (एसपीसी अनुमोदन रेखा)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_approve
@@ -1587,12 +1580,12 @@ msgstr " SPC Approve Notification (एसपीसी ने अधिसूच�
 #. module: spc
 #: model:res.groups,name:spc.group_spc_approver
 msgid "SPC Approves"
-msgstr " SPC Approves (एसपीसी अनुमोदन करता है)"
+msgstr " SPC Approves (एसपीसी ने मंजूरी दी)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_cancel
 msgid "SPC Cancel Notification"
-msgstr " SPC Cancel Notification (SPC रद्द अधिसूचना)"
+msgstr " SPC Cancel Notification (एसपीसी अधिसूचना रद्द करें)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_complete
@@ -1638,7 +1631,7 @@ msgstr " SPC Manager (एसपीसी प्रबंधक)"
 #. module: spc
 #: model:ir.model,name:spc.model_spc_measurement_group
 msgid "SPC Measurement Group"
-msgstr " SPC Measurement Group (एसपीसी माप समूह)"
+msgstr " SPC Measurement Group (एसपीसी मापन समूह)"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_measurement_parameter
@@ -1649,14 +1642,14 @@ msgstr " SPC Measurement Parameter (एसपीसी माप पैराम
 #: model:ir.model,name:spc.model_spc_measurement_value
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_form
 msgid "SPC Measurement Value"
-msgstr " SPC Measurement Value (एसपीसी माप मूल्य)"
+msgstr " SPC Measurement Value (एसपीसी मापन मूल्य)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_value
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_value
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_list
 msgid "SPC Measurement Values"
-msgstr " SPC Measurement Values (एसपीसी माप मान)"
+msgstr " SPC Measurement Values (एसपीसी मापन मान)"
 
 #. module: spc
 #: model:ir.ui.menu,name:spc.menu_spc_operations
@@ -1667,19 +1660,19 @@ msgstr " SPC Operations (एसपीसी संचालन)"
 #: model:ir.model,name:spc.model_spc_part
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_part_form
 msgid "SPC Part"
-msgstr " SPC Part (एसपीसी पार्ट)"
+msgstr " SPC Part (एसपीसी भाग)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_part
 #: model:ir.ui.menu,name:spc.menu_spc_part
-#: model_terms:ir.ui.view,arch_db:spc.view_spc_part_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_spc_part_list
 msgid "SPC Parts"
 msgstr " SPC Parts (एसपीसी पार्ट्स)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_reject
 msgid "SPC Reject Notification"
-msgstr " SPC Reject Notification (एसपीसी अस्वीकार अधिसूचना)"
+msgstr " SPC Reject Notification (एसपीसी ने अधिसूचना खारिज कर दी)"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_send_for_approval
@@ -1700,7 +1693,7 @@ msgstr " SPC User (एसपीसी उपयोगकर्ता)"
 #. module: spc
 #: model:res.groups,name:spc.group_spc_viewer
 msgid "SPC Viewer"
-msgstr " SPC Viewer (एसपीसी व्यूअर)"
+msgstr " SPC Viewer (एसपीसी दर्शक)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__sample
@@ -1710,12 +1703,12 @@ msgstr " Sample Size (नमूने का आकार)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__sampling_ratio
 msgid "Sampling Ratio"
-msgstr " Sampling Ratio (नमूना अनुपात)"
+msgstr " Sampling Ratio (नमूनाकरण अनुपात)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Selected Classes (k)"
-msgstr " Selected Classes (k) (चयनित कक्षाएं (k))"
+msgstr " Selected Classes (k) (चयनित कक्षाएं (के))"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__selected_classes_k
@@ -1727,7 +1720,7 @@ msgstr ""
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__selected_classes_k
 msgid "Selecting no. of Classes (k)"
-msgstr " Selecting no. of Classes (k) (चयन नहीं।वर्गों की (k))"
+msgstr " Selecting no. of Classes (k) (नंबर का चयन करनाकक्षाओं की (के))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -1737,19 +1730,8 @@ msgid ""
 msgstr ""
 " Selecting no. of classes( k )= "
 "IF(N=50,\"6\",IF(N=100,\"7\",IF(N=200,\"8\",IF(N=500,\"9\",IF(N=1000,\"10\")))))"
-" (चयन नहीं।कक्षाओं (k) = if (n = 50, \"6\", if (n = 100, \"7\", if (n = 200,"
-" \"8\", if (n = 500, \"9\", if (n = 1000, "
-"\"10\"))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Send for Approval"
-msgstr " Send for Approval (अनुमोदन के लिए भेजें)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Send for approval?"
-msgstr " Send for approval? (अनुमोदन के लिए भेजें?)"
+" (नंबर का चयन करनावर्गों का( k )= "
+"IF(N=50,\"6\",IF(N=100,\"7\",IF(N=200,\"8\",IF(N=500,\"9\",IF(N=1000,\"10\"))))))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_frequency__sequence
@@ -1759,51 +1741,44 @@ msgid "Sequence"
 msgstr " Sequence (अनुक्रम)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid ""
-"Set USL (Upper Specification Limit) and LSL (Lower Specification Limit)"
-msgstr ""
-" Set USL (Upper Specification Limit) and LSL (Lower Specification Limit) "
-"(सेट यूएसएल (ऊपरी विनिर्देश सीमा) और एलएसएल (निचला विनिर्देश सीमा))"
-
-#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__shift_x_from_d
 msgid "Shift Of X from D"
-msgstr " Shift Of X from D (डी से एक्स का शिफ्ट)"
+msgstr " Shift Of X from D (X का D से स्थानांतरण)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Shift Of X from D = Average - Design Centre"
 msgstr ""
-" Shift Of X from D = Average - Design Centre (D = औसत - डिजाइन केंद्र से x "
-"का शिफ्ट)"
+" Shift Of X from D = Average - Design Centre (D से X का स्थानांतरण = औसत - "
+"डिज़ाइन केंद्र)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Shift of X from D"
-msgstr " Shift of X from D (डी से एक्स का शिफ्ट)"
+msgstr " Shift of X from D (X का D से स्थानांतरण)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__show_calculate_button
 msgid "Show Calculate Button"
-msgstr " Show Calculate Button (गणना बटन दिखाएं)"
+msgstr " Show Calculate Button (गणना बटन दिखाएँ)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Specification Limits"
-msgstr " Specification Limits (विनिर्देशन सीमाएँ)"
+msgstr " Specification Limits (विशिष्टता सीमाएँ)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__specification_width
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Specification Width (S)"
-msgstr " Specification Width (S) (विनिर्देश चौड़ाई (ओं))"
+msgstr " Specification Width (S) (विशिष्टता चौड़ाई (एस))"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Specification Width (S) = USL - LSL"
 msgstr ""
-" Specification Width (S) = USL - LSL (विनिर्देश चौड़ाई (s) = usl - lsl)"
+" Specification Width (S) = USL - LSL (विशिष्टता चौड़ाई (एस) = यूएसएल - "
+"एलएसएल)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__stage
@@ -1813,7 +1788,7 @@ msgstr " Stage (अवस्था)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__stage_display
 msgid "Stage Display"
-msgstr " Stage Display (चरण प्रदर्शन)"
+msgstr " Stage Display (मंच प्रदर्शन)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_quality_standard__name
@@ -1824,12 +1799,7 @@ msgstr " Standard (मानक)"
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__std_dev
 msgid "Standard Deviation = R̄ / d2"
-msgstr " Standard Deviation = R̄ / d2 (मानक विचलन = R̄ / D2)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Start"
-msgstr " Start (शुरू)"
+msgstr " Standard Deviation = R̄ / d2 (मानक विचलन = R̄ / d2)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__starting_point
@@ -1842,8 +1812,8 @@ msgstr " Starting Point (प्रस्थान बिंदू)"
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Starting Point - (0.5 × Least Count)"
 msgstr ""
-" Starting Point - (0.5 × Least Count) (प्रारंभिक बिंदु - (0.5 × कम से कम "
-"गिनती))"
+" Starting Point - (0.5 × Least Count) (प्रारंभिक बिंदु - (0.5 × न्यूनतम "
+"गणना))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_approval_line__state
@@ -1853,7 +1823,7 @@ msgstr " State (राज्य)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_group_statistics__stat_type
 msgid "Statistic Type"
-msgstr " Statistic Type (सांख्यिकीय प्रकार)"
+msgstr " Statistic Type (सांख्यिकी प्रकार)"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_statistical_process_control
@@ -1861,7 +1831,7 @@ msgstr " Statistic Type (सांख्यिकीय प्रकार)"
 #: model:ir.ui.menu,name:spc.menu_spc_main
 #: model:ir.ui.menu,name:spc.menu_statistical_process_control
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_tree
+#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_list
 msgid "Statistical Process Control"
 msgstr " Statistical Process Control (सांख्यिकीय प्रक्रिया नियंत्रण)"
 
@@ -1869,19 +1839,19 @@ msgstr " Statistical Process Control (सांख्यिकीय प्र�
 #: model:ir.model,name:spc.model_statistical_process_control
 msgid "Statistical Process Control System"
 msgstr ""
-" Statistical Process Control System (सांख्यिकीय प्रक्रिया नियंत्रण तंत्र)"
+" Statistical Process Control System (सांख्यिकीय प्रक्रिया नियंत्रण प्रणाली)"
 
 #. module: spc
 #: model:ir.module.category,description:spc.spc_category
 msgid "Statistical Process Control System Categories"
 msgstr ""
 " Statistical Process Control System Categories (सांख्यिकीय प्रक्रिया "
-"नियंत्रण तंत्र श्रेणियां)"
+"नियंत्रण प्रणाली श्रेणियाँ)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__statistics_calculated
 msgid "Statistics Calculated"
-msgstr " Statistics Calculated (गणना की गई सांख्यिकी)"
+msgstr " Statistics Calculated (सांख्यिकी परिकलित)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__activity_state
@@ -1894,15 +1864,21 @@ msgstr ""
 " Status based on activities\n"
 "Overdue: Due date is already passed\n"
 "Today: Activity date is today\n"
-"Planned: Future activities. (गतिविधियों के आधार पर स्थिति\n"
-"अतिदेय: नियत तारीख पहले ही पारित हो चुकी है\n"
-"आज: गतिविधि की तारीख आज है\n"
+"Planned: Future activities. (गतिविधियों पर आधारित स्थिति\n"
+"अतिदेय: देय तिथि पहले ही बीत चुकी है\n"
+"आज: गतिविधि तिथि आज है\n"
 "नियोजित: भविष्य की गतिविधियाँ।)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__std_dev
 msgid "Std.Dev.(σ)"
-msgstr " Std.Dev.(σ) (Std.dev। (σ))"
+msgstr " Std.Dev.(σ) (Std.Dev.(σ))"
+
+#. module: spc
+#. odoo-python
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
+msgid "Success"
+msgstr " Success (सफलता)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
@@ -1912,7 +1888,7 @@ msgstr " Summary Statistics (सारांश सांख्यिकी)"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Summary Statistics (2)"
-msgstr "Summary Statistics (2)"
+msgstr " Summary Statistics (2) (सारांश सांख्यिकी (2))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__supplier_id
@@ -1921,23 +1897,11 @@ msgstr " Supplier (देने वाला)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/spc_extended.py:0
-#, python-format
+#: code:addons/spc/spc/models/spc_extended.py:0
 msgid "The document must be in the Approved stage to be completed."
 msgstr ""
-" The document must be in the Approved stage to be completed. (दस्तावेज़ को "
-"पूरा करने के लिए अनुमोदित चरण में होना चाहिए।)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid ""
-"The matrix below shows parameters as rows and groups as columns. Click on "
-"any cell to enter or edit measurement values."
-msgstr ""
-" The matrix below shows parameters as rows and groups as columns. Click on "
-"any cell to enter or edit measurement values. (नीचे दिया गया मैट्रिक्स "
-"पंक्तियों और समूहों के रूप में स्तंभों के रूप में मापदंडों को दिखाता है।माप "
-"मान दर्ज करने या संपादित करने के लिए किसी भी सेल पर क्लिक करें।)"
+" The document must be in the Approved stage to be completed. (पूरा होने के "
+"लिए दस्तावेज़ स्वीकृत चरण में होना चाहिए।)"
 
 #. module: spc
 #: model:ir.model.fields.selection,name:spc.selection__statistical_process_control__stage__to_approve
@@ -1947,14 +1911,14 @@ msgstr " To Approve (अनुमोदन करना)"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Total count of measurement values"
-msgstr " Total count of measurement values (माप मूल्यों की कुल गणना)"
+msgstr " Total count of measurement values (माप मानों की कुल गिनती)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr ""
 " Type of the exception activity on record. (रिकॉर्ड पर अपवाद गतिविधि का "
-"प्रकार।)"
+"प्रकार.)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_limits_line__ucl_r
@@ -1969,70 +1933,65 @@ msgstr " U.C.L. X (यू.सी.एल.एक्स)"
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__ucl_r
 msgid "U.C.L.R"
-msgstr " U.C.L.R (यू.सी.एल.आर.)"
+msgstr " U.C.L.R (यू.सी.एल.आर)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__ucl_x
 msgid "U.C.L.X"
-msgstr " U.C.L.X (U.C.L.X)"
+msgstr " U.C.L.X (यू.सी.एल.एक्स)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "UP TO 5 SAMPLES ' D3' VALUE = 0"
-msgstr " UP TO 5 SAMPLES ' D3' VALUE = 0 (5 नमूने तक 'डी 3' मान = 0)"
-
-#. module: spc
-#: model:ir.model.fields,field_description:spc.field_statistical_process_control__usl
-msgid "USL"
-msgstr " USL (यूएसएल)"
+msgstr " UP TO 5 SAMPLES ' D3' VALUE = 0 (5 नमूनों तक 'डी3' मान = 0)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "USL - LSL"
-msgstr " USL - LSL (USL - LSL)"
+msgstr " USL - LSL (यूएसएल - एलएसएल)"
 
 #. module: spc
 #. odoo-python
-#: code:addons/spc/models/statistical_process_control_main.py:0
-#, python-format
+#: code:addons/spc/spc/models/statistical_process_control_main.py:0
 msgid "USL must be greater than LSL"
-msgstr " USL must be greater than LSL (यूएसएल एलएसएल से अधिक होना चाहिए)"
+msgstr " USL must be greater than LSL (यूएसएल एलएसएल से बड़ा होना चाहिए)"
 
 #. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "Undo"
-msgstr " Undo (पूर्ववत)"
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__usl
+msgid "UTL"
+msgstr " UTL (यूटीएल)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "Update Interval and Frequency Display"
 msgstr ""
-" Update Interval and Frequency Display (अद्यतन अंतराल और आवृत्ति प्रदर्शन)"
+" Update Interval and Frequency Display (अंतराल और आवृत्ति प्रदर्शन अद्यतन "
+"करें)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__ucl_r
 msgid "Upper Control Limit for R = R̄ × D4"
 msgstr ""
-" Upper Control Limit for R = R̄ × D4 (R = R̄ × D4 के लिए ऊपरी नियंत्रण सीमा)"
+" Upper Control Limit for R = R̄ × D4 (R के लिए ऊपरी नियंत्रण सीमा = R̄ × D4)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__ucl_x
 msgid "Upper Control Limit for X = X̄ + A2×R̄"
 msgstr ""
-" Upper Control Limit for X = X̄ + A2×R̄ (X = X̄ + A2 × R̄ के लिए ऊपरी "
-"नियंत्रण सीमा)"
+" Upper Control Limit for X = X̄ + A2×R̄ (X के लिए ऊपरी नियंत्रण सीमा = X̄ + "
+"A2×R̄)"
 
 #. module: spc
 #: model:ir.model.fields,help:spc.field_statistical_process_control__cpk_u
 msgid "Upper Process Capability = (USL-X̄)/(3σ)"
 msgstr ""
 " Upper Process Capability = (USL-X̄)/(3σ) (ऊपरी प्रक्रिया क्षमता = "
-"(usl-X̄)/(3)))"
+"(USL-X̄)/(3σ))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_value__usl
 msgid "Upper Specification Limit (USL)"
-msgstr " Upper Specification Limit (USL) (ऊपरी विनिर्देश सीमा (यूएसएल))"
+msgstr " Upper Specification Limit (USL) (ऊपरी विशिष्टता सीमा (यूएसएल))"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_approval_line__user_id
@@ -2049,11 +2008,6 @@ msgstr " Value (कीमत)"
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_parameter__measurement_value_ids
 msgid "Values"
 msgstr " Values (मान)"
-
-#. module: spc
-#: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
-msgid "View Statistics Pivot"
-msgstr " View Statistics Pivot (सांख्यिकी धुरी देखें)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__website_message_ids
@@ -2076,6 +2030,11 @@ msgid "X-Chart"
 msgstr " X-Chart (एक्स-चार्ट)"
 
 #. module: spc
+#: model:ir.model.fields,field_description:spc.field_statistical_process_control__x_chart_filename
+msgid "X-Chart Filename"
+msgstr " X-Chart Filename (एक्स-चार्ट फ़ाइल नाम)"
+
+#. module: spc
 #: model:ir.model.fields,field_description:spc.field_statistical_process_control__x_chart_image
 msgid "X-Chart Image"
 msgstr " X-Chart Image (एक्स-चार्ट छवि)"
@@ -2083,54 +2042,54 @@ msgstr " X-Chart Image (एक्स-चार्ट छवि)"
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "avg_of_avgs - Design Centre"
-msgstr " avg_of_avgs - Design Centre (avg_of_avgs - डिजाइन केंद्र)"
+msgstr " avg_of_avgs - Design Centre (avg_of_avgs - डिज़ाइन सेंटर)"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__d2
 msgid "d2"
-msgstr " d2 (डी 2)"
+msgstr " d2 (डी2)"
 
 #. module: spc
 #: model_terms:ir.ui.view,arch_db:spc.view_statistical_process_control_form
 msgid "max_large - min_small"
-msgstr " max_large - min_small (max_large - min_small)"
+msgstr " max_large - min_small (अधिकतम_बड़ा - न्यूनतम_छोटा)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_approve
 msgid "✅ Approval Update: {{object.name}}"
 msgstr ""
-" ✅ Approval Update: {{object.name}} (✅ अनुमोदन अद्यतन: {{object.name}})"
+" ✅ Approval Update: {{object.name}} (✅ अनुमोदन अद्यतन: {{ऑब्जेक्ट.नाम}})"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_complete
 msgid "🎉 Mission Accomplished: {{object.name}} SPC is Complete!"
 msgstr ""
-" 🎉 Mission Accomplished: {{object.name}} SPC is Complete! (🎉 मिशन पूरा: "
-"{{object.name}} spc पूरा हो गया है!)"
+" 🎉 Mission Accomplished: {{object.name}} SPC is Complete! (🎉 मिशन पूरा हुआ: "
+"{{ऑब्जेक्ट.नाम}} एसपीसी पूरा हो गया है!)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_reject
 msgid "🔄 Rejection Update: {{object.name}}"
 msgstr ""
-" 🔄 Rejection Update: {{object.name}} (🔄 अस्वीकृति अद्यतन: {{object.name}})"
+" 🔄 Rejection Update: {{object.name}} (🔄अस्वीकृति अद्यतन: {{ऑब्जेक्ट.नाम}})"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_send_for_approval
 msgid "🔔 Your Input Needed: {{object.name}} Awaits Approval"
 msgstr ""
 " 🔔 Your Input Needed: {{object.name}} Awaits Approval (🔔 आपके इनपुट की "
-"आवश्यकता है: {{object.name}} अनुमोदन का इंतजार है)"
+"आवश्यकता: {{object.name}} अनुमोदन की प्रतीक्षा में है)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_start
 msgid "🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun!"
 msgstr ""
-" 🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun! (🚀 लेट लेट्स रोल: "
-"SPC प्रक्रिया {{object.name}} के लिए शुरू हो गई है!)"
+" 🚀 Let’s Roll: SPC Process for {{object.name}} Has Begun! (🚀आइए रोल करें: "
+"{{ऑब्जेक्ट.नाम}} के लिए एसपीसी प्रक्रिया शुरू हो गई है!)"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_cancel
 msgid "🛑 Stop the Press: {{object.name}} SPC Process Canceled"
 msgstr ""
-" 🛑 Stop the Press: {{object.name}} SPC Process Canceled (🛑 प्रेस को रोकें: "
-"{{object.name}} SPC प्रक्रिया रद्द)"
+" 🛑 Stop the Press: {{object.name}} SPC Process Canceled (🛑 प्रेस बंद करो: "
+"{{object.name}} एसपीसी प्रक्रिया रद्द कर दी गई)"
