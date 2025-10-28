@@ -147,8 +147,13 @@ class PartQuality(models.Model):
             # - If ALL stations are pass or bypass -> pass
             # - If ANY station is bypass and no reject -> pass
             # - Otherwise -> pending
+            old_result = record.final_result
+            
             if 'reject' in results:
                 record.final_result = 'reject'
+                # If part was previously passed and assigned to box, remove it
+                if old_result == 'pass' and record.box_id:
+                    record._remove_from_box_if_rejected()
             elif all(result in ('pass', 'bypass') for result in results):
                 record.final_result = 'pass'
                 # Automatically assign to box when part passes
@@ -159,6 +164,9 @@ class PartQuality(models.Model):
                 record._assign_to_box_if_passed()
             else:
                 record.final_result = 'pending'
+                # If part was previously passed and assigned to box, remove it
+                if old_result == 'pass' and record.box_id:
+                    record._remove_from_box_if_rejected()
     
     def _get_machine_bypass_status(self):
         """Get current bypass status for all machines"""
@@ -196,6 +204,25 @@ class PartQuality(models.Model):
             except Exception as e:
                 _logger.error(f"Error assigning part {self.serial_number} to box: {str(e)}")
 
+    def _remove_from_box_if_rejected(self):
+        """Remove part from box if it's rejected"""
+        self.ensure_one()
+        
+        # Only remove if currently assigned to a box and final result is reject
+        if self.box_id and self.final_result == 'reject':
+            try:
+                box_number = self.box_number
+                self.write({
+                    'box_id': False,
+                    'box_number': False,
+                    'box_position': 0
+                })
+                
+                _logger.info(f"Removed rejected {self.part_variant} part {self.serial_number} from box {box_number}")
+                
+            except Exception as e:
+                _logger.error(f"Error removing rejected part {self.serial_number} from box: {str(e)}")
+
     def qe_override_result(self, new_result=None, comments=None):
         """Allow Quality Engineer to override the result"""
         self.ensure_one()
@@ -224,10 +251,40 @@ class PartQuality(models.Model):
         # )
 
     @api.model
+    def cleanup_rejected_parts_from_boxes(self):
+        """Clean up any rejected parts that are still assigned to boxes (data integrity)"""
+        try:
+            rejected_parts_in_boxes = self.search([
+                ('final_result', '=', 'reject'),
+                ('box_id', '!=', False)
+            ])
+            
+            if rejected_parts_in_boxes:
+                _logger.info(f"Found {len(rejected_parts_in_boxes)} rejected parts still assigned to boxes - cleaning up")
+                
+                for part in rejected_parts_in_boxes:
+                    part._remove_from_box_if_rejected()
+                
+                _logger.info(f"Cleaned up {len(rejected_parts_in_boxes)} rejected parts from boxes")
+                return len(rejected_parts_in_boxes)
+            else:
+                _logger.info("No rejected parts found in boxes - data integrity is good")
+                return 0
+                
+        except Exception as e:
+            _logger.error(f"Error cleaning up rejected parts from boxes: {str(e)}")
+            return 0
+
+    @api.model
     def calculate_daily_stats(self):
         """Calculate daily statistics for manufacturing parts"""
         try:
             _logger.info("Starting daily statistics calculation...")
+            
+            # First, clean up any rejected parts that might still be in boxes (data integrity)
+            cleaned_count = self.cleanup_rejected_parts_from_boxes()
+            if cleaned_count > 0:
+                _logger.info(f"Data integrity cleanup: Removed {cleaned_count} rejected parts from boxes")
             
             # Get current IST date
             ist_now = self.get_ist_now()

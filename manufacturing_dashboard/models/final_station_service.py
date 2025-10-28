@@ -1131,8 +1131,20 @@ class FinalStationService:
             
             # Update final_result if it has changed
             if part_quality.final_result != new_final_result:
+                old_result = part_quality.final_result
                 part_quality.final_result = new_final_result
-                _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {part_quality.final_result})")
+                
+                # Handle box assignment based on new result
+                if new_final_result == 'pass' and not part_quality.box_id:
+                    # Part now passes and wasn't assigned to box - assign it
+                    part_quality._assign_to_box_if_passed()
+                    _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result}) - assigned to box")
+                elif new_final_result == 'reject' and part_quality.box_id:
+                    # Part now rejects but was in a box - remove it from box
+                    part_quality._remove_from_box_if_rejected()
+                    _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result}) - removed from box")
+                else:
+                    _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result})")
             else:
                 _logger.info(f"Final_result unchanged for serial {part_quality.serial_number}: {new_final_result}")
                 
