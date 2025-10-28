@@ -22,6 +22,17 @@ export class FinalStationDashboard extends Component {
                 reject_rate: 0,
                 last_updated: 'Never'
             },
+            open_boxes: {
+                boxes: [],
+                summary: {
+                    total_open_boxes: 0,
+                    exhaust_boxes: 0,
+                    intake_boxes: 0,
+                    total_parts_in_open_boxes: 0,
+                    total_passed_parts: 0,
+                    total_rejected_parts: 0
+                }
+            },
             loading: true,
             error: null
         });
@@ -127,6 +138,12 @@ export class FinalStationDashboard extends Component {
                         console.log('Attempting to load station results for serial:', data.last_serial_number);
                         this.loadStationResults(data.last_serial_number);
                     }
+                }
+                
+                // Update open boxes data
+                if (data.open_boxes) {
+                    this.state.open_boxes = data.open_boxes;
+                    console.log('Open boxes data updated:', this.state.open_boxes);
                 }
             }
         } catch (error) {
@@ -690,6 +707,60 @@ export class FinalStationDashboard extends Component {
                 notification.parentNode.removeChild(notification);
             }
         }, 5000);
+    }
+
+    async refreshOpenBoxes() {
+        try {
+            if (!this.state.final_station) {
+                console.log('No final station loaded');
+                return;
+            }
+            
+            console.log('Refreshing open boxes data for final station:', this.state.final_station.id);
+            await this.loadFinalStationData();
+            
+        } catch (error) {
+            console.error("Error refreshing open boxes:", error);
+        }
+    }
+
+    async openBoxManagement() {
+        try {
+            // Open the box management view
+            await this.action.doAction({
+                type: 'ir.actions.act_window',
+                name: 'Box Management',
+                res_model: 'manufacturing.box.management',
+                view_mode: 'kanban,list,form',
+                target: 'current',
+                context: {}
+            });
+        } catch (error) {
+            console.error("Error opening box management:", error);
+        }
+    }
+
+    async viewBoxDetails(event) {
+        try {
+            const boxId = event.target.getAttribute('data-box-id');
+            if (!boxId) {
+                console.error('No box ID found');
+                return;
+            }
+            
+            // Open the box details view
+            await this.action.doAction({
+                type: 'ir.actions.act_window',
+                name: 'Box Details',
+                res_model: 'manufacturing.box.management',
+                res_id: parseInt(boxId),
+                view_mode: 'form',
+                target: 'current',
+                context: {}
+            });
+        } catch (error) {
+            console.error("Error viewing box details:", error);
+        }
     }
 }
 

@@ -5044,6 +5044,9 @@ class MachineConfig(models.Model):
             if self.last_serial_number:
                 station_results = service.get_station_results_for_dashboard(self.last_serial_number)
             
+            # Get open boxes data
+            open_boxes_data = self.get_open_boxes_data()
+            
             return {
                 'machine_id': self.id,
                 'machine_name': self.machine_name,
@@ -5068,6 +5071,7 @@ class MachineConfig(models.Model):
                 'plc_registers': registers,
                 'recent_measurements': recent_measurements,
                 'station_results': station_results,
+                'open_boxes': open_boxes_data,
                 'timestamp': datetime.now().isoformat()
             }
             
@@ -5078,6 +5082,62 @@ class MachineConfig(models.Model):
                 'timestamp': datetime.now().isoformat()
             }
     
+    def get_open_boxes_data(self):
+        """Get open boxes data for final station dashboard"""
+        try:
+            # Get all open boxes
+            open_boxes = self.env['manufacturing.box.management'].search([
+                ('status', '=', 'open')
+            ], order='create_date desc')
+            
+            boxes_data = []
+            for box in open_boxes:
+                boxes_data.append({
+                    'id': box.id,
+                    'box_number': box.box_number,
+                    'part_variant': box.part_variant,
+                    'current_position': box.current_position,
+                    'max_capacity': box.max_capacity,
+                    'capacity_percentage': round((box.current_position / box.max_capacity) * 100, 1) if box.max_capacity > 0 else 0,
+                    'create_date': box.create_date.isoformat() if box.create_date else None,
+                    'parts_count': len(box.part_quality_ids),
+                    'passed_parts': len(box.part_quality_ids.filtered(lambda p: p.final_result == 'pass')),
+                    'rejected_parts': len(box.part_quality_ids.filtered(lambda p: p.final_result == 'reject'))
+                })
+            
+            # Get summary statistics
+            total_open_boxes = len(open_boxes)
+            exhaust_boxes = open_boxes.filtered(lambda b: b.part_variant == 'exhaust')
+            intake_boxes = open_boxes.filtered(lambda b: b.part_variant == 'intake')
+            
+            summary = {
+                'total_open_boxes': total_open_boxes,
+                'exhaust_boxes': len(exhaust_boxes),
+                'intake_boxes': len(intake_boxes),
+                'total_parts_in_open_boxes': sum(box.current_position for box in open_boxes),
+                'total_passed_parts': sum(len(box.part_quality_ids.filtered(lambda p: p.final_result == 'pass')) for box in open_boxes),
+                'total_rejected_parts': sum(len(box.part_quality_ids.filtered(lambda p: p.final_result == 'reject')) for box in open_boxes)
+            }
+            
+            return {
+                'boxes': boxes_data,
+                'summary': summary
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error getting open boxes data: {str(e)}")
+            return {
+                'boxes': [],
+                'summary': {
+                    'total_open_boxes': 0,
+                    'exhaust_boxes': 0,
+                    'intake_boxes': 0,
+                    'total_parts_in_open_boxes': 0,
+                    'total_passed_parts': 0,
+                    'total_rejected_parts': 0
+                }
+            }
+
     def get_station_results_by_serial(self, serial_number):
         """Get station results for a specific serial number"""
         self.ensure_one()
