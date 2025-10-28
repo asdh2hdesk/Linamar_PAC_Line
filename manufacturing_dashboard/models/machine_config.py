@@ -18,6 +18,7 @@ class MachineConfig(models.Model):
     _name = 'manufacturing.machine.config'
     _description = 'Machine Configuration'
     _rec_name = 'machine_name'
+    _inherit = "translation.mixin"
 
     @api.model
     def get_ist_now(self):
@@ -33,7 +34,7 @@ class MachineConfig(models.Model):
             _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
             return fields.Datetime.now()
 
-    machine_name = fields.Char('Machine Name', required=True)
+    machine_name = fields.Char('Machine Name', required=True,translate=True)
     machine_type = fields.Selection([
         ('vici_vision', 'VICI Vision System'),
         ('ruhlamat', 'Ruhlamat Press'),

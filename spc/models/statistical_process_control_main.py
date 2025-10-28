@@ -685,16 +685,16 @@ class StatisticalProcessControl(models.Model):
             _logger = logging.getLogger(__name__)
             _logger.warning(f"Could not auto-generate chart: {e}")
 
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Success'),
-                'message': _('Intervals, frequencies, and chart have been generated successfully.'),
-                'type': 'success',
-                'sticky': False,
-            }
-        }
+        # return {
+        #     'type': 'ir.actions.client',
+        #     'tag': 'display_notification',
+        #     'params': {
+        #         # 'title': _('Success'),
+        #         # 'message': _('Intervals, frequencies, and chart have been generated successfully.'),
+        #         'type': 'success',
+        #         'sticky': False,
+        #     }
+        # }
 
     def action_calculate_statistics(self):
         """Action to calculate statistics"""

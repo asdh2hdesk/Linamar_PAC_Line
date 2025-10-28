@@ -24,7 +24,7 @@ Features:
     """,
     'author': 'ASD Rakesh',
     'website': 'https://www.yourcompany.com',
-    'depends': ['base', 'web', 'mail', 'spc'],
+    'depends': ['base', 'web', 'mail', 'global_translation', 'spc'],
     'external_dependencies': {
         'python': ['barcode', 'Pillow'],
     },

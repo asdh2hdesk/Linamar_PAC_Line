@@ -10,7 +10,7 @@ _logger = logging.getLogger(__name__)
 class PartQuality(models.Model):
     _name = 'manufacturing.part.quality'
     _description = 'Part Quality Control'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'translation.mixin']
     _order = 'test_date desc'
     _rec_name = 'serial_number'
 
@@ -37,7 +37,7 @@ class PartQuality(models.Model):
         ('intake', 'Intake')
     ], compute='_compute_part_variant', string='Part Variant', store=True)
     
-    part_description = fields.Char('Part Description', compute='_compute_part_description', store=True)
+    part_description = fields.Char('Part Description', compute='_compute_part_description', store=True,translate=True)
 
     # Station results
     vici_result = fields.Selection([
