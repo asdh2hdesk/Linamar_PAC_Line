@@ -845,7 +845,7 @@ class AumannToleranceLine(models.TransientModel):
             'res_model': 'statistical.process.control',
             'res_id': self.spc_chart_id.id,
             'view_mode': 'form',
-            'target': 'new',
+            'target': 'current',
         }
 
     def action_download_x_chart(self):
@@ -863,3 +863,34 @@ class AumannToleranceLine(models.TransientModel):
             spc.action_generate_charts()
 
         return spc.action_download_x_chart()
+    def action_download_r_chart(self):
+        """Download X-Chart for this tolerance line"""
+        self.ensure_one()
+
+        # Verify SPC chart exists
+        if not self.spc_chart_id or not self.spc_chart_id.exists():
+            raise UserError('SPC Chart no longer exists. Please create a new one.')
+
+        spc = self.spc_chart_id
+
+        # Generate chart if not already generated
+        if not spc.r_chart_image:
+            spc.action_generate_charts()
+
+        return spc.action_download_r_chart()
+
+    def action_download_interval_frequency_chart(self):
+        """Download X-Chart for this tolerance line"""
+        self.ensure_one()
+
+        # Verify SPC chart exists
+        if not self.spc_chart_id or not self.spc_chart_id.exists():
+            raise UserError('SPC Chart no longer exists. Please create a new one.')
+
+        spc = self.spc_chart_id
+
+        # Generate chart if not already generated
+        if not spc.interval_frequency_chart_image:
+            spc.action_generate_charts()
+
+        return spc.action_download_interval_frequency_chart()

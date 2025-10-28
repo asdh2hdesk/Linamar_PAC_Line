@@ -21,7 +21,8 @@
         'data/mail_template.xml',
         'views/statistical_process_control_view.xml',
         'views/spc_chart_view.xml',
-        'views/download_spc.xml',
+        'views/download_spc_chart.xml',
+        'views\spc_report.xml'
         
     ],
     

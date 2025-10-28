@@ -83,9 +83,21 @@
                                             invisible="not has_spc"/>
                                     <button name="action_download_x_chart"
                                             type="object"
-                                            string="Download X-Chart"
+                                            string="X-Chart"
                                             class="btn-sm btn-secondary"
-                                            icon="fa-line-chart"
+                                            icon="fa-download"
+                                            invisible="has_spc == False"/>
+                                    <button name="action_download_r_chart"
+                                            type="object"
+                                            string="R-Chart"
+                                            class="btn-sm btn-secondary"
+                                            icon="fa-download"
+                                            invisible="has_spc == False"/>
+                                    <button name="action_download_interval_frequency_chart"
+                                            type="object"
+                                            string="IF-Chart"
+                                            class="btn-sm btn-secondary"
+                                            icon="fa-download"
                                             invisible="has_spc == False"/>
                                     <field name="has_spc" column_invisible="1"/>
                                     <field name="field_name" column_invisible="1"/>
