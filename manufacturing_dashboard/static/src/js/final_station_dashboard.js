@@ -726,15 +726,8 @@ export class FinalStationDashboard extends Component {
 
     async openBoxManagement() {
         try {
-            // Open the box management view
-            await this.action.doAction({
-                type: 'ir.actions.act_window',
-                name: 'Box Management',
-                res_model: 'manufacturing.box.management',
-                view_mode: 'kanban,list,form',
-                target: 'current',
-                context: {}
-            });
+            // Open the box management view using predefined action
+            await this.action.doAction('manufacturing_dashboard.action_box_management');
         } catch (error) {
             console.error("Error opening box management:", error);
         }
@@ -742,9 +735,17 @@ export class FinalStationDashboard extends Component {
 
     async viewBoxDetails(event) {
         try {
-            const boxId = event.target.getAttribute('data-box-id');
-            if (!boxId) {
+            event.preventDefault();
+            // Ensure we read the id from the actual button, not an inner icon/span
+            const btn = event.currentTarget || (event.target && event.target.closest('button'));
+            const boxIdAttr = btn && (btn.dataset && btn.dataset.boxId ? btn.dataset.boxId : btn.getAttribute && btn.getAttribute('data-box-id'));
+            if (!boxIdAttr) {
                 console.error('No box ID found');
+                return;
+            }
+            const boxId = parseInt(boxIdAttr, 10);
+            if (!boxId) {
+                console.error('Invalid box ID');
                 return;
             }
             
@@ -753,7 +754,7 @@ export class FinalStationDashboard extends Component {
                 type: 'ir.actions.act_window',
                 name: 'Box Details',
                 res_model: 'manufacturing.box.management',
-                res_id: parseInt(boxId),
+                res_id: boxId,
                 view_mode: 'form',
                 target: 'current',
                 context: {}
