@@ -3,103 +3,104 @@
     <t t-name="manufacturing_dashboard.final_station_dashboard_view" owl="1">
         <div class="final-station-dashboard">
             <div class="container-fluid">
-<!--                &lt;!&ndash; Header &ndash;&gt;-->
-<!--                <div class="dashboard-header">-->
-<!--                    <h1>Final Station Control Center</h1>-->
-<!--                    <p>Real-time PLC monitoring and camera control for final stations</p>-->
-<!--                </div>-->
+                <!--                &lt;!&ndash; Header &ndash;&gt;-->
+                <!--                <div class="dashboard-header">-->
+                <!--                    <h1>Final Station Control Center</h1>-->
+                <!--                    <p>Real-time PLC monitoring and camera control for final stations</p>-->
+                <!--                </div>-->
 
                 <!-- Final Station Dashboard Content -->
                 <div t-if="state.final_station" class="final-station-content">
                     <div class="section-header">
-                        <h2>Final Station Control: <span t-esc="state.final_station.machine_name"/></h2>
+                        <h2>Final Station Control:
+                            <span t-esc="state.final_station.machine_name"/>
+                        </h2>
                         <p>Real-time PLC monitoring and camera control</p>
                     </div>
 
                     <!-- Combined PLC/Camera and Mode Control Card -->
-<!--                    <div class="row g-4 mb-4">-->
-<!--                        &lt;!&ndash; PLC & Camera Status Card &ndash;&gt;-->
-<!--                        <div class="col-md-8">-->
-<!--                            <div class="card final-station-card">-->
-<!--                                <div class="card-header">-->
-<!--                                    <h5><i class="fa fa-desktop"/> System Status</h5>-->
-<!--                                </div>-->
-<!--                                <div class="card-body">-->
-<!--                                    <div class="row">-->
-<!--                                        &lt;!&ndash; PLC Status &ndash;&gt;-->
-<!--                                        <div class="col-md-6">-->
-<!--                                            <div class="status-section">-->
-<!--                                                <h6><i class="fa fa-plug"/> PLC Status</h6>-->
-<!--                                                <div class="status-indicator" t-attf-class="plc-#{state.final_station.plc_online and 'online' or 'offline'}">-->
-<!--                                                    <i class="fa fa-circle"/>-->
-<!--                                                    <span t-esc="state.final_station.plc_online and 'Online' or 'Offline'"/>-->
-<!--                                                </div>-->
-<!--                                                <div class="info-details">-->
-<!--                                                    <small>IP: <span t-esc="state.final_station.plc_ip_address"/></small><br/>-->
-<!--                                                    <small>Port: <span t-esc="state.final_station.plc_port"/></small><br/>-->
-<!--                                                    <small>Last Comm: <span t-esc="state.final_station.last_plc_communication and formatTime(state.final_station.last_plc_communication) or 'Never'"/></small>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-<!--                                        &lt;!&ndash; Camera Status &ndash;&gt;-->
-<!--                                        <div class="col-md-6">-->
-<!--                                            <div class="status-section">-->
-<!--                                                <h6><i class="fa fa-camera"/> Camera Status</h6>-->
-<!--                                                <div class="status-indicator" t-attf-class="camera-#{state.final_station.camera_triggered and 'active' or 'inactive'}">-->
-<!--                                                    <i class="fa fa-circle"/>-->
-<!--                                                    <span t-esc="state.final_station.camera_triggered and 'Active' or 'Inactive'"/>-->
-<!--                                                </div>-->
-<!--                                                <div class="info-details">-->
-<!--                                                    <small>IP: <span t-esc="state.final_station.camera_ip_address"/></small><br/>-->
-<!--                                                    <small>Port: <span t-esc="state.final_station.camera_port"/></small><br/>-->
-<!--                                                    <small>Last Scan: <span t-esc="state.final_station.last_capture_time and formatTime(state.final_station.last_capture_time) or 'Never'"/></small>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
+                    <!--                    <div class="row g-4 mb-4">-->
+                    <!--                        &lt;!&ndash; PLC & Camera Status Card &ndash;&gt;-->
+                    <!--                        <div class="col-md-8">-->
+                    <!--                            <div class="card final-station-card">-->
+                    <!--                                <div class="card-header">-->
+                    <!--                                    <h5><i class="fa fa-desktop"/> System Status</h5>-->
+                    <!--                                </div>-->
+                    <!--                                <div class="card-body">-->
+                    <!--                                    <div class="row">-->
+                    <!--                                        &lt;!&ndash; PLC Status &ndash;&gt;-->
+                    <!--                                        <div class="col-md-6">-->
+                    <!--                                            <div class="status-section">-->
+                    <!--                                                <h6><i class="fa fa-plug"/> PLC Status</h6>-->
+                    <!--                                                <div class="status-indicator" t-attf-class="plc-#{state.final_station.plc_online and 'online' or 'offline'}">-->
+                    <!--                                                    <i class="fa fa-circle"/>-->
+                    <!--                                                    <span t-esc="state.final_station.plc_online and 'Online' or 'Offline'"/>-->
+                    <!--                                                </div>-->
+                    <!--                                                <div class="info-details">-->
+                    <!--                                                    <small>IP: <span t-esc="state.final_station.plc_ip_address"/></small><br/>-->
+                    <!--                                                    <small>Port: <span t-esc="state.final_station.plc_port"/></small><br/>-->
+                    <!--                                                    <small>Last Comm: <span t-esc="state.final_station.last_plc_communication and formatTime(state.final_station.last_plc_communication) or 'Never'"/></small>-->
+                    <!--                                                </div>-->
+                    <!--                                            </div>-->
+                    <!--                                        </div>-->
+                    <!--                                        &lt;!&ndash; Camera Status &ndash;&gt;-->
+                    <!--                                        <div class="col-md-6">-->
+                    <!--                                            <div class="status-section">-->
+                    <!--                                                <h6><i class="fa fa-camera"/> Camera Status</h6>-->
+                    <!--                                                <div class="status-indicator" t-attf-class="camera-#{state.final_station.camera_triggered and 'active' or 'inactive'}">-->
+                    <!--                                                    <i class="fa fa-circle"/>-->
+                    <!--                                                    <span t-esc="state.final_station.camera_triggered and 'Active' or 'Inactive'"/>-->
+                    <!--                                                </div>-->
+                    <!--                                                <div class="info-details">-->
+                    <!--                                                    <small>IP: <span t-esc="state.final_station.camera_ip_address"/></small><br/>-->
+                    <!--                                                    <small>Port: <span t-esc="state.final_station.camera_port"/></small><br/>-->
+                    <!--                                                    <small>Last Scan: <span t-esc="state.final_station.last_capture_time and formatTime(state.final_station.last_capture_time) or 'Never'"/></small>-->
+                    <!--                                                </div>-->
+                    <!--                                            </div>-->
+                    <!--                                        </div>-->
+                    <!--                                    </div>-->
+                    <!--                                </div>-->
+                    <!--                            </div>-->
+                    <!--                        </div>-->
 
-<!--                        &lt;!&ndash; Operation Mode & Part Status Card &ndash;&gt;-->
-<!--                        <div class="col-md-4">-->
-<!--                            <div class="card final-station-card">-->
-<!--                                <div class="card-header">-->
-<!--                                    <h5><i class="fa fa-cogs"/> Control And Status</h5>-->
-<!--                                </div>-->
-<!--                                <div class="card-body">-->
-<!--                                    &lt;!&ndash; Operation Mode &ndash;&gt;-->
-<!--                                    <div class="mode-section mb-3">-->
-<!--                                        <h6><i class="fa fa-toggle-on"/> Operation Mode</h6>-->
-<!--                                        <div class="mode-display" t-attf-class="mode-#{state.final_station.operation_mode}">-->
-<!--                                            <i class="fa" t-attf-class="fa-#{state.final_station.operation_mode === 'auto' and 'play-circle' or 'hand-paper-o'}"/>-->
-<!--                                            <span t-esc="state.final_station.operation_mode and state.final_station.operation_mode.toUpperCase() or 'UNKNOWN'"/>-->
-<!--                                        </div>-->
-<!--                                        <div class="mode-controls">-->
-<!--                                            <button type="button" class="btn btn-sm btn-primary toggle-mode-btn" t-on-click="toggleOperationMode">-->
-<!--                                                <i class="fa fa-exchange"/> Toggle Mode-->
-<!--                                            </button>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                    -->
-<!--                                    &lt;!&ndash; Part Status &ndash;&gt;-->
-<!--                                    <div class="part-section">-->
-<!--                                        <h6><i class="fa fa-cube"/> Part Status</h6>-->
-<!--                                        <div class="status-indicator" t-attf-class="part-#{state.final_station.part_present and 'present' or 'absent'}">-->
-<!--                                            <i class="fa fa-circle"/>-->
-<!--                                            <span t-esc="state.final_station.part_present and 'Present' or 'Absent'"/>-->
-<!--                                        </div>-->
-<!--                                        <div class="info-details">-->
-<!--                                            <small>Processing: <span t-esc="state.final_station.processing_part and 'Yes' or 'No'"/></small><br/>-->
-<!--                                            <small>Last Serial: <span t-esc="state.final_station.last_serial_number"/></small><br/>-->
-<!--                                            <small>Result: <span t-esc="state.final_station.last_result" class="result-badge"/></small>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-
+                    <!--                        &lt;!&ndash; Operation Mode & Part Status Card &ndash;&gt;-->
+                    <!--                        <div class="col-md-4">-->
+                    <!--                            <div class="card final-station-card">-->
+                    <!--                                <div class="card-header">-->
+                    <!--                                    <h5><i class="fa fa-cogs"/> Control And Status</h5>-->
+                    <!--                                </div>-->
+                    <!--                                <div class="card-body">-->
+                    <!--                                    &lt;!&ndash; Operation Mode &ndash;&gt;-->
+                    <!--                                    <div class="mode-section mb-3">-->
+                    <!--                                        <h6><i class="fa fa-toggle-on"/> Operation Mode</h6>-->
+                    <!--                                        <div class="mode-display" t-attf-class="mode-#{state.final_station.operation_mode}">-->
+                    <!--                                            <i class="fa" t-attf-class="fa-#{state.final_station.operation_mode === 'auto' and 'play-circle' or 'hand-paper-o'}"/>-->
+                    <!--                                            <span t-esc="state.final_station.operation_mode and state.final_station.operation_mode.toUpperCase() or 'UNKNOWN'"/>-->
+                    <!--                                        </div>-->
+                    <!--                                        <div class="mode-controls">-->
+                    <!--                                            <button type="button" class="btn btn-sm btn-primary toggle-mode-btn" t-on-click="toggleOperationMode">-->
+                    <!--                                                <i class="fa fa-exchange"/> Toggle Mode-->
+                    <!--                                            </button>-->
+                    <!--                                        </div>-->
+                    <!--                                    </div>-->
+                    <!--                                    -->
+                    <!--                                    &lt;!&ndash; Part Status &ndash;&gt;-->
+                    <!--                                    <div class="part-section">-->
+                    <!--                                        <h6><i class="fa fa-cube"/> Part Status</h6>-->
+                    <!--                                        <div class="status-indicator" t-attf-class="part-#{state.final_station.part_present and 'present' or 'absent'}">-->
+                    <!--                                            <i class="fa fa-circle"/>-->
+                    <!--                                            <span t-esc="state.final_station.part_present and 'Present' or 'Absent'"/>-->
+                    <!--                                        </div>-->
+                    <!--                                        <div class="info-details">-->
+                    <!--                                            <small>Processing: <span t-esc="state.final_station.processing_part and 'Yes' or 'No'"/></small><br/>-->
+                    <!--                                            <small>Last Serial: <span t-esc="state.final_station.last_serial_number"/></small><br/>-->
+                    <!--                                            <small>Result: <span t-esc="state.final_station.last_result" class="result-badge"/></small>-->
+                    <!--                                        </div>-->
+                    <!--                                    </div>-->
+                    <!--                                </div>-->
+                    <!--                            </div>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
 
 
                     <!-- Manual Controls Card (Only show in Manual Mode) -->
@@ -107,28 +108,39 @@
                         <div class="col-md-12">
                             <div class="card final-station-card manual-controls-card">
                                 <div class="card-header">
-                                    <h5><i class="fa fa-hand-paper-o"/> Manual Controls</h5>
+                                    <h5>
+                                        <i class="fa fa-hand-paper-o"/>
+                                        Manual Controls
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <button type="button" class="btn btn-warning btn-block manual-camera-btn" t-on-click="manualTriggerCamera">
-                                                <i class="fa fa-camera"/> Trigger Camera
+                                            <button type="button" class="btn btn-warning btn-block manual-camera-btn"
+                                                    t-on-click="manualTriggerCamera">
+                                                <i class="fa fa-camera"/>
+                                                Trigger Camera
                                             </button>
                                         </div>
                                         <div class="col-md-3">
-                                            <button type="button" class="btn btn-info btn-block check-part-btn" t-on-click="checkPartPresence">
-                                                <i class="fa fa-search"/> Check Part
+                                            <button type="button" class="btn btn-info btn-block check-part-btn"
+                                                    t-on-click="checkPartPresence">
+                                                <i class="fa fa-search"/>
+                                                Check Part
                                             </button>
                                         </div>
                                         <div class="col-md-3">
-                                            <button type="button" class="btn btn-success btn-block cylinder-forward-btn" t-on-click="cylinderForward">
-                                                <i class="fa fa-arrow-right"/> Cylinder Forward
+                                            <button type="button" class="btn btn-success btn-block cylinder-forward-btn"
+                                                    t-on-click="cylinderForward">
+                                                <i class="fa fa-arrow-right"/>
+                                                Cylinder Forward
                                             </button>
                                         </div>
                                         <div class="col-md-3">
-                                            <button type="button" class="btn btn-warning btn-block cylinder-reverse-btn" t-on-click="cylinderReverse">
-                                                <i class="fa fa-arrow-left"/> Cylinder Reverse
+                                            <button type="button" class="btn btn-warning btn-block cylinder-reverse-btn"
+                                                    t-on-click="cylinderReverse">
+                                                <i class="fa fa-arrow-left"/>
+                                                Cylinder Reverse
                                             </button>
                                         </div>
                                     </div>
@@ -138,72 +150,72 @@
                     </div>
 
                     <!-- Auto Monitoring Card (Only show in Auto Mode) -->
-<!--                    <div t-if="state.final_station.operation_mode === 'auto'" class="row g-4 mb-4">-->
-<!--                        <div class="col-md-12">-->
-<!--                            <div class="card final-station-card auto-monitoring-card">-->
-<!--                                <div class="card-header">-->
-<!--                                    <h5><i class="fa fa-play-circle"/> Auto Monitoring</h5>-->
-<!--                                </div>-->
-<!--                                <div class="card-body">-->
-<!--                                    <div class="row">-->
-<!--                                        <div class="col-md-8">-->
-<!--                                            <div class="auto-status">-->
-<!--                                                <div class="status-indicator" t-attf-class="auto-#{state.final_station.plc_monitoring_active and 'active' or 'inactive'}">-->
-<!--                                                    <i class="fa fa-circle"/>-->
-<!--                                                    <span t-esc="state.final_station.plc_monitoring_active and 'Active' or 'Inactive'"/>-->
-<!--                                                </div>-->
-<!--                                                <div class="auto-info">-->
-<!--                                                    <small>Scan Rate: <span t-esc="state.final_station.plc_scan_rate"/>s</small><br/>-->
-<!--                                                    <small>Last Scan: <span t-esc="state.final_station.last_plc_scan and formatTime(state.final_station.last_plc_scan) or 'Never'"/></small><br/>-->
-<!--                                                    <small>Errors: <span t-esc="state.final_station.plc_monitoring_errors"/></small>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-<!--                                        <div class="col-md-4">-->
-<!--                                            <div class="auto-controls">-->
-<!--                                                <button type="button" class="btn btn-success btn-sm start-monitoring-btn" t-on-click="startMonitoring">-->
-<!--                                                    <i class="fa fa-play"/> Start Monitoring-->
-<!--                                                </button>-->
-<!--                                                <button type="button" class="btn btn-danger btn-sm stop-monitoring-btn" t-on-click="stopMonitoring">-->
-<!--                                                    <i class="fa fa-stop"/> Stop Monitoring-->
-<!--                                                </button>-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
+                    <!--                    <div t-if="state.final_station.operation_mode === 'auto'" class="row g-4 mb-4">-->
+                    <!--                        <div class="col-md-12">-->
+                    <!--                            <div class="card final-station-card auto-monitoring-card">-->
+                    <!--                                <div class="card-header">-->
+                    <!--                                    <h5><i class="fa fa-play-circle"/> Auto Monitoring</h5>-->
+                    <!--                                </div>-->
+                    <!--                                <div class="card-body">-->
+                    <!--                                    <div class="row">-->
+                    <!--                                        <div class="col-md-8">-->
+                    <!--                                            <div class="auto-status">-->
+                    <!--                                                <div class="status-indicator" t-attf-class="auto-#{state.final_station.plc_monitoring_active and 'active' or 'inactive'}">-->
+                    <!--                                                    <i class="fa fa-circle"/>-->
+                    <!--                                                    <span t-esc="state.final_station.plc_monitoring_active and 'Active' or 'Inactive'"/>-->
+                    <!--                                                </div>-->
+                    <!--                                                <div class="auto-info">-->
+                    <!--                                                    <small>Scan Rate: <span t-esc="state.final_station.plc_scan_rate"/>s</small><br/>-->
+                    <!--                                                    <small>Last Scan: <span t-esc="state.final_station.last_plc_scan and formatTime(state.final_station.last_plc_scan) or 'Never'"/></small><br/>-->
+                    <!--                                                    <small>Errors: <span t-esc="state.final_station.plc_monitoring_errors"/></small>-->
+                    <!--                                                </div>-->
+                    <!--                                            </div>-->
+                    <!--                                        </div>-->
+                    <!--                                        <div class="col-md-4">-->
+                    <!--                                            <div class="auto-controls">-->
+                    <!--                                                <button type="button" class="btn btn-success btn-sm start-monitoring-btn" t-on-click="startMonitoring">-->
+                    <!--                                                    <i class="fa fa-play"/> Start Monitoring-->
+                    <!--                                                </button>-->
+                    <!--                                                <button type="button" class="btn btn-danger btn-sm stop-monitoring-btn" t-on-click="stopMonitoring">-->
+                    <!--                                                    <i class="fa fa-stop"/> Stop Monitoring-->
+                    <!--                                                </button>-->
+                    <!--                                            </div>-->
+                    <!--                                        </div>-->
+                    <!--                                    </div>-->
+                    <!--                                </div>-->
+                    <!--                            </div>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
 
                     <!-- PLC Registers Card -->
-<!--                    <div class="row g-4 mb-4">-->
-<!--                        <div class="col-md-12">-->
-<!--                            <div class="card final-station-card">-->
-<!--                                <div class="card-header d-flex justify-content-between align-items-center">-->
-<!--                                    <h5><i class="fa fa-list"/> PLC Registers (D0-D9)</h5>-->
-<!--                                    <button type="button" class="btn btn-sm btn-primary test-plc-btn" t-on-click="testPLCConnection">-->
-<!--                                        <i class="fa fa-plug"/> Test Connection-->
-<!--                                    </button>-->
-<!--                                </div>-->
-<!--                                <div class="card-body">-->
-<!--                                    <div class="row register-grid">-->
-<!--                                        <t t-foreach="Array.from({length: 10}, (_, i) => i)" t-as="i" t-key="i">-->
-<!--                                            <div class="col-md-1 register-item">-->
-<!--                                                <div class="register-label">D<span t-esc="i"/></div>-->
-<!--                                                <div class="register-value" t-att-data-register="i">&#45;&#45;</div>-->
-<!--                                            </div>-->
-<!--                                        </t>-->
-<!--                                    </div>-->
-<!--                                    <div class="register-info">-->
-<!--                                        <small>-->
-<!--                                            D0: Part Presence | D1: Result (0=OK, 1=NOK) | D2: Mode (0=Auto, 1=Manual) | -->
-<!--                                            D3: Cylinder Forward | D4: Cylinder Reverse | D5-D9: Reserved-->
-<!--                                        </small>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
+                    <!--                    <div class="row g-4 mb-4">-->
+                    <!--                        <div class="col-md-12">-->
+                    <!--                            <div class="card final-station-card">-->
+                    <!--                                <div class="card-header d-flex justify-content-between align-items-center">-->
+                    <!--                                    <h5><i class="fa fa-list"/> PLC Registers (D0-D9)</h5>-->
+                    <!--                                    <button type="button" class="btn btn-sm btn-primary test-plc-btn" t-on-click="testPLCConnection">-->
+                    <!--                                        <i class="fa fa-plug"/> Test Connection-->
+                    <!--                                    </button>-->
+                    <!--                                </div>-->
+                    <!--                                <div class="card-body">-->
+                    <!--                                    <div class="row register-grid">-->
+                    <!--                                        <t t-foreach="Array.from({length: 10}, (_, i) => i)" t-as="i" t-key="i">-->
+                    <!--                                            <div class="col-md-1 register-item">-->
+                    <!--                                                <div class="register-label">D<span t-esc="i"/></div>-->
+                    <!--                                                <div class="register-value" t-att-data-register="i">&#45;&#45;</div>-->
+                    <!--                                            </div>-->
+                    <!--                                        </t>-->
+                    <!--                                    </div>-->
+                    <!--                                    <div class="register-info">-->
+                    <!--                                        <small>-->
+                    <!--                                            D0: Part Presence | D1: Result (0=OK, 1=NOK) | D2: Mode (0=Auto, 1=Manual) | -->
+                    <!--                                            D3: Cylinder Forward | D4: Cylinder Reverse | D5-D9: Reserved-->
+                    <!--                                        </small>-->
+                    <!--                                    </div>-->
+                    <!--                                </div>-->
+                    <!--                            </div>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
 
                     <!-- Statistics and Station Results Cards Side by Side -->
                     <div class="row g-4 mb-4">
@@ -211,7 +223,10 @@
                         <div class="col-md-6">
                             <div class="card final-station-card statistics-card h-100">
                                 <div class="card-header">
-                                    <h5><i class="fa fa-bar-chart"/> Final Station Statistics</h5>
+                                    <h5>
+                                        <i class="fa fa-bar-chart"/>
+                                        Final Station Statistics
+                                    </h5>
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <div class="row">
@@ -221,7 +236,8 @@
                                                     <i class="fa fa-cubes"/>
                                                 </div>
                                                 <div class="stat-info">
-                                                    <div class="stat-value" t-esc="state.final_station_statistics.total_parts"/>
+                                                    <div class="stat-value"
+                                                         t-esc="state.final_station_statistics.total_parts"/>
                                                     <div class="stat-label">Total Parts</div>
                                                 </div>
                                             </div>
@@ -232,7 +248,8 @@
                                                     <i class="fa fa-check-circle"/>
                                                 </div>
                                                 <div class="stat-info">
-                                                    <div class="stat-value" t-esc="state.final_station_statistics.passed_parts"/>
+                                                    <div class="stat-value"
+                                                         t-esc="state.final_station_statistics.passed_parts"/>
                                                     <div class="stat-label">Passed Parts</div>
                                                 </div>
                                             </div>
@@ -243,30 +260,173 @@
                                                     <i class="fa fa-times-circle"/>
                                                 </div>
                                                 <div class="stat-info">
-                                                    <div class="stat-value" t-esc="state.final_station_statistics.rejected_parts"/>
+                                                    <div class="stat-value"
+                                                         t-esc="state.final_station_statistics.rejected_parts"/>
                                                     <div class="stat-label">Rejected Parts</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row mt-3 mt-auto">
+
+                                    <!-- Open Boxes Card -->
+                                    <div class="row g-4 mt-2 mb-2">
                                         <div class="col-md-12">
-                                            <div class="efficiency-info">
-                                                <div class="efficiency-item">
-                                                    <span class="efficiency-label">Pass Rate:</span>
-                                                    <span class="efficiency-value" t-esc="state.final_station_statistics.pass_rate + '%'"/>
-                                                </div>
-                                                <div class="efficiency-item">
-                                                    <span class="efficiency-label">Reject Rate:</span>
-                                                    <span class="efficiency-value" t-esc="state.final_station_statistics.reject_rate + '%'"/>
-                                                </div>
-                                                <div class="efficiency-item">
-                                                    <span class="efficiency-label">Last Updated:</span>
-                                                    <span class="efficiency-value" t-esc="state.final_station_statistics.last_updated"/>
+                                            <!--                                            <div class="card final-station-card">-->
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h5>
+                                                    <i class="fa fa-archive"/>
+                                                    Open Boxes
+                                                </h5>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                            t-on-click="refreshOpenBoxes">
+                                                        <i class="fa fa-refresh"></i>
+                                                        Refresh
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success"
+                                                            t-on-click="openBoxManagement">
+                                                        <i class="fa fa-cog"></i>
+                                                        Manage Boxes
+                                                    </button>
                                                 </div>
                                             </div>
+                                            <div class="card-body">
+                                                <!-- Summary Statistics -->
+                                                <div t-if="state.open_boxes and state.open_boxes.summary"
+                                                     class="row mb-3">
+                                                    <div class="col-md-4">
+                                                        <div class="stat-item total-boxes">
+                                                            <div class="stat-icon">
+                                                                <i class="fa fa-archive"/>
+                                                            </div>
+                                                            <div class="stat-info">
+                                                                <div class="stat-value"
+                                                                     t-esc="state.open_boxes.summary.total_open_boxes"/>
+                                                                <div class="stat-label">Open Boxes</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="stat-item exhaust-boxes">
+                                                            <div class="stat-icon">
+                                                                <i class="fa fa-cube"/>
+                                                            </div>
+                                                            <div class="stat-info">
+                                                                <div class="stat-value"
+                                                                     t-esc="state.open_boxes.summary.exhaust_boxes"/>
+                                                                <div class="stat-label">Exhaust Boxes</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="stat-item intake-boxes">
+                                                            <div class="stat-icon">
+                                                                <i class="fa fa-cube"/>
+                                                            </div>
+                                                            <div class="stat-info">
+                                                                <div class="stat-value"
+                                                                     t-esc="state.open_boxes.summary.intake_boxes"/>
+                                                                <div class="stat-label">Intake Boxes</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!--                                        <div class="col-md-3">-->
+                                                    <!--                                            <div class="stat-item total-parts">-->
+                                                    <!--                                                <div class="stat-icon">-->
+                                                    <!--                                                    <i class="fa fa-cubes"/>-->
+                                                    <!--                                                </div>-->
+                                                    <!--                                                <div class="stat-info">-->
+                                                    <!--                                                    <div class="stat-value" t-esc="state.open_boxes.summary.total_parts_in_open_boxes"/>-->
+                                                    <!--                                                    <div class="stat-label">Total Parts</div>-->
+                                                    <!--                                                </div>-->
+                                                    <!--                                            </div>-->
+                                                    <!--                                        </div>-->
+                                                </div>
+
+                                                <!-- Boxes List -->
+                                                <div t-if="state.open_boxes and state.open_boxes.boxes and state.open_boxes.boxes.length > 0"
+                                                     class="boxes-list">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-hover">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Box Number</th>
+                                                                    <th>Variant</th>
+                                                                    <th>Capacity</th>
+                                                                    <th>Parts</th>
+                                                                    <th>Passed</th>
+                                                                    <!--                                                        <th>Rejected</th>-->
+                                                                    <!--                                                        <th>Created</th>-->
+                                                                    <th>Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <t t-foreach="state.open_boxes.boxes" t-as="box"
+                                                                   t-key="box.id">
+                                                                    <tr>
+                                                                        <td>
+                                                                            <strong t-esc="box.box_number"/>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span t-attf-class="badge badge-#{box.part_variant === 'exhaust' and 'primary' or 'info'}"
+                                                                                  t-esc="box.part_variant"/>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div class="progress"
+                                                                                 style="height: 20px;">
+                                                                                <div class="progress-bar"
+                                                                                     t-attf-role="progressbar"
+                                                                                     t-attf-style="width: #{box.capacity_percentage}%"
+                                                                                     t-attf-aria-valuenow="#{box.capacity_percentage}"
+                                                                                     aria-valuemin="0"
+                                                                                     aria-valuemax="100">
+                                                                                    <span t-esc="box.current_position + '/' + box.max_capacity"/>
+                                                                                </div>
+                                                                            </div>
+                                                                            <small class="text-muted"
+                                                                                   t-esc="box.capacity_percentage + '%'"/>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span class="badge badge-secondary"
+                                                                                  t-esc="box.parts_count"/>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span class="badge badge-success"
+                                                                                  t-esc="box.passed_parts"/>
+                                                                        </td>
+                                                                        <!--                                                            <td>-->
+                                                                        <!--                                                                <span class="badge badge-danger" t-esc="box.rejected_parts"/>-->
+                                                                        <!--                                                            </td>-->
+                                                                        <!--                                                            <td>-->
+                                                                        <!--                                                                <small t-esc="box.create_date and new Date(box.create_date).toLocaleString() or 'Unknown'"/>-->
+                                                                        <!--                                                            </td>-->
+                                                                        <td>
+                                                                            <button class="btn btn-sm btn-outline-primary"
+                                                                                    t-on-click="viewBoxDetails"
+                                                                                    t-att-data-box-id="box.id"
+                                                                                    t-att-data-box-number="box.box_number">
+                                                                                <i class="fa fa-eye"></i>
+                                                                                View
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <!-- No Open Boxes Message -->
+                                                <div t-else="" class="text-center text-muted py-4">
+                                                    <i class="fa fa-archive fa-2x mb-2"></i>
+                                                    <p>No open boxes found</p>
+                                                    <small>Boxes will appear here when parts are assigned</small>
+                                                </div>
+                                            </div>
+                                            <!--                                            </div>-->
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -274,60 +434,95 @@
                         <div class="col-md-6">
                             <div class="card final-station-card h-100">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0"><i class="fa fa-check-square-o"/> Station Results
-                                        <span t-if="state.station_results" class="badge badge-info ml-2" t-esc="state.station_results.serial_number"/>
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-check-square-o"/>
+                                        Station Results
+                                        <span t-if="state.station_results" class="badge badge-info ml-2"
+                                              t-esc="state.station_results.serial_number"/>
                                     </h5>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary" t-on-click="refreshStationResults" t-if="state.final_station and state.final_station.last_serial_number">
-                                            <i class="fa fa-refresh"></i> Refresh
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                t-on-click="refreshStationResults"
+                                                t-if="state.final_station and state.final_station.last_serial_number">
+                                            <i class="fa fa-refresh"></i>
+                                            Refresh
                                         </button>
-<!--                                        <button class="btn btn-sm btn-outline-success" t-on-click="createTestStationResults" t-if="state.final_station">-->
-<!--                                            <i class="fa fa-flask"></i> Test-->
-<!--                                        </button>-->
-<!--                                        <button class="btn btn-sm btn-outline-warning" t-on-click="triggerAutoMonitoring" t-if="state.final_station">-->
-<!--                                            <i class="fa fa-play"></i> Auto Start-->
-<!--                                        </button>-->
-<!--                                        <button class="btn btn-sm btn-outline-info" t-on-click="checkPLCStatus" t-if="state.final_station">-->
-<!--                                            <i class="fa fa-info"></i> Check Status-->
-<!--                                        </button>-->
-<!--                                        <button class="btn btn-sm btn-outline-danger" t-on-click="restartPLCMonitoring" t-if="state.final_station">-->
-<!--                                            <i class="fa fa-refresh"></i> Restart PLC-->
-<!--                                        </button>-->
-                                        <button class="btn btn-sm btn-outline-secondary" t-on-click="resetProcessingFlag" t-if="state.final_station">
-                                            <i class="fa fa-undo"></i> Reset Processing
+                                        <!--                                        <button class="btn btn-sm btn-outline-success" t-on-click="createTestStationResults" t-if="state.final_station">-->
+                                        <!--                                            <i class="fa fa-flask"></i> Test-->
+                                        <!--                                        </button>-->
+                                        <!--                                        <button class="btn btn-sm btn-outline-warning" t-on-click="triggerAutoMonitoring" t-if="state.final_station">-->
+                                        <!--                                            <i class="fa fa-play"></i> Auto Start-->
+                                        <!--                                        </button>-->
+                                        <!--                                        <button class="btn btn-sm btn-outline-info" t-on-click="checkPLCStatus" t-if="state.final_station">-->
+                                        <!--                                            <i class="fa fa-info"></i> Check Status-->
+                                        <!--                                        </button>-->
+                                        <!--                                        <button class="btn btn-sm btn-outline-danger" t-on-click="restartPLCMonitoring" t-if="state.final_station">-->
+                                        <!--                                            <i class="fa fa-refresh"></i> Restart PLC-->
+                                        <!--                                        </button>-->
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                t-on-click="resetProcessingFlag" t-if="state.final_station">
+                                            <i class="fa fa-undo"></i>
+                                            Reset Processing
                                         </button>
-<!--                                        <button class="btn btn-sm btn-outline-primary" t-on-click="testConnection" t-if="state.final_station">-->
-<!--                                            <i class="fa fa-plug"></i> Test Connection-->
-<!--                                        </button>-->
+                                        <!--                                        <button class="btn btn-sm btn-outline-primary" t-on-click="testConnection" t-if="state.final_station">-->
+                                        <!--                                            <i class="fa fa-plug"></i> Test Connection-->
+                                        <!--                                        </button>-->
                                     </div>
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <div t-if="state.station_results" class="station-results flex-grow-1">
                                         <!-- Overall Status -->
-                                        <div class="overall-status mb-3 p-3 border rounded" t-attf-class="bg-#{state.station_results.overall_status === 'pass' and 'success' or state.station_results.overall_status === 'reject' and 'danger' or 'warning'}">
+                                        <div class="overall-status mb-3 p-3 border rounded"
+                                             t-attf-class="bg-#{state.station_results.overall_status === 'pass' and 'success' or state.station_results.overall_status === 'reject' and 'danger' or 'warning'}">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <strong>Overall Status:</strong>
-                                                <span t-attf-class="badge badge-#{state.station_results.overall_status === 'pass' and 'success' or state.station_results.overall_status === 'reject' and 'danger' or 'warning'}" t-esc="state.station_results.overall_status"/>
+                                                <span t-attf-class="badge badge-#{state.station_results.overall_status === 'pass' and 'success' or state.station_results.overall_status === 'reject' and 'danger' or 'warning'}"
+                                                      t-esc="state.station_results.overall_status"/>
                                             </div>
                                         </div>
 
                                         <!-- Individual Station Results -->
                                         <div class="stations-list">
-                                            <t t-foreach="state.station_results.stations" t-as="station" t-key="station.name">
+                                            <t t-foreach="state.station_results.stations" t-as="station"
+                                               t-key="station.name">
                                                 <div class="station-item d-flex justify-content-between align-items-center mb-2 p-3 border rounded">
                                                     <div class="d-flex align-items-center">
-                                                        <i t-attf-class="fa #{station.status} #{station.color} mr-3" style="font-size: 20px;"></i>
+                                                        <i t-attf-class="fa #{station.status} #{station.color} mr-3"
+                                                           style="font-size: 20px;"></i>
                                                         <span class="font-weight-bold" t-esc="station.name"/>
                                                     </div>
                                                     <div class="text-end">
-                                                        <span t-attf-class="badge badge-#{station.result === 'pass' and 'success' or station.result === 'reject' and 'danger' or 'warning'}" t-esc="station.result"/>
+                                                        <span t-attf-class="badge badge-#{station.result === 'pass' and 'success' or station.result === 'reject' and 'danger' or 'warning'}"
+                                                              t-esc="station.result"/>
                                                     </div>
                                                 </div>
                                             </t>
                                         </div>
+                                        <div class="row mt-2 mt-auto">
+                                            <div class="col-md-12">
+                                                <div class="efficiency-info">
+                                                    <div class="efficiency-item">
+                                                        <span class="efficiency-label">Pass Rate:</span>
+                                                        <span class="efficiency-value"
+                                                              t-esc="state.final_station_statistics.pass_rate + '%'"/>
+                                                    </div>
+                                                    <div class="efficiency-item">
+                                                        <span class="efficiency-label">Reject Rate:</span>
+                                                        <span class="efficiency-value"
+                                                              t-esc="state.final_station_statistics.reject_rate + '%'"/>
+                                                    </div>
+                                                    <div class="efficiency-item">
+                                                        <span class="efficiency-label">Last Updated:</span>
+                                                        <span class="efficiency-value"
+                                                              t-esc="state.final_station_statistics.last_updated"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         <!-- QE Override Info -->
-                                        <div t-if="state.station_results.qe_override" class="qe-override mt-3 p-3 border rounded bg-info">
+                                        <div t-if="state.station_results.qe_override"
+                                             class="qe-override mt-3 p-3 border rounded bg-info">
                                             <div class="d-flex align-items-center">
                                                 <i class="fa fa-user-circle mr-2"></i>
                                                 <div>
@@ -339,161 +534,31 @@
                                         </div>
                                     </div>
 
-                                    <div t-else="" class="text-center text-muted py-4 flex-grow-1 d-flex flex-column justify-content-center">
+                                    <div t-else=""
+                                         class="text-center text-muted py-4 flex-grow-1 d-flex flex-column justify-content-center">
                                         <i class="fa fa-info-circle fa-2x mb-2"></i>
                                         <p>No station results available</p>
                                         <small>Scan a part to see station results</small>
                                         <br/>
-                                        <small class="text-info">Last Serial: <span t-esc="state.final_station and state.final_station.last_serial_number or 'None'"/></small>
+                                        <small class="text-info">Last Serial:
+                                            <span t-esc="state.final_station and state.final_station.last_serial_number or 'None'"/>
+                                        </small>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Open Boxes Card -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-12">
-                            <div class="card final-station-card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5><i class="fa fa-archive"/> Open Boxes</h5>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary" t-on-click="refreshOpenBoxes">
-                                            <i class="fa fa-refresh"></i> Refresh
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-success" t-on-click="openBoxManagement">
-                                            <i class="fa fa-cog"></i> Manage Boxes
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <!-- Summary Statistics -->
-                                    <div t-if="state.open_boxes and state.open_boxes.summary" class="row mb-3">
-                                        <div class="col-md-3">
-                                            <div class="stat-item total-boxes">
-                                                <div class="stat-icon">
-                                                    <i class="fa fa-archive"/>
-                                                </div>
-                                                <div class="stat-info">
-                                                    <div class="stat-value" t-esc="state.open_boxes.summary.total_open_boxes"/>
-                                                    <div class="stat-label">Open Boxes</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="stat-item exhaust-boxes">
-                                                <div class="stat-icon">
-                                                    <i class="fa fa-cube"/>
-                                                </div>
-                                                <div class="stat-info">
-                                                    <div class="stat-value" t-esc="state.open_boxes.summary.exhaust_boxes"/>
-                                                    <div class="stat-label">Exhaust Boxes</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="stat-item intake-boxes">
-                                                <div class="stat-icon">
-                                                    <i class="fa fa-cube"/>
-                                                </div>
-                                                <div class="stat-info">
-                                                    <div class="stat-value" t-esc="state.open_boxes.summary.intake_boxes"/>
-                                                    <div class="stat-label">Intake Boxes</div>
-                                                </div>
-                                            </div>
-                                        </div>
-<!--                                        <div class="col-md-3">-->
-<!--                                            <div class="stat-item total-parts">-->
-<!--                                                <div class="stat-icon">-->
-<!--                                                    <i class="fa fa-cubes"/>-->
-<!--                                                </div>-->
-<!--                                                <div class="stat-info">-->
-<!--                                                    <div class="stat-value" t-esc="state.open_boxes.summary.total_parts_in_open_boxes"/>-->
-<!--                                                    <div class="stat-label">Total Parts</div>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-                                    </div>
-
-                                    <!-- Boxes List -->
-                                    <div t-if="state.open_boxes and state.open_boxes.boxes and state.open_boxes.boxes.length > 0" class="boxes-list">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Box Number</th>
-                                                        <th>Variant</th>
-                                                        <th>Capacity</th>
-                                                        <th>Parts</th>
-                                                        <th>Passed</th>
-<!--                                                        <th>Rejected</th>-->
-<!--                                                        <th>Created</th>-->
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <t t-foreach="state.open_boxes.boxes" t-as="box" t-key="box.id">
-                                                        <tr>
-                                                            <td>
-                                                                <strong t-esc="box.box_number"/>
-                                                            </td>
-                                                            <td>
-                                                                <span t-attf-class="badge badge-#{box.part_variant === 'exhaust' and 'primary' or 'info'}" t-esc="box.part_variant"/>
-                                                            </td>
-                                                            <td>
-                                                                <div class="progress" style="height: 20px;">
-                                                                    <div class="progress-bar" 
-                                                                         t-attf-role="progressbar" 
-                                                                         t-attf-style="width: #{box.capacity_percentage}%"
-                                                                         t-attf-aria-valuenow="#{box.capacity_percentage}"
-                                                                         aria-valuemin="0" 
-                                                                         aria-valuemax="100">
-                                                                        <span t-esc="box.current_position + '/' + box.max_capacity"/>
-                                                                    </div>
-                                                                </div>
-                                                                <small class="text-muted" t-esc="box.capacity_percentage + '%'"/>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge badge-secondary" t-esc="box.parts_count"/>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge badge-success" t-esc="box.passed_parts"/>
-                                                            </td>
-<!--                                                            <td>-->
-<!--                                                                <span class="badge badge-danger" t-esc="box.rejected_parts"/>-->
-<!--                                                            </td>-->
-<!--                                                            <td>-->
-<!--                                                                <small t-esc="box.create_date and new Date(box.create_date).toLocaleString() or 'Unknown'"/>-->
-<!--                                                            </td>-->
-                                                            <td>
-                                                                <button class="btn btn-sm btn-outline-primary" t-on-click="viewBoxDetails" t-att-data-box-id="box.id" t-att-data-box-number="box.box_number">
-                                                                    <i class="fa fa-eye"></i> View
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    </t>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <!-- No Open Boxes Message -->
-                                    <div t-else="" class="text-center text-muted py-4">
-                                        <i class="fa fa-archive fa-2x mb-2"></i>
-                                        <p>No open boxes found</p>
-                                        <small>Boxes will appear here when parts are assigned</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Recent Measurements Card -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-12">
                             <div class="card final-station-card">
                                 <div class="card-header">
-                                    <h5><i class="fa fa-history"/> Recent Measurements</h5>
+                                    <h5>
+                                        <i class="fa fa-history"/>
+                                        Recent Measurements
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -521,16 +586,29 @@
         </div>
 
         <!-- Processing Part Popup -->
-        <div t-if="state.final_station and state.final_station.processing_part" class="processing-popup-overlay" t-on-click="closeProcessingPopup">
+        <div t-if="state.final_station and state.final_station.processing_part" class="processing-popup-overlay"
+             t-on-click="closeProcessingPopup">
             <div class="processing-popup" t-on-click.stop="">
                 <div class="processing-popup-header">
-                    <h4><i class="fa fa-cog fa-spin"/> Processing Part</h4>
+                    <h4>
+                        <i class="fa fa-cog fa-spin"/>
+                        Processing Part
+                    </h4>
                 </div>
                 <div class="processing-popup-body">
                     <div class="processing-info">
-                        <p><strong>Serial Number:</strong> <span t-esc="state.final_station.last_serial_number"/></p>
-                        <p><strong>Status:</strong> <span class="text-warning">Processing...</span></p>
-                        <p><strong>Mode:</strong> <span t-esc="state.final_station.operation_mode and state.final_station.operation_mode.toUpperCase()"/></p>
+                        <p>
+                            <strong>Serial Number:</strong>
+                            <span t-esc="state.final_station.last_serial_number"/>
+                        </p>
+                        <p>
+                            <strong>Status:</strong>
+                            <span class="text-warning">Processing...</span>
+                        </p>
+                        <p>
+                            <strong>Mode:</strong>
+                            <span t-esc="state.final_station.operation_mode and state.final_station.operation_mode.toUpperCase()"/>
+                        </p>
                     </div>
                     <div class="processing-animation">
                         <div class="spinner-border text-primary" role="status">
@@ -540,7 +618,8 @@
                 </div>
                 <div class="processing-popup-footer">
                     <button type="button" class="btn btn-secondary btn-sm" t-on-click="resetProcessingFlag">
-                        <i class="fa fa-undo"/> Reset Processing
+                        <i class="fa fa-undo"/>
+                        Reset Processing
                     </button>
                 </div>
             </div>
