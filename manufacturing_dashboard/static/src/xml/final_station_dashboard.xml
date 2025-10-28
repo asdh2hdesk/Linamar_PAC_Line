@@ -351,6 +351,143 @@
                         </div>
                     </div>
 
+                    <!-- Open Boxes Card -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-12">
+                            <div class="card final-station-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5><i class="fa fa-archive"/> Open Boxes</h5>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary" t-on-click="refreshOpenBoxes">
+                                            <i class="fa fa-refresh"></i> Refresh
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success" t-on-click="openBoxManagement">
+                                            <i class="fa fa-cog"></i> Manage Boxes
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Summary Statistics -->
+                                    <div t-if="state.open_boxes and state.open_boxes.summary" class="row mb-3">
+                                        <div class="col-md-3">
+                                            <div class="stat-item total-boxes">
+                                                <div class="stat-icon">
+                                                    <i class="fa fa-archive"/>
+                                                </div>
+                                                <div class="stat-info">
+                                                    <div class="stat-value" t-esc="state.open_boxes.summary.total_open_boxes"/>
+                                                    <div class="stat-label">Open Boxes</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-item exhaust-boxes">
+                                                <div class="stat-icon">
+                                                    <i class="fa fa-cube"/>
+                                                </div>
+                                                <div class="stat-info">
+                                                    <div class="stat-value" t-esc="state.open_boxes.summary.exhaust_boxes"/>
+                                                    <div class="stat-label">Exhaust Boxes</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-item intake-boxes">
+                                                <div class="stat-icon">
+                                                    <i class="fa fa-cube"/>
+                                                </div>
+                                                <div class="stat-info">
+                                                    <div class="stat-value" t-esc="state.open_boxes.summary.intake_boxes"/>
+                                                    <div class="stat-label">Intake Boxes</div>
+                                                </div>
+                                            </div>
+                                        </div>
+<!--                                        <div class="col-md-3">-->
+<!--                                            <div class="stat-item total-parts">-->
+<!--                                                <div class="stat-icon">-->
+<!--                                                    <i class="fa fa-cubes"/>-->
+<!--                                                </div>-->
+<!--                                                <div class="stat-info">-->
+<!--                                                    <div class="stat-value" t-esc="state.open_boxes.summary.total_parts_in_open_boxes"/>-->
+<!--                                                    <div class="stat-label">Total Parts</div>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+                                    </div>
+
+                                    <!-- Boxes List -->
+                                    <div t-if="state.open_boxes and state.open_boxes.boxes and state.open_boxes.boxes.length > 0" class="boxes-list">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Box Number</th>
+                                                        <th>Variant</th>
+                                                        <th>Capacity</th>
+                                                        <th>Parts</th>
+                                                        <th>Passed</th>
+<!--                                                        <th>Rejected</th>-->
+<!--                                                        <th>Created</th>-->
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="state.open_boxes.boxes" t-as="box" t-key="box.id">
+                                                        <tr>
+                                                            <td>
+                                                                <strong t-esc="box.box_number"/>
+                                                            </td>
+                                                            <td>
+                                                                <span t-attf-class="badge badge-#{box.part_variant === 'exhaust' and 'primary' or 'info'}" t-esc="box.part_variant"/>
+                                                            </td>
+                                                            <td>
+                                                                <div class="progress" style="height: 20px;">
+                                                                    <div class="progress-bar" 
+                                                                         t-attf-role="progressbar" 
+                                                                         t-attf-style="width: #{box.capacity_percentage}%"
+                                                                         t-attf-aria-valuenow="#{box.capacity_percentage}"
+                                                                         aria-valuemin="0" 
+                                                                         aria-valuemax="100">
+                                                                        <span t-esc="box.current_position + '/' + box.max_capacity"/>
+                                                                    </div>
+                                                                </div>
+                                                                <small class="text-muted" t-esc="box.capacity_percentage + '%'"/>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge badge-secondary" t-esc="box.parts_count"/>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge badge-success" t-esc="box.passed_parts"/>
+                                                            </td>
+<!--                                                            <td>-->
+<!--                                                                <span class="badge badge-danger" t-esc="box.rejected_parts"/>-->
+<!--                                                            </td>-->
+<!--                                                            <td>-->
+<!--                                                                <small t-esc="box.create_date and new Date(box.create_date).toLocaleString() or 'Unknown'"/>-->
+<!--                                                            </td>-->
+                                                            <td>
+                                                                <button class="btn btn-sm btn-outline-primary" t-on-click="viewBoxDetails" t-att-data-box-id="box.id" t-att-data-box-number="box.box_number">
+                                                                    <i class="fa fa-eye"></i> View
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- No Open Boxes Message -->
+                                    <div t-else="" class="text-center text-muted py-4">
+                                        <i class="fa fa-archive fa-2x mb-2"></i>
+                                        <p>No open boxes found</p>
+                                        <small>Boxes will appear here when parts are assigned</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Recent Measurements Card -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-12">

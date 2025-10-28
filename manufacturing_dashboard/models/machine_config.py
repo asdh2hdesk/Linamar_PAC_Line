@@ -1911,37 +1911,62 @@ class MachineConfig(models.Model):
             self.env.cr.commit()
             _logger.info(f"Scanning {len(valid_dirs)} Aumann folder(s) for CSV files...")
 
-            # Collect all CSV file full paths across all valid dirs
-            all_csv_files = []
-            for d in valid_dirs:
-                try:
-                    files = [os.path.join(d, f) for f in os.listdir(d) if f.lower().endswith('.csv')]
-                    _logger.info(f"Found {len(files)} CSV files in {d}")
-                    all_csv_files.extend(files)
-                except Exception as e:
-                    _logger.error(f"Error listing directory {d}: {e}")
-
-            # Filter files based on sync mode - default to quick sync for efficiency
+            # Optimized file collection and filtering
             force_full_sync = (hasattr(self, 'sync_mode') and self.sync_mode == 'full')
             files_to_process = []
             skipped_files_list = []
+            total_files_scanned = 0
 
-            _logger.info(f"Starting file filtering for {len(all_csv_files)} CSV files (sync_mode: {'full' if force_full_sync else 'quick'})")
+            _logger.info(f"Starting optimized file filtering (sync_mode: {'full' if force_full_sync else 'quick'})")
             
-            for csv_path in all_csv_files:
-                if self._should_process_file(csv_path, force_full_sync):
-                    files_to_process.append(csv_path)
-                else:
-                    skipped_files_list.append(os.path.basename(csv_path))
+            # Process each directory separately for better performance
+            for d in valid_dirs:
+                try:
+                    # First check if directory itself has been modified (quick check)
+                    if not force_full_sync and not self._should_process_directory(d):
+                        _logger.info(f"Directory {d} unchanged, skipping all files")
+                        continue
+                    
+                    # Get all CSV files in this directory
+                    csv_files = [os.path.join(d, f) for f in os.listdir(d) if f.lower().endswith('.csv')]
+                    total_files_scanned += len(csv_files)
+                    _logger.info(f"Found {len(csv_files)} CSV files in {d}")
+                    
+                    # Filter files in this directory using batch processing
+                    dir_files_to_process = []
+                    dir_skipped_files = []
+                    
+                    if force_full_sync:
+                        # Process all files if full sync
+                        dir_files_to_process = csv_files
+                    else:
+                        # Batch check file modification times for better performance
+                        files_to_check = self._batch_check_file_modifications(csv_files)
+                        for csv_path in csv_files:
+                            if files_to_check.get(csv_path, False):
+                                dir_files_to_process.append(csv_path)
+                            else:
+                                dir_skipped_files.append(os.path.basename(csv_path))
+                    
+                    files_to_process.extend(dir_files_to_process)
+                    skipped_files_list.extend(dir_skipped_files)
+                    
+                    _logger.info(f"Directory {d}: Processing {len(dir_files_to_process)} files, skipping {len(dir_skipped_files)} files")
+                    
+                except Exception as e:
+                    _logger.error(f"Error processing directory {d}: {e}")
 
             total_files = len(files_to_process)
             skipped_files = len(skipped_files_list)
             self.sync_total_records = total_files
-            self.sync_stage = f"Found {len(all_csv_files)} CSV files, processing {total_files} files, skipping {skipped_files} unchanged files"
+            self.sync_stage = f"Scanned {total_files_scanned} CSV files, processing {total_files} files, skipping {skipped_files} unchanged files"
             self.sync_progress = 15.0
             self.env.cr.commit()
 
-            _logger.info(f"Aumann incremental sync: Processing {total_files} files, skipping {skipped_files} unchanged files")
+            # Performance metrics
+            scan_time = fields.Datetime.now() - self.sync_start_time
+            _logger.info(f"Aumann optimized sync: Scanned {total_files_scanned} files in {scan_time.total_seconds():.2f}s")
+            _logger.info(f"Processing {total_files} files, skipping {skipped_files} unchanged files")
             if skipped_files > 0:
                 _logger.info(f"Skipped files (no changes): {', '.join(skipped_files_list[:10])}{'...' if len(skipped_files_list) > 10 else ''}")
             if total_files > 0:
@@ -2195,6 +2220,59 @@ class MachineConfig(models.Model):
             _logger.info(f"Reset sync tracking for machine {self.machine_name}")
             return True
         return False
+
+    def reset_directory_sync_tracking(self, dir_path):
+        """Reset sync tracking for a specific directory - useful for forcing directory sync"""
+        if hasattr(self, 'last_synced_files'):
+            synced_files = self._get_last_synced_files()
+            dir_key = f"__DIR__{dir_path}"
+            if dir_key in synced_files:
+                del synced_files[dir_key]
+                self.last_synced_files = json.dumps(synced_files)
+                _logger.info(f"Reset sync tracking for directory {os.path.basename(dir_path)}")
+                return True
+        return False
+
+    def _batch_check_file_modifications(self, file_paths):
+        """Batch check file modification times for better performance"""
+        result = {}
+        synced_files = self._get_last_synced_files()
+        
+        for file_path in file_paths:
+            try:
+                current_mod_time = os.path.getmtime(file_path)
+                last_mod_time = synced_files.get(file_path, 0)
+                result[file_path] = current_mod_time > last_mod_time
+            except Exception as e:
+                _logger.warning(f"Error checking file modification time for {os.path.basename(file_path)}: {e}")
+                result[file_path] = True  # Process if we can't determine
+        
+        return result
+
+    def _should_process_directory(self, dir_path):
+        """Check if directory should be processed based on modification time"""
+        if not hasattr(self, 'sync_mode'):
+            return True  # Process if no sync_mode (backward compatibility)
+        
+        try:
+            # Check if directory itself has been modified
+            current_mod_time = os.path.getmtime(dir_path)
+            synced_files = self._get_last_synced_files()
+            dir_key = f"__DIR__{dir_path}"
+            last_mod_time = synced_files.get(dir_key, 0)
+            
+            should_process = current_mod_time > last_mod_time
+            if should_process:
+                _logger.debug(f"Directory {os.path.basename(dir_path)} modified - processing files")
+                # Update directory modification time
+                self._update_synced_files(dir_key, current_mod_time)
+            else:
+                _logger.debug(f"Directory {os.path.basename(dir_path)} unchanged - skipping all files")
+            
+            return should_process
+        except Exception as e:
+            _logger.warning(f"Error checking directory modification time for {os.path.basename(dir_path)}: {e}")
+            return True  # Process if we can't determine
 
     def _should_process_file(self, file_path, force_full_sync=False):
         """Check if file should be processed based on modification time"""
@@ -4967,6 +5045,9 @@ class MachineConfig(models.Model):
             if self.last_serial_number:
                 station_results = service.get_station_results_for_dashboard(self.last_serial_number)
             
+            # Get open boxes data
+            open_boxes_data = self.get_open_boxes_data()
+            
             return {
                 'machine_id': self.id,
                 'machine_name': self.machine_name,
@@ -4991,6 +5072,7 @@ class MachineConfig(models.Model):
                 'plc_registers': registers,
                 'recent_measurements': recent_measurements,
                 'station_results': station_results,
+                'open_boxes': open_boxes_data,
                 'timestamp': datetime.now().isoformat()
             }
             
@@ -5001,6 +5083,62 @@ class MachineConfig(models.Model):
                 'timestamp': datetime.now().isoformat()
             }
     
+    def get_open_boxes_data(self):
+        """Get open boxes data for final station dashboard"""
+        try:
+            # Get all open boxes
+            open_boxes = self.env['manufacturing.box.management'].search([
+                ('status', '=', 'open')
+            ], order='create_date desc')
+            
+            boxes_data = []
+            for box in open_boxes:
+                boxes_data.append({
+                    'id': box.id,
+                    'box_number': box.box_number,
+                    'part_variant': box.part_variant,
+                    'current_position': box.current_position,
+                    'max_capacity': box.max_capacity,
+                    'capacity_percentage': round((box.current_position / box.max_capacity) * 100, 1) if box.max_capacity > 0 else 0,
+                    'create_date': box.create_date.isoformat() if box.create_date else None,
+                    'parts_count': len(box.part_quality_ids),
+                    'passed_parts': len(box.part_quality_ids.filtered(lambda p: p.final_result == 'pass')),
+                    'rejected_parts': len(box.part_quality_ids.filtered(lambda p: p.final_result == 'reject'))
+                })
+            
+            # Get summary statistics
+            total_open_boxes = len(open_boxes)
+            exhaust_boxes = open_boxes.filtered(lambda b: b.part_variant == 'exhaust')
+            intake_boxes = open_boxes.filtered(lambda b: b.part_variant == 'intake')
+            
+            summary = {
+                'total_open_boxes': total_open_boxes,
+                'exhaust_boxes': len(exhaust_boxes),
+                'intake_boxes': len(intake_boxes),
+                'total_parts_in_open_boxes': sum(box.current_position for box in open_boxes),
+                'total_passed_parts': sum(len(box.part_quality_ids.filtered(lambda p: p.final_result == 'pass')) for box in open_boxes),
+                'total_rejected_parts': sum(len(box.part_quality_ids.filtered(lambda p: p.final_result == 'reject')) for box in open_boxes)
+            }
+            
+            return {
+                'boxes': boxes_data,
+                'summary': summary
+            }
+            
+        except Exception as e:
+            _logger.error(f"Error getting open boxes data: {str(e)}")
+            return {
+                'boxes': [],
+                'summary': {
+                    'total_open_boxes': 0,
+                    'exhaust_boxes': 0,
+                    'intake_boxes': 0,
+                    'total_parts_in_open_boxes': 0,
+                    'total_passed_parts': 0,
+                    'total_rejected_parts': 0
+                }
+            }
+
     def get_station_results_by_serial(self, serial_number):
         """Get station results for a specific serial number"""
         self.ensure_one()

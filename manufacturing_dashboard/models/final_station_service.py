@@ -548,25 +548,25 @@ class FinalStationService:
                 normalized = 'pending'
                 if result in ('pass', 'ok', True):
                     normalized = 'ok'
-                elif result in ('reject', 'nok', False):
+                elif result in ('reject', 'nok', False,'pending'):
                     normalized = 'nok'
                 elif result == 'bypass':
                     normalized = 'bypass'
                 converted_results[station] = normalized
             
             # Determine final result logic:
-            # - If ALL stations are pending -> NOK (reject)
+            # - If ANY station is pending -> NOK (reject)
             # - If ANY station is NOK -> NOK (reject)  
             # - If ALL stations are OK or BYPASS -> OK (pass)
             # - If ANY station is BYPASS and others are OK -> OK (pass)
-            all_pending = all(result == 'pending' for result in converted_results.values())
+            any_pending = any(result == 'pending' for result in converted_results.values())
             any_nok = any(result == 'nok' for result in converted_results.values())
             all_ok_or_bypass = all(result in ('ok', 'bypass') for result in converted_results.values())
             any_bypass = any(result == 'bypass' for result in converted_results.values())
             all_ok = all(result == 'ok' for result in converted_results.values())
             
-            if all_pending:
-                final_result_plc = 'nok'  # Reject if all stations are pending
+            if any_pending:
+                final_result_plc = 'nok'  # Reject if ANY station is pending
             elif any_nok:
                 final_result_plc = 'nok'  # Reject if any station failed
             elif all_ok_or_bypass:
@@ -952,13 +952,13 @@ class FinalStationService:
             results = [part_quality.vici_result, part_quality.ruhlamat_result, 
                       part_quality.aumann_result, part_quality.gauging_result]
             
-            all_pending = all(result == 'pending' for result in results)
+            any_pending = any(result == 'pending' for result in results)
             any_reject = any(result == 'reject' for result in results)
             all_pass_or_bypass = all(result in ('pass', 'bypass') for result in results)
             any_bypass = any(result == 'bypass' for result in results)
             
-            if all_pending:
-                overall_status = 'reject'  # Reject if all stations are pending
+            if any_pending:
+                overall_status = 'reject'  # Reject if ANY station is pending
             elif any_reject:
                 overall_status = 'reject'  # Reject if any station failed
             elif all_pass_or_bypass:
@@ -1024,6 +1024,9 @@ class FinalStationService:
                 part_quality.write(update_fields)
                 _logger.info(f"Updated part_quality record {part_quality.serial_number} with bypass status: {update_fields}")
                 
+                # Recalculate final_result after bypass status update
+                self._recalculate_final_result(part_quality)
+                
         except Exception as e:
             _logger.error(f"Error updating bypass status in part_quality: {str(e)}")
 
@@ -1071,7 +1074,7 @@ class FinalStationService:
     # =============================================================================
     
     def update_station_result(self, serial_number, station_type, result):
-        """Update a specific station result in part_quality table"""
+        """Update a specific station result in part_quality table and recalculate final_result"""
         try:
             _logger.info(f"Updating {station_type} result for serial {serial_number}: {result}")
             
@@ -1089,6 +1092,10 @@ class FinalStationService:
             if hasattr(part_quality, field_name):
                 part_quality.write({field_name: result})
                 _logger.info(f"Updated {field_name} to {result} for serial {serial_number}")
+                
+                # Recalculate and update final_result after station result change
+                self._recalculate_final_result(part_quality)
+                
                 return True
             else:
                 _logger.error(f"Invalid station type: {station_type}")
@@ -1097,6 +1104,52 @@ class FinalStationService:
         except Exception as e:
             _logger.error(f"Error updating station result: {str(e)}")
             return False
+    
+    def _recalculate_final_result(self, part_quality):
+        """Recalculate and update final_result based on current station results"""
+        try:
+            # Get current station results
+            results = [part_quality.vici_result, part_quality.ruhlamat_result, 
+                      part_quality.aumann_result, part_quality.gauging_result]
+            
+            # Apply the same logic as in check_all_stations_result and get_station_results_for_dashboard
+            any_pending = any(result == 'pending' for result in results)
+            any_reject = any(result == 'reject' for result in results)
+            all_pass_or_bypass = all(result in ('pass', 'bypass') for result in results)
+            any_bypass = any(result == 'bypass' for result in results)
+            
+            if any_pending:
+                new_final_result = 'reject'  # Reject if ANY station is pending
+            elif any_reject:
+                new_final_result = 'reject'  # Reject if any station failed
+            elif all_pass_or_bypass:
+                new_final_result = 'pass'    # Pass if all stations are pass or bypassed
+            elif any_bypass and not any_reject:
+                new_final_result = 'pass'    # Pass if any station is bypassed and no failures
+            else:
+                new_final_result = 'reject'  # Default to reject
+            
+            # Update final_result if it has changed
+            if part_quality.final_result != new_final_result:
+                old_result = part_quality.final_result
+                part_quality.final_result = new_final_result
+                
+                # Handle box assignment based on new result
+                if new_final_result == 'pass' and not part_quality.box_id:
+                    # Part now passes and wasn't assigned to box - assign it
+                    part_quality._assign_to_box_if_passed()
+                    _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result}) - assigned to box")
+                elif new_final_result == 'reject' and part_quality.box_id:
+                    # Part now rejects but was in a box - remove it from box
+                    part_quality._remove_from_box_if_rejected()
+                    _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result}) - removed from box")
+                else:
+                    _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result})")
+            else:
+                _logger.info(f"Final_result unchanged for serial {part_quality.serial_number}: {new_final_result}")
+                
+        except Exception as e:
+            _logger.error(f"Error recalculating final_result: {str(e)}")
     
     def get_or_create_part_quality(self, serial_number):
         """Get existing part quality record or create new one"""
