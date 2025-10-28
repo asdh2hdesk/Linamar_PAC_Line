@@ -402,17 +402,17 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
-                                            <div class="stat-item total-parts">
-                                                <div class="stat-icon">
-                                                    <i class="fa fa-cubes"/>
-                                                </div>
-                                                <div class="stat-info">
-                                                    <div class="stat-value" t-esc="state.open_boxes.summary.total_parts_in_open_boxes"/>
-                                                    <div class="stat-label">Total Parts</div>
-                                                </div>
-                                            </div>
-                                        </div>
+<!--                                        <div class="col-md-3">-->
+<!--                                            <div class="stat-item total-parts">-->
+<!--                                                <div class="stat-icon">-->
+<!--                                                    <i class="fa fa-cubes"/>-->
+<!--                                                </div>-->
+<!--                                                <div class="stat-info">-->
+<!--                                                    <div class="stat-value" t-esc="state.open_boxes.summary.total_parts_in_open_boxes"/>-->
+<!--                                                    <div class="stat-label">Total Parts</div>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
                                     </div>
 
                                     <!-- Boxes List -->
@@ -426,8 +426,8 @@
                                                         <th>Capacity</th>
                                                         <th>Parts</th>
                                                         <th>Passed</th>
-                                                        <th>Rejected</th>
-                                                        <th>Created</th>
+<!--                                                        <th>Rejected</th>-->
+<!--                                                        <th>Created</th>-->
                                                         <th>Actions</th>
                                                     </tr>
                                                 </thead>
@@ -459,14 +459,14 @@
                                                             <td>
                                                                 <span class="badge badge-success" t-esc="box.passed_parts"/>
                                                             </td>
+<!--                                                            <td>-->
+<!--                                                                <span class="badge badge-danger" t-esc="box.rejected_parts"/>-->
+<!--                                                            </td>-->
+<!--                                                            <td>-->
+<!--                                                                <small t-esc="box.create_date and new Date(box.create_date).toLocaleString() or 'Unknown'"/>-->
+<!--                                                            </td>-->
                                                             <td>
-                                                                <span class="badge badge-danger" t-esc="box.rejected_parts"/>
-                                                            </td>
-                                                            <td>
-                                                                <small t-esc="box.create_date and new Date(box.create_date).toLocaleString() or 'Unknown'"/>
-                                                            </td>
-                                                            <td>
-                                                                <button class="btn btn-sm btn-outline-primary" t-on-click="viewBoxDetails" t-att-data-box-id="box.id">
+                                                                <button class="btn btn-sm btn-outline-primary" t-on-click="viewBoxDetails" t-att-data-box-id="box.id" t-att-data-box-number="box.box_number">
                                                                     <i class="fa fa-eye"></i> View
                                                                 </button>
                                                             </td>

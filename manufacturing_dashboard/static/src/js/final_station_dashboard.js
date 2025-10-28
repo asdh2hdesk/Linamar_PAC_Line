@@ -735,32 +735,50 @@ export class FinalStationDashboard extends Component {
 
     async viewBoxDetails(event) {
         try {
+            console.log('viewBoxDetails called with event:', event);
             event.preventDefault();
-            // Ensure we read the id from the actual button, not an inner icon/span
-            const btn = event.currentTarget || (event.target && event.target.closest('button'));
-            const boxIdAttr = btn && (btn.dataset && btn.dataset.boxId ? btn.dataset.boxId : btn.getAttribute && btn.getAttribute('data-box-id'));
-            if (!boxIdAttr) {
-                console.error('No box ID found');
+            event.stopPropagation();
+            
+            // Get the button element that was clicked
+            const btn = event.currentTarget;
+            console.log('Button element:', btn);
+            
+            if (!btn) {
+                console.error('No button element found');
                 return;
             }
-            const boxId = parseInt(boxIdAttr, 10);
+            
+            // Try multiple ways to get the box ID
+            let boxId = btn.dataset?.boxId || btn.getAttribute('data-box-id');
+            console.log('Box ID from dataset/attribute:', boxId);
+            
             if (!boxId) {
-                console.error('Invalid box ID');
+                console.error('No box ID found in button attributes');
+                console.log('Button attributes:', btn.attributes);
                 return;
             }
+            
+            const boxIdNum = parseInt(boxId, 10);
+            if (!boxIdNum || isNaN(boxIdNum)) {
+                console.error('Invalid box ID:', boxId);
+                return;
+            }
+            
+            console.log('Opening box details for ID:', boxIdNum);
             
             // Open the box details view
             await this.action.doAction({
                 type: 'ir.actions.act_window',
-                name: 'Box Details',
                 res_model: 'manufacturing.box.management',
-                res_id: boxId,
-                view_mode: 'form',
-                target: 'current',
-                context: {}
+                res_id: boxIdNum,
+                views: [[false, 'form']],
+                target: 'current'
             });
+            
+            console.log('Box details action executed successfully');
         } catch (error) {
             console.error("Error viewing box details:", error);
+            this.showNotification('Error opening box details: ' + error.message, 'error');
         }
     }
 }
