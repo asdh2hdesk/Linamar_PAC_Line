@@ -1554,144 +1554,144 @@ msgstr "SMS Delivery error (SMS वितरण त्रुटी )"
 #: model:ir.model.fields,field_description:spc.field_spc_measurement_value__spc_id
 #: model:ir.ui.menu,name:spc.menu_spc_root
 msgid "SPC"
-msgstr "SPC (SPC )"
+msgstr "SPC (एसपीसी )"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_action
 msgid "SPC Action Notification"
-msgstr "SPC Action Notification (SPC कारवाई अधिसूचना )"
+msgstr "SPC Action Notification (एसपीसी  कारवाई अधिसूचना )"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_action
 msgid "SPC Action: {{object.name}}"
-msgstr "SPC Action: {{object.name}} (SPC क्रिया: {{object.name}} )"
+msgstr "SPC Action: {{object.name}} (एसपीसी क्रिया: {{object.name}} )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_approval_line
 msgid "SPC Approval Line"
-msgstr "SPC Approval Line (SPC मंजूरी ओळ )"
+msgstr "SPC Approval Line (एसपीसी मंजूरी ओळ )"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_approve
 msgid "SPC Approve Notification"
-msgstr "SPC Approve Notification (SPC अधिसूचना मंजूर करा )"
+msgstr "SPC Approve Notification (एसपीसी अधिसूचना मंजूर करा )"
 
 #. module: spc
 #: model:res.groups,name:spc.group_spc_approver
 msgid "SPC Approves"
-msgstr "SPC Approves (SPC मंजूर )"
+msgstr "SPC Approves (एसपीसी मंजूर )"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_cancel
 msgid "SPC Cancel Notification"
-msgstr "SPC Cancel Notification (SPC सूचना रद्द करा )"
+msgstr "SPC Cancel Notification (एसपीसी सूचना रद्द करा )"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_complete
 msgid "SPC Complete Notification"
-msgstr "SPC Complete Notification (SPC पूर्ण अधिसूचना )"
+msgstr "SPC Complete Notification (एसपीसी पूर्ण अधिसूचना )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_control_chart_constants
 msgid "SPC Control Chart Constants"
-msgstr "SPC Control Chart Constants (SPC नियंत्रण चार्ट स्थिरांक )"
+msgstr "SPC Control Chart Constants (एसपीसी नियंत्रण चार्ट स्थिरांक )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_control_limits_line
 msgid "SPC Control Limits Line"
-msgstr "SPC Control Limits Line (SPC नियंत्रण मर्यादा रेषा )"
+msgstr "SPC Control Limits Line (एसपीसी नियंत्रण मर्यादा रेषा )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_frequency
 msgid "SPC Frequency"
-msgstr "SPC Frequency (SPC वारंवारता )"
+msgstr "SPC Frequency (एसपीसी वारंवारता )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_group_statistics
 msgid "SPC Group Statistics"
-msgstr "SPC Group Statistics (SPC गट आकडेवारी )"
+msgstr "SPC Group Statistics (एसपीसी गट आकडेवारी )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_interval
 msgid "SPC Interval"
-msgstr "SPC Interval (SPC मध्यांतर )"
+msgstr "SPC Interval (एसपीसी मध्यांतर )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_interval_frequency_display
 msgid "SPC Interval and Frequency Display"
 msgstr ""
-"SPC Interval and Frequency Display (SPC मध्यांतर आणि वारंवारता प्रदर्शन )"
+"SPC Interval and Frequency Display (एसपीसी मध्यांतर आणि वारंवारता प्रदर्शन )"
 
 #. module: spc
 #: model:res.groups,name:spc.group_spc_manager
 msgid "SPC Manager"
-msgstr "SPC Manager (SPC व्यवस्थापक )"
+msgstr "SPC Manager (एसपीसी व्यवस्थापक )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_measurement_group
 msgid "SPC Measurement Group"
-msgstr "SPC Measurement Group (SPC मापन गट )"
+msgstr "SPC Measurement Group (एसपीसी मापन गट )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_measurement_parameter
 msgid "SPC Measurement Parameter"
-msgstr "SPC Measurement Parameter (SPC मापन मापदंड )"
+msgstr "SPC Measurement Parameter (एसपीसी मापन मापदंड )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_measurement_value
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_form
 msgid "SPC Measurement Value"
-msgstr "SPC Measurement Value (SPC मापन मूल्य )"
+msgstr "SPC Measurement Value (एसपीसी मापन मूल्य )"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_measurement_value
 #: model:ir.ui.menu,name:spc.menu_spc_measurement_value
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_measurement_value_list
 msgid "SPC Measurement Values"
-msgstr "SPC Measurement Values (SPC मापन मूल्ये )"
+msgstr "SPC Measurement Values (एसपीसी मापन मूल्ये )"
 
 #. module: spc
 #: model:ir.ui.menu,name:spc.menu_spc_operations
 msgid "SPC Operations"
-msgstr "SPC Operations (SPC ऑपरेशन्स )"
+msgstr "SPC Operations (एसपीसी ऑपरेशन्स )"
 
 #. module: spc
 #: model:ir.model,name:spc.model_spc_part
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_part_form
 msgid "SPC Part"
-msgstr "SPC Part (SPC भाग )"
+msgstr "SPC Part (एसपीसी भाग )"
 
 #. module: spc
 #: model:ir.actions.act_window,name:spc.action_spc_part
 #: model:ir.ui.menu,name:spc.menu_spc_part
 #: model_terms:ir.ui.view,arch_db:spc.view_spc_part_list
 msgid "SPC Parts"
-msgstr "SPC Parts (SPC भाग )"
+msgstr "SPC Parts (एसपीसी भाग )"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_reject
 msgid "SPC Reject Notification"
-msgstr "SPC Reject Notification (SPC अधिसूचना नाकारणे )"
+msgstr "SPC Reject Notification (एसपीसी अधिसूचना नाकारणे )"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_send_for_approval
 msgid "SPC Send for Approval Notification"
-msgstr "SPC Send for Approval Notification (SPC मंजुरीसाठी सूचना पाठवा )"
+msgstr "SPC Send for Approval Notification (एसपीसी मंजुरीसाठी सूचना पाठवा )"
 
 #. module: spc
 #: model:mail.template,name:spc.mail_template_spc_start
 msgid "SPC Start Notification"
-msgstr "SPC Start Notification (SPC प्रारंभ सूचना )"
+msgstr "SPC Start Notification (एसपीसी प्रारंभ सूचना )"
 
 #. module: spc
 #: model:res.groups,name:spc.group_spc_user
 msgid "SPC User"
-msgstr "SPC User (SPC वापरकर्ता )"
+msgstr "SPC User (एसपीसी वापरकर्ता )"
 
 #. module: spc
 #: model:res.groups,name:spc.group_spc_viewer
 msgid "SPC Viewer"
-msgstr "SPC Viewer (SPC दर्शक )"
+msgstr "SPC Viewer (एसपीसी दर्शक )"
 
 #. module: spc
 #: model:ir.model.fields,field_description:spc.field_spc_control_chart_constants__sample
@@ -2062,7 +2062,7 @@ msgstr "✅ Approval Update: {{object.name}} (✅ मंजुरी अपड�
 msgid "🎉 Mission Accomplished: {{object.name}} SPC is Complete!"
 msgstr ""
 "🎉 Mission Accomplished: {{object.name}} SPC is Complete! (🎉 मिशन पूर्ण झाले:"
-" {{object.name}} SPC पूर्ण झाले! )"
+" {{object.name}} एसपीसी पूर्ण झाले! )"
 
 #. module: spc
 #: model:mail.template,subject:spc.mail_template_spc_reject
