@@ -160,12 +160,8 @@ class PartQuality(models.Model):
                     record._remove_from_box_if_rejected()
             elif all(result in ('pass', 'bypass') for result in results):
                 record.final_result = 'pass'
-                # Automatically assign to box when part passes
-                record._assign_to_box_if_passed()
             elif 'bypass' in results and 'reject' not in results:
                 record.final_result = 'pass'  # Pass if any station is bypassed and no failures
-                # Automatically assign to box when part passes
-                record._assign_to_box_if_passed()
             else:
                 record.final_result = 'pending'
                 # If part was previously passed and assigned to box, remove it

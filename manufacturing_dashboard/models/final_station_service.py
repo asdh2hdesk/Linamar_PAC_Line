@@ -666,17 +666,27 @@ class FinalStationService:
                 capture_date=measurement_time
             )
             
-            # Mark the part as scanned at final station to allow box assignment gating
+            # On final-station PASS (ok), mark scan and assign box; otherwise do not mark scanned
             try:
                 part_quality = self.get_or_create_part_quality(serial_number)
-                if part_quality:
+                if part_quality and result == 'ok':
                     part_quality.write({
                         'final_station_scanned': True,
                         'final_station_scan_time': measurement_time,
                         'test_date': part_quality.test_date or measurement_time
                     })
+                    # Assign box only now at final station pass
+                    if part_quality.final_result == 'pass' and not part_quality.box_id:
+                        part_quality._assign_to_box_if_passed()
+                        # If assigned, capture box details into measurement
+                        if part_quality.box_id:
+                            measurement.write({
+                                'box_id': part_quality.box_id.id,
+                                'box_number': part_quality.box_number,
+                                'box_position': part_quality.box_position
+                            })
             except Exception as e:
-                _logger.error(f"Error updating final station scan flag: {str(e)}")
+                _logger.error(f"Error handling final station pass assignment: {str(e)}")
 
             if measurement:
                 # Update machine status
@@ -1146,12 +1156,8 @@ class FinalStationService:
                 old_result = part_quality.final_result
                 part_quality.final_result = new_final_result
                 
-                # Handle box assignment based on new result
-                if new_final_result == 'pass' and not part_quality.box_id:
-                    # Part now passes and wasn't assigned to box - assign it
-                    part_quality._assign_to_box_if_passed()
-                    _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result}) - assigned to box")
-                elif new_final_result == 'reject' and part_quality.box_id:
+                # Only handle removal here; assignment happens exclusively at final station pass
+                if new_final_result == 'reject' and part_quality.box_id:
                     # Part now rejects but was in a box - remove it from box
                     part_quality._remove_from_box_if_rejected()
                     _logger.info(f"Recalculated final_result for serial {part_quality.serial_number}: {new_final_result} (was: {old_result}) - removed from box")

@@ -53,6 +53,11 @@ class FinalStationMeasurement(models.Model):
     raw_data = fields.Text('Raw Data', help='Raw data from camera/PLC')
     notes = fields.Text('Notes', help='Additional notes or comments')
     
+    # Box assignment at final station pass
+    box_id = fields.Many2one('manufacturing.box.management', string='Box')
+    box_number = fields.Char('Box Number')
+    box_position = fields.Integer('Box Position')
+    
     # Quality Metrics
     pass_rate = fields.Float('Pass Rate %', compute='_compute_pass_rate', store=True)
     is_quality_issue = fields.Boolean('Quality Issue', default=False)
