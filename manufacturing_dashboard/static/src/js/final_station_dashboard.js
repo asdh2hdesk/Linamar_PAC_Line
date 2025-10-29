@@ -475,6 +475,8 @@ export class FinalStationDashboard extends Component {
                         <td><span class="badge ${this.getResultClass(measurement.result)}">${measurement.result || 'N/A'}</span></td>
                         <td>${measurement.operation_mode || 'N/A'}</td>
                         <td>${measurement.trigger_type || 'N/A'}</td>
+                        <td>${measurement.box_number || ''}</td>
+                        <td>${measurement.box_position ?? ''}</td>
                     </tr>
                 `).join('');
             }

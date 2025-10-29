@@ -570,6 +570,8 @@
                                                     <th>Result</th>
                                                     <th>Mode</th>
                                                     <th>Trigger</th>
+                                                    <th>Box #</th>
+                                                    <th>Position</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="measurements-table">

@@ -156,7 +156,9 @@ class FinalStationMeasurement(models.Model):
                 'capture_date': m.capture_date.isoformat() if m.capture_date else None,
                 'result': m.result,
                 'operation_mode': m.operation_mode,
-                'trigger_type': m.trigger_type
+                'trigger_type': m.trigger_type,
+                'box_number': m.box_number,
+                'box_position': m.box_position
             } for m in measurements]
             
         except Exception as e:

@@ -13,6 +13,8 @@
                 <field name="operation_mode"/>
                 <field name="trigger_type"/>
                 <field name="pass_rate" widget="percentage"/>
+                <field name="box_number"/>
+                <field name="box_position"/>
             </list>
         </field>
     </record>
@@ -43,6 +45,13 @@
                             <field name="operation_mode"/>
                             <field name="trigger_type"/>
                             <field name="pass_rate"/>
+                        </group>
+                    </group>
+                    <group string="Box Assignment (Final Station Pass)">
+                        <group>
+                            <field name="box_id"/>
+                            <field name="box_number"/>
+                            <field name="box_position"/>
                         </group>
                     </group>
                     <notebook>
