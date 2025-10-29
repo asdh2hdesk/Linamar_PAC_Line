@@ -80,6 +80,10 @@ class PartQuality(models.Model):
     box_position = fields.Integer('Position in Box')
     box_id = fields.Many2one('manufacturing.box.management', string='Box')
 
+    # Final station scan gating
+    final_station_scanned = fields.Boolean('Scanned at Final Station', default=False)
+    final_station_scan_time = fields.Datetime('Final Station Scan Time')
+
     # Quality Engineer Override
     qe_override = fields.Boolean('QE Override')
     qe_comments = fields.Text('QE Comments')
@@ -189,11 +193,11 @@ class PartQuality(models.Model):
             return {}
 
     def _assign_to_box_if_passed(self):
-        """Assign part to box if it passes all tests"""
+        """Assign part to box only when passed and scanned at final station"""
         self.ensure_one()
         
-        # Only assign if not already assigned to a box and has a valid variant
-        if not self.box_id and self.final_result == 'pass' and self.part_variant:
+        # Only assign if: not already assigned, final_result == pass, scanned at final station, and valid variant
+        if not self.box_id and self.final_result == 'pass' and self.final_station_scanned and self.part_variant:
             try:
                 box_management = self.env['manufacturing.box.management']
                 current_box = box_management.get_or_create_current_box(self.part_variant)

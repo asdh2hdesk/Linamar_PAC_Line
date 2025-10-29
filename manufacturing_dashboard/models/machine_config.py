@@ -34,7 +34,7 @@ class MachineConfig(models.Model):
             _logger.warning(f"Error getting IST time: {e}, falling back to UTC")
             return fields.Datetime.now()
 
-    machine_name = fields.Char('Machine Name', required=True,translate=True)
+    machine_name = fields.Char('Machine Name', required=True)
     machine_type = fields.Selection([
         ('vici_vision', 'VICI Vision System'),
         ('ruhlamat', 'Ruhlamat Press'),

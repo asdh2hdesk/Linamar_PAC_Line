@@ -666,6 +666,18 @@ class FinalStationService:
                 capture_date=measurement_time
             )
             
+            # Mark the part as scanned at final station to allow box assignment gating
+            try:
+                part_quality = self.get_or_create_part_quality(serial_number)
+                if part_quality:
+                    part_quality.write({
+                        'final_station_scanned': True,
+                        'final_station_scan_time': measurement_time,
+                        'test_date': part_quality.test_date or measurement_time
+                    })
+            except Exception as e:
+                _logger.error(f"Error updating final station scan flag: {str(e)}")
+
             if measurement:
                 # Update machine status
                 self.machine.camera_triggered = True
