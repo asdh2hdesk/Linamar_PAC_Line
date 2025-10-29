@@ -18,7 +18,6 @@ class MachineConfig(models.Model):
     _name = 'manufacturing.machine.config'
     _description = 'Machine Configuration'
     _rec_name = 'machine_name'
-    _inherit = "translation.mixin"
 
     @api.model
     def get_ist_now(self):
