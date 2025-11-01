@@ -1016,31 +1016,37 @@ class FinalStationService:
                 }
             ]
             
-            # Determine overall status using same logic as check_all_stations_result
-            # Use actual part_quality results
-            results = [part_quality.vici_result, part_quality.ruhlamat_result, 
-                      part_quality.aumann_result, part_quality.gauging_result]
-            
-            any_pending = any(result == 'pending' for result in results)
-            any_reject = any(result == 'reject' for result in results)
-            all_pass_or_bypass = all(result in ('pass', 'bypass') for result in results)
-            any_bypass = any(result == 'bypass' for result in results)
-            
-            if any_pending:
-                overall_status = 'reject'  # Reject if ANY station is pending
-            elif any_reject:
-                overall_status = 'reject'  # Reject if any station failed
-            elif all_pass_or_bypass:
-                overall_status = 'pass'    # Pass if all stations are pass or bypassed
-            elif any_bypass and not any_reject:
-                overall_status = 'pass'    # Pass if any station is bypassed and no failures
+            # Check if quality override is active
+            if part_quality.qe_override:
+                # Use the overridden final_result directly for overall_status
+                overall_status = part_quality.final_result
+                _logger.info(f"Quality override active for serial: {serial_number}, using overridden final_result: {overall_status}")
             else:
-                overall_status = 'reject'  # Default to reject
-            
-            # Update the part_quality record with the calculated overall status
-            if part_quality.final_result != overall_status:
-                part_quality.final_result = overall_status
-                _logger.info(f"Updated final_result in part_quality record: {overall_status}")
+                # Determine overall status using same logic as check_all_stations_result
+                # Use actual part_quality results
+                results = [part_quality.vici_result, part_quality.ruhlamat_result, 
+                          part_quality.aumann_result, part_quality.gauging_result]
+                
+                any_pending = any(result == 'pending' for result in results)
+                any_reject = any(result == 'reject' for result in results)
+                all_pass_or_bypass = all(result in ('pass', 'bypass') for result in results)
+                any_bypass = any(result == 'bypass' for result in results)
+                
+                if any_pending:
+                    overall_status = 'reject'  # Reject if ANY station is pending
+                elif any_reject:
+                    overall_status = 'reject'  # Reject if any station failed
+                elif all_pass_or_bypass:
+                    overall_status = 'pass'    # Pass if all stations are pass or bypassed
+                elif any_bypass and not any_reject:
+                    overall_status = 'pass'    # Pass if any station is bypassed and no failures
+                else:
+                    overall_status = 'reject'  # Default to reject
+                
+                # Update the part_quality record with the calculated overall status (only if override is not active)
+                if part_quality.final_result != overall_status:
+                    part_quality.final_result = overall_status
+                    _logger.info(f"Updated final_result in part_quality record: {overall_status}")
             
             return {
                 'serial_number': serial_number,
@@ -1177,6 +1183,11 @@ class FinalStationService:
     def _recalculate_final_result(self, part_quality):
         """Recalculate and update final_result based on current station results"""
         try:
+            # Don't recalculate if quality override is active - preserve the overridden value
+            if part_quality.qe_override:
+                _logger.info(f"Quality override active for serial {part_quality.serial_number}, skipping recalculation of final_result")
+                return
+            
             # Get current station results
             results = [part_quality.vici_result, part_quality.ruhlamat_result, 
                       part_quality.aumann_result, part_quality.gauging_result]
