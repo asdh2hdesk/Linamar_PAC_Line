@@ -24,7 +24,7 @@ class RuhlamatPress(models.Model):
     station_label = fields.Char('Station Label',translate=True)
 
     # Part IDs (serial numbers)
-    part_id1 = fields.Char('Part ID 1 (Serial Number)', index=True,translate=True)
+    part_id1 = fields.Char('Part ID 1 (Serial Number)', index=True)
     part_id2 = fields.Char('Part ID 2')
     part_id3 = fields.Char('Part ID 3')
     part_id4 = fields.Char('Part ID 4')

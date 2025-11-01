@@ -530,6 +530,53 @@ class FinalStationService:
                 })
                 _logger.info(f"Created new part quality record for serial: {serial_number}")
             
+            # Check if quality override is active
+            if part_quality.qe_override:
+                _logger.info(f"Quality override is active for serial: {serial_number}, using modified final_result")
+                # Use the modified final_result directly without checking individual station results
+                # Map DB result to PLC format ('pass' -> 'ok', 'reject' -> 'nok', 'pending' -> 'nok')
+                final_result_db = part_quality.final_result
+                if final_result_db == 'pass':
+                    final_result_plc = 'ok'
+                elif final_result_db == 'reject':
+                    final_result_plc = 'nok'
+                else:  # pending
+                    final_result_plc = 'nok'
+                
+                # Check and update bypass status for visual results
+                self._update_bypass_status_in_part_quality(part_quality)
+                
+                # Get station results from part_quality for visual display in dashboard
+                station_results = {
+                    'vici_vision': part_quality.vici_result,
+                    'ruhlamat_press': part_quality.ruhlamat_result,
+                    'aumann_measurement': part_quality.aumann_result,
+                    'gauging': part_quality.gauging_result
+                }
+                
+                # Convert individual station results to unified format for visual display
+                # Normalize results: ('pass'|'ok') -> 'ok', ('reject'|'nok') -> 'nok', ('bypass') -> 'bypass', else 'pending'
+                converted_results = {}
+                for station, result in station_results.items():
+                    normalized = 'pending'
+                    if result in ('pass', 'ok', True):
+                        normalized = 'ok'
+                    elif result in ('reject', 'nok', False,'pending'):
+                        normalized = 'nok'
+                    elif result == 'bypass':
+                        normalized = 'bypass'
+                    converted_results[station] = normalized
+                
+                _logger.info(f"Quality override active - Final result (PLC): {final_result_plc}, (DB): {final_result_db}")
+                _logger.info(f"Station results (for visual display): {converted_results}")
+                
+                return {
+                    'final_result': final_result_plc,  # keep ok/nok for PLC writing and measurement (uses overridden result)
+                    'station_results': converted_results,  # Station results for visual display in dashboard
+                    'part_quality_id': part_quality.id,
+                    'serial_number': serial_number
+                }
+            
             # Check and update bypass status BEFORE getting station results
             self._update_bypass_status_in_part_quality(part_quality)
             

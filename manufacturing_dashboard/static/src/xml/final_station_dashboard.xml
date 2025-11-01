@@ -11,11 +11,25 @@
 
                 <!-- Final Station Dashboard Content -->
                 <div t-if="state.final_station" class="final-station-content">
-                    <div class="section-header">
-                        <h2>Final Station Control:
-                            <span t-esc="state.final_station.machine_name"/>
-                        </h2>
-                        <p>Real-time PLC monitoring and camera control</p>
+                    <!-- Dashboard Header with Logo -->
+                    <div class="dashboard-header mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-10">
+                                <div class="section-header">
+                                    <h2>Final Station Control:
+                                        <span t-esc="state.final_station.machine_name"/>
+                                    </h2>
+                                    <p>Real-time PLC monitoring and camera control</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <div class="dashboard-logo">
+                                    <img t-attf-src="/manufacturing_dashboard/static/img/ASD Logo Main.png" 
+                                         alt="ASD Logo" 
+                                         style="max-height: 60px; max-width: 100%; object-fit: contain;"/>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Combined PLC/Camera and Mode Control Card -->

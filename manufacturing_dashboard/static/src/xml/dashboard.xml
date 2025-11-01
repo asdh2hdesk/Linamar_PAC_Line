@@ -11,6 +11,11 @@
                             <p class="dashboard-subtitle">Real-time production monitoring and quality control</p>
                         </div>
                         <div class="col-md-2 text-end">
+                            <div class="dashboard-logo mb-2">
+                                <img t-attf-src="/manufacturing_dashboard/static/img/ASD Logo Main.png" 
+                                     alt="ASD Logo" 
+                                     style="max-height: 60px; max-width: 100%; object-fit: contain;"/>
+                            </div>
                             <div class="live-indicator">
                                 <div class="pulse-dot"></div>
                                 <span>LIVE</span>
