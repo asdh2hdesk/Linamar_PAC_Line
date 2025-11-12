@@ -1,7 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_machine_config_user,Manufacturing Machine Config User,model_manufacturing_machine_config,base.group_user,1,1,1,0
+access_machine_config_user,Manufacturing Machine Config User,model_manufacturing_machine_config,base.group_user,1,0,0,0
 access_machine_config_system,Manufacturing Machine Config System,model_manufacturing_machine_config,base.group_system,1,1,1,1
-access_part_quality_user,Manufacturing Part Quality User,model_manufacturing_part_quality,base.group_user,1,1,1,0
+access_part_quality_user,Manufacturing Part Quality User,model_manufacturing_part_quality,base.group_user,1,0,0,0
 access_part_quality_system,Manufacturing Part Quality System,model_manufacturing_part_quality,base.group_system,1,1,1,1
 access_vici_vision_user,Manufacturing VICI Vision User,model_manufacturing_vici_vision,base.group_user,1,0,1,0
 access_vici_vision_system,Manufacturing VICI Vision System,model_manufacturing_vici_vision,base.group_system,1,1,1,1
@@ -12,9 +12,9 @@ access_aumann_measurement_user,Manufacturing Aumann Measurement User,model_manuf
 access_aumann_measurement_system,Manufacturing Aumann Measurement System,model_manufacturing_aumann_measurement,base.group_system,1,1,1,1
 access_gauging_measurement_user,Manufacturing Gauging Measurement User,model_manufacturing_gauging_measurement,base.group_user,1,0,1,0
 access_gauging_measurement_system,Manufacturing Gauging Measurement System,model_manufacturing_gauging_measurement,base.group_system,1,1,1,1
-access_final_station_measurement_user,Manufacturing Final Station Measurement User,model_manufacturing_final_station_measurement,base.group_user,1,1,1,0
+access_final_station_measurement_user,Manufacturing Final Station Measurement User,model_manufacturing_final_station_measurement,base.group_user,1,0,0,0
 access_final_station_measurement_system,Manufacturing Final Station Measurement System,model_manufacturing_final_station_measurement,base.group_system,1,1,1,1
-access_box_management_user,Manufacturing Box Management User,model_manufacturing_box_management,base.group_user,1,1,1,0
+access_box_management_user,Manufacturing Box Management User,model_manufacturing_box_management,base.group_user,1,0,0,0
 access_box_management_system,Manufacturing Box Management System,model_manufacturing_box_management,base.group_system,1,1,1,1
 access_qe_override_wizard_system,Manufacturing QE Override Wizard System,model_manufacturing_qe_override_wizard,base.group_system,1,1,1,1
 access_aumann_tolerance_line,access_aumann_tolerance_line,model_aumann_tolerance_line,base.group_user,1,1,1,1

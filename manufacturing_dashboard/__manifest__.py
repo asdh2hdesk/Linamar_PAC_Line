@@ -30,6 +30,7 @@ Features:
     },
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
         'data/sequence_data.xml',
         'data/final_station_data.xml',
         'views/part_quality_views.xml',
