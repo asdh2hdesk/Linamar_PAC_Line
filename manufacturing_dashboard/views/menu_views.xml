@@ -24,7 +24,7 @@
     <!-- Main Menu -->
     <menuitem id="menu_manufacturing_main"
               name="Manufacturing Dashboard"
-              sequence="50"
+              sequence="-100"
               web_icon="manufacturing_dashboard,static/description/icon.png"/>
 
     <!-- Dashboard Menu -->
@@ -35,7 +35,7 @@
 <!--              sequence="10"/>-->
 
     <menuitem id="menu_dashboard_2"
-              name="New Dashboard"
+              name="Main Dashboard"
               parent="menu_manufacturing_main"
               action="action_manufacturing_dashboard_2"
               sequence="10"/>
@@ -59,22 +59,22 @@
               sequence="10"/>
 
     <!-- Quality Control Menu -->
-    <menuitem id="menu_quality_control"
-              name="Quality Control"
-              parent="menu_manufacturing_main"
-              sequence="40"/>
+<!--    <menuitem id="menu_quality_control"-->
+<!--              name="Quality Control"-->
+<!--              parent="menu_manufacturing_main"-->
+<!--              sequence="40"/>-->
 
     <menuitem id="menu_part_quality"
-              name="Part Quality"
-              parent="menu_quality_control"
+              name="Part Quality Control"
+              parent="menu_manufacturing_main"
               action="action_part_quality"
-              sequence="10"/>
+              sequence="40"/>
 
     <menuitem id="menu_box_management"
               name="Box Management"
-              parent="menu_quality_control"
+              parent="menu_manufacturing_main"
               action="action_box_management"
-              sequence="20"/>
+              sequence="50"/>
 
     <!-- Stations Menu -->
     <menuitem id="menu_stations"
