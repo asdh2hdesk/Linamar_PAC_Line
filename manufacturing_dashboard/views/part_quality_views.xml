@@ -45,13 +45,13 @@
             <form>
                 <header>
                     <button name="qe_override_result" type="object" string="QE Override"
-                            class="btn-warning" groups="base.group_system"
-                            modifiers="{'invisible': [('final_result', '=', 'pass')]}"/>
+                            class="btn-warning"
+                            invisible="final_result == 'pass'"/>
                     <field name="final_result" widget="statusbar" statusbar_visible="pending,pass,reject"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="QE Override" bg_color="bg-warning"
-                            modifiers="{'invisible': [('qe_override', '=', False)]}"/>
+                            invisible="qe_override == False"/>
                     <div class="oe_title">
                         <h1>
                             <field name="serial_number" placeholder="Serial Number..."/>
@@ -68,87 +68,87 @@
                         <group name="station_results" string="Station Results">
                             <group>
                                 <field name="vici_result" widget="badge"/>
-                                <button name="action_override_vici_result" type="object" 
-                                        string="Override VICI" class="btn-warning" 
-                                        groups="base.group_system"
-                                        title="Override VICI Result"/>
+<!--                                <button name="action_override_vici_result" type="object" -->
+<!--                                        string="Override VICI" class="btn-warning" -->
+<!--                                        groups="base.group_system"-->
+<!--                                        title="Override VICI Result"/>-->
                             </group>
                             <group>
                                 <field name="ruhlamat_result" widget="badge"/>
-                                <button name="action_override_ruhlamat_result" type="object" 
-                                        string="Override Ruhlamat" class="btn-warning" 
-                                        groups="base.group_system"
-                                        title="Override Ruhlamat Result"/>
+<!--                                <button name="action_override_ruhlamat_result" type="object" -->
+<!--                                        string="Override Ruhlamat" class="btn-warning" -->
+<!--                                        groups="base.group_system"-->
+<!--                                        title="Override Ruhlamat Result"/>-->
                             </group>
                             <group>
                                 <field name="aumann_result" widget="badge"/>
-                                <button name="action_override_aumann_result" type="object" 
-                                        string="Override Aumann" class="btn-warning" 
-                                        groups="base.group_system"
-                                        title="Override Aumann Result"/>
+<!--                                <button name="action_override_aumann_result" type="object" -->
+<!--                                        string="Override Aumann" class="btn-warning" -->
+<!--                                        groups="base.group_system"-->
+<!--                                        title="Override Aumann Result"/>-->
                             </group>
                             <group>
                                 <field name="gauging_result" widget="badge"/>
-                                <button name="action_override_gauging_result" type="object" 
-                                        string="Override Gauging" class="btn-warning" 
-                                        groups="base.group_system"
-                                        title="Override Gauging Result"/>
+<!--                                <button name="action_override_gauging_result" type="object" -->
+<!--                                        string="Override Gauging" class="btn-warning" -->
+<!--                                        groups="base.group_system"-->
+<!--                                        title="Override Gauging Result"/>-->
                             </group>
                         </group>
                     </group>
 
                     <!-- Station Details Tabs -->
-                    <notebook>
-                        <page name="vici_details" string="VICI Vision Details">
-                            <field name="vici_vision_ids" readonly="1">
-                                <list>
-                                    <field name="test_date"/>
-                                    <field name="operator_name"/>
-                                    <field name="measure_number"/>
-                                    <field name="within_tolerance"/>
-                                    <field name="l_64_8"/>
-                                    <field name="l_35_4"/>
-                                    <field name="l_46_6"/>
-                                    <field name="result"/>
-                                </list>
-                            </field>
-                        </page>
-<!--                        <page name="ruhlamat_details" string="Ruhlamat Press Details">-->
-<!--                            <field name="ruhlamat_press_ids" readonly="1">-->
+<!--                    <notebook>-->
+<!--                        <page name="vici_details" string="VICI Vision Details">-->
+<!--                            <field name="vici_vision_ids" readonly="1">-->
 <!--                                <list>-->
 <!--                                    <field name="test_date"/>-->
-<!--                                    <field name="press_force"/>-->
-<!--                                    <field name="press_distance"/>-->
-<!--                                    <field name="crack_test_result"/>-->
+<!--                                    <field name="operator_name"/>-->
+<!--                                    <field name="measure_number"/>-->
+<!--                                    <field name="within_tolerance"/>-->
+<!--                                    <field name="l_64_8"/>-->
+<!--                                    <field name="l_35_4"/>-->
+<!--                                    <field name="l_46_6"/>-->
 <!--                                    <field name="result"/>-->
 <!--                                </list>-->
 <!--                            </field>-->
 <!--                        </page>-->
-                        <page name="aumann_details" string="Aumann Measurement Details">
-                            <field name="aumann_measurement_ids" readonly="1">
-                                <list>
-                                    <field name="test_date"/>
-                                    <field name="total_measurements"/>
-                                    <field name="measurements_passed"/>
-                                    <field name="pass_rate"/>
-                                    <field name="result"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page name="gauging_details" string="Gauging Measurement Details">
-                            <field name="gauging_measurement_ids" readonly="1">
-                                <list>
-                                    <field name="test_date"/>
-                                    <field name="component_name"/>
-                                    <field name="job_number"/>
-                                    <field name="angle_measurement"/>
-                                    <field name="angle_degrees"/>
-                                    <field name="status"/>
-                                    <field name="result"/>
-                                </list>
-                            </field>
-                        </page>
-                    </notebook>
+<!--&lt;!&ndash;                        <page name="ruhlamat_details" string="Ruhlamat Press Details">&ndash;&gt;-->
+<!--&lt;!&ndash;                            <field name="ruhlamat_press_ids" readonly="1">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <list>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="test_date"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="press_force"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="press_distance"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="crack_test_result"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="result"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </list>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </field>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </page>&ndash;&gt;-->
+<!--                        <page name="aumann_details" string="Aumann Measurement Details">-->
+<!--                            <field name="aumann_measurement_ids" readonly="1">-->
+<!--                                <list>-->
+<!--                                    <field name="test_date"/>-->
+<!--                                    <field name="total_measurements"/>-->
+<!--                                    <field name="measurements_passed"/>-->
+<!--                                    <field name="pass_rate"/>-->
+<!--                                    <field name="result"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+<!--                        <page name="gauging_details" string="Gauging Measurement Details">-->
+<!--                            <field name="gauging_measurement_ids" readonly="1">-->
+<!--                                <list>-->
+<!--                                    <field name="test_date"/>-->
+<!--                                    <field name="component_name"/>-->
+<!--                                    <field name="job_number"/>-->
+<!--                                    <field name="angle_measurement"/>-->
+<!--                                    <field name="angle_degrees"/>-->
+<!--                                    <field name="status"/>-->
+<!--                                    <field name="result"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+<!--                    </notebook>-->
 
                     <!-- Quality Engineer Override Section -->
                     <group string="Quality Engineer Override" groups="base.group_system"
