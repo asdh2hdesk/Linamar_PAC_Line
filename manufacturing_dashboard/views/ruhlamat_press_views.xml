@@ -6,14 +6,15 @@
         <field name="arch" type="xml">
             <list decoration-success="result=='pass'" decoration-danger="result=='reject'">
                 <field name="part_id1" string="Serial Number"/>
-                <field name="machine_id"/>
                 <field name="cycle_date" string="Test Date"/>
+                <field name="cycle_id" string="Cycle ID"/>
                 <field name="program_name"/>
-                <field name="station_name"/>
-                <field name="ok_status" widget="boolean_toggle"/>
+                <field name="machine_id"/>
+                <field name="ufm_username"/>
+                <field name="ok_status" widget="boolean_toggle" readonly="1"/>
                 <field name="total_gaugings"/>
                 <field name="passed_gaugings"/>
-                <field name="result" widget="badge"/>
+                <field name="result" widget="badge" decoration-success="result=='pass'" decoration-danger="result=='reject'"/>
             </list>
         </field>
     </record>
@@ -22,18 +23,22 @@
         <field name="name">ruhlamat.press.form</field>
         <field name="model">manufacturing.ruhlamat.press</field>
         <field name="arch" type="xml">
-            <form>
+            <form edit="false">
                 <header>
-                    <field name="result" widget="statusbar"/>
+                    <button name="action_override_result" type="object" string="Override Result"
+                            class="btn-warning" groups="base.group_system"
+                            invisible="result != 'reject'"
+                            title="Override Ruhlamat Result - Pass Rejected Part"/>
+                    <field name="result" widget="statusbar" decoration-success="result=='pass'" decoration-danger="result=='reject'"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <h1><field name="part_id1" string="Serial Number"/></h1>
+                        <h1><field name="part_id1" string="Serial Number" readonly="1" decoration-success="result=='pass'" decoration-danger="result=='reject'"/></h1>
                     </div>
                     <group>
                         <group>
-                            <field name="machine_id"/>
-                            <field name="cycle_date" string="Cycle Date"/>
+                            <field name="machine_id" readonly="1"/>
+                            <field name="cycle_date" string="Cycle Date" readonly="1"/>
                             <field name="program_name"/>
                             <field name="program_id"/>
                         </group>
@@ -44,36 +49,6 @@
                             <field name="ufm_username"/>
                         </group>
                     </group>
-
-                    <group string="Cycle Information">
-                        <group>
-                            <field name="cycle_id"/>
-                            <field name="ok_status"/>
-                            <field name="cycle_status"/>
-                            <field name="cycle_runtime_nc"/>
-                            <field name="cycle_runtime_pc"/>
-                        </group>
-                        <group>
-                            <field name="nc_runtime_cycle_no"/>
-                            <field name="nc_total_cycle_no"/>
-                            <field name="program_date"/>
-                            <field name="ufm_version"/>
-                            <field name="ufm_service_info"/>
-                        </group>
-                    </group>
-
-                    <group string="Part Information">
-                        <group>
-                            <field name="part_id1" string="Serial Number"/>
-                            <field name="part_id2"/>
-                            <field name="part_id3"/>
-                        </group>
-                        <group>
-                            <field name="part_id4"/>
-                            <field name="part_id5"/>
-                        </group>
-                    </group>
-
                     <group string="Gauging Statistics">
                         <group>
                             <field name="total_gaugings"/>
@@ -85,20 +60,20 @@
                     <notebook>
                         <page string="Gaugings">
                             <field name="gauging_ids" context="{'default_cycle_id_ref': id}">
-                                <list editable="bottom">
+                                <list decoration-success="ok_status==True" decoration-danger="ok_status==False">
                                     <field name="gauging_no"/>
                                     <field name="gauging_alias"/>
                                     <field name="gauging_type"/>
                                     <field name="actual_x"/>
-                                    <field name="actual_y"/>
                                     <field name="signal_x_unit"/>
+                                    <field name="actual_y"/>
                                     <field name="signal_y_unit"/>
                                     <field name="lower_limit"/>
                                     <field name="upper_limit"/>
-                                    <field name="ok_status" widget="boolean_toggle"/>
+                                    <field name="ok_status" widget="boolean_toggle" readonly="1"/>
                                     <field name="gauging_status"/>
-                                    <field name="within_tolerance" widget="boolean_toggle"/>
-                                    <field name="tolerance_status"/>
+<!--                                    <field name="within_tolerance" widget="boolean_toggle"/>-->
+<!--                                    <field name="tolerance_status"/>-->
 
 <!--                                    <field name="has_spc_chart" column_invisible="1"/>-->
 
@@ -194,6 +169,36 @@
                             <field name="custom_xml" widget="text"/>
                         </page>
                     </notebook>
+                    <group string="Cycle Information">
+                        <group>
+                            <field name="cycle_id"/>
+                            <field name="ok_status"/>
+                            <field name="cycle_status"/>
+                            <field name="cycle_runtime_nc"/>
+                            <field name="cycle_runtime_pc"/>
+                        </group>
+                        <group>
+                            <field name="nc_runtime_cycle_no"/>
+                            <field name="nc_total_cycle_no"/>
+                            <field name="program_date"/>
+                            <field name="ufm_version"/>
+                            <field name="ufm_service_info"/>
+                        </group>
+                    </group>
+
+                    <group string="Part Information">
+                        <group>
+                            <field name="part_id1" string="Serial Number"/>
+                            <field name="part_id2"/>
+                            <field name="part_id3"/>
+                        </group>
+                        <group>
+                            <field name="part_id4"/>
+                            <field name="part_id5"/>
+                        </group>
+                    </group>
+
+
 
                     <group string="Rejection Details" modifiers="{'invisible': [('result', '=', 'pass')]}">
                         <field name="rejection_reason" nolabel="1"/>

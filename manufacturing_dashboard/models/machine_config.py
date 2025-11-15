@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 import os
 import csv
 import json
@@ -290,7 +291,14 @@ class MachineConfig(models.Model):
         return records
     
     def write(self, vals):
-        """Override write to load tolerances for Aumann machines"""
+        """Override write to load tolerances for Aumann machines and check bypass permissions"""
+        # Security check: Prevent regular users from directly writing to bypass fields
+        if 'is_bypassed' in vals or 'bypass_reason' in vals:
+            if not (self.env.user.has_group('manufacturing_dashboard.group_manufacturing_production') or
+                    self.env.user.has_group('manufacturing_dashboard.group_manufacturing_quality') or
+                    self.env.user.has_group('manufacturing_dashboard.group_manufacturing_admin')):
+                raise UserError(_('You do not have permission to modify machine bypass settings. Only Production, Quality, and Admin users can bypass machines.'))
+        
         result = super().write(vals)
         for record in self:
             if record.machine_type == 'aumann' and 'machine_type' in vals:
@@ -5252,6 +5260,12 @@ class MachineConfig(models.Model):
     def bypass_machine(self, reason=None):
         """Bypass this machine with optional reason"""
         self.ensure_one()
+        # Security check: Only Production, Quality, and Admin users can bypass machines
+        if not (self.env.user.has_group('manufacturing_dashboard.group_manufacturing_production') or
+                self.env.user.has_group('manufacturing_dashboard.group_manufacturing_quality') or
+                self.env.user.has_group('manufacturing_dashboard.group_manufacturing_admin')):
+            raise UserError(_('You do not have permission to bypass machines. Only Production, Quality, and Admin users can bypass machines.'))
+        
         self.write({
             'is_bypassed': True,
             'bypass_reason': reason or 'Machine bypassed'
@@ -5268,6 +5282,12 @@ class MachineConfig(models.Model):
     def unbypass_machine(self):
         """Remove bypass from this machine"""
         self.ensure_one()
+        # Security check: Only Production, Quality, and Admin users can remove bypass
+        if not (self.env.user.has_group('manufacturing_dashboard.group_manufacturing_production') or
+                self.env.user.has_group('manufacturing_dashboard.group_manufacturing_quality') or
+                self.env.user.has_group('manufacturing_dashboard.group_manufacturing_admin')):
+            raise UserError(_('You do not have permission to remove machine bypass. Only Production, Quality, and Admin users can remove bypass.'))
+        
         self.write({
             'is_bypassed': False,
             'bypass_reason': False

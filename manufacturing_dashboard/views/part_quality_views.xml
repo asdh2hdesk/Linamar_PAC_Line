@@ -66,10 +66,34 @@
                             <field name="box_position"/>
                         </group>
                         <group name="station_results" string="Station Results">
-                            <field name="vici_result" widget="badge"/>
-                            <field name="ruhlamat_result" widget="badge"/>
-                            <field name="aumann_result" widget="badge"/>
-                            <field name="gauging_result" widget="badge"/>
+                            <group>
+                                <field name="vici_result" widget="badge"/>
+                                <button name="action_override_vici_result" type="object" 
+                                        string="Override VICI" class="btn-warning" 
+                                        groups="base.group_system"
+                                        title="Override VICI Result"/>
+                            </group>
+                            <group>
+                                <field name="ruhlamat_result" widget="badge"/>
+                                <button name="action_override_ruhlamat_result" type="object" 
+                                        string="Override Ruhlamat" class="btn-warning" 
+                                        groups="base.group_system"
+                                        title="Override Ruhlamat Result"/>
+                            </group>
+                            <group>
+                                <field name="aumann_result" widget="badge"/>
+                                <button name="action_override_aumann_result" type="object" 
+                                        string="Override Aumann" class="btn-warning" 
+                                        groups="base.group_system"
+                                        title="Override Aumann Result"/>
+                            </group>
+                            <group>
+                                <field name="gauging_result" widget="badge"/>
+                                <button name="action_override_gauging_result" type="object" 
+                                        string="Override Gauging" class="btn-warning" 
+                                        groups="base.group_system"
+                                        title="Override Gauging Result"/>
+                            </group>
                         </group>
                     </group>
 

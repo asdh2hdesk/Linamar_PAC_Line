@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Category for Manufacturing Dashboard -->
+        <record id="module_category_manufacturing_dashboard" model="ir.module.category">
+            <field name="name">Manufacturing Dashboard</field>
+            <field name="description">Manufacturing Dashboard Security Groups</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <!-- User Group - Read Only Access -->
+        <record id="group_manufacturing_user" model="res.groups">
+            <field name="name">Manufacturing User</field>
+            <field name="category_id" ref="module_category_manufacturing_dashboard"/>
+            <field name="comment">Read-only access to all manufacturing data. Can view all menus but cannot create, edit, or delete records.</field>
+        </record>
+
+        <!-- Production Group - Machine Config Edit, User Management -->
+        <record id="group_manufacturing_production" model="res.groups">
+            <field name="name">Manufacturing Production</field>
+            <field name="category_id" ref="module_category_manufacturing_dashboard"/>
+            <field name="comment">Can edit machine configuration, create users, and change passwords. Read access to all data.</field>
+            <field name="implied_ids" eval="[(4, ref('group_manufacturing_user')), (4, ref('base.group_erp_manager'))]"/>
+        </record>
+
+        <!-- Quality Group - Machine Config Edit, Quality Override -->
+        <record id="group_manufacturing_quality" model="res.groups">
+            <field name="name">Manufacturing Quality</field>
+            <field name="category_id" ref="module_category_manufacturing_dashboard"/>
+            <field name="comment">Can edit machine configuration and use quality override function. Read access to all data.</field>
+            <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+        </record>
+
+        <!-- Admin Group - Full Access -->
+        <record id="group_manufacturing_admin" model="res.groups">
+            <field name="name">Manufacturing Admin</field>
+            <field name="category_id" ref="module_category_manufacturing_dashboard"/>
+            <field name="comment">Full access: create, write, and delete all manufacturing records.</field>
+            <field name="implied_ids" eval="[(4, ref('group_manufacturing_production')), (4, ref('group_manufacturing_quality'))]"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Machine Configuration -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_machine_config_user_read" model="ir.model.access">
+            <field name="name">machine.config.user.read</field>
+            <field name="model_id" ref="model_manufacturing_machine_config"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read and Write (for machine config edit) -->
+        <record id="access_machine_config_production_write" model="ir.model.access">
+            <field name="name">machine.config.production.write</field>
+            <field name="model_id" ref="model_manufacturing_machine_config"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_machine_config_quality_write" model="ir.model.access">
+            <field name="name">machine.config.quality.write</field>
+            <field name="model_id" ref="model_manufacturing_machine_config"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_machine_config_admin" model="ir.model.access">
+            <field name="name">machine.config.admin</field>
+            <field name="model_id" ref="model_manufacturing_machine_config"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Part Quality -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_part_quality_user_read" model="ir.model.access">
+            <field name="name">part.quality.user.read</field>
+            <field name="model_id" ref="model_manufacturing_part_quality"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production: Read Only -->
+        <record id="access_part_quality_production_read" model="ir.model.access">
+            <field name="name">part.quality.production.read</field>
+            <field name="model_id" ref="model_manufacturing_part_quality"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Quality: Read and Write (for quality override) -->
+        <record id="access_part_quality_quality_write" model="ir.model.access">
+            <field name="name">part.quality.quality.write</field>
+            <field name="model_id" ref="model_manufacturing_part_quality"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_part_quality_admin" model="ir.model.access">
+            <field name="name">part.quality.admin</field>
+            <field name="model_id" ref="model_manufacturing_part_quality"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - VICI Vision -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_vici_vision_user_read" model="ir.model.access">
+            <field name="name">vici.vision.user.read</field>
+            <field name="model_id" ref="model_manufacturing_vici_vision"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_vici_vision_production_read" model="ir.model.access">
+            <field name="name">vici.vision.production.read</field>
+            <field name="model_id" ref="model_manufacturing_vici_vision"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_vici_vision_quality_read" model="ir.model.access">
+            <field name="name">vici.vision.quality.read</field>
+            <field name="model_id" ref="model_manufacturing_vici_vision"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_vici_vision_admin" model="ir.model.access">
+            <field name="name">vici.vision.admin</field>
+            <field name="model_id" ref="model_manufacturing_vici_vision"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Ruhlamat Press -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_ruhlamat_press_user_read" model="ir.model.access">
+            <field name="name">ruhlamat.press.user.read</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_press"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_ruhlamat_press_production_read" model="ir.model.access">
+            <field name="name">ruhlamat.press.production.read</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_press"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_ruhlamat_press_quality_read" model="ir.model.access">
+            <field name="name">ruhlamat.press.quality.read</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_press"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_ruhlamat_press_admin" model="ir.model.access">
+            <field name="name">ruhlamat.press.admin</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_press"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Ruhlamat Gauging -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_ruhlamat_gauging_user_read" model="ir.model.access">
+            <field name="name">ruhlamat.gauging.user.read</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_gauging"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_ruhlamat_gauging_production_read" model="ir.model.access">
+            <field name="name">ruhlamat.gauging.production.read</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_gauging"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_ruhlamat_gauging_quality_read" model="ir.model.access">
+            <field name="name">ruhlamat.gauging.quality.read</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_gauging"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_ruhlamat_gauging_admin" model="ir.model.access">
+            <field name="name">ruhlamat.gauging.admin</field>
+            <field name="model_id" ref="model_manufacturing_ruhlamat_gauging"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Aumann Measurement -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_aumann_measurement_user_read" model="ir.model.access">
+            <field name="name">aumann.measurement.user.read</field>
+            <field name="model_id" ref="model_manufacturing_aumann_measurement"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_aumann_measurement_production_read" model="ir.model.access">
+            <field name="name">aumann.measurement.production.read</field>
+            <field name="model_id" ref="model_manufacturing_aumann_measurement"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_aumann_measurement_quality_read" model="ir.model.access">
+            <field name="name">aumann.measurement.quality.read</field>
+            <field name="model_id" ref="model_manufacturing_aumann_measurement"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_aumann_measurement_admin" model="ir.model.access">
+            <field name="name">aumann.measurement.admin</field>
+            <field name="model_id" ref="model_manufacturing_aumann_measurement"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Gauging Measurement -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_gauging_measurement_user_read" model="ir.model.access">
+            <field name="name">gauging.measurement.user.read</field>
+            <field name="model_id" ref="model_manufacturing_gauging_measurement"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_gauging_measurement_production_read" model="ir.model.access">
+            <field name="name">gauging.measurement.production.read</field>
+            <field name="model_id" ref="model_manufacturing_gauging_measurement"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_gauging_measurement_quality_read" model="ir.model.access">
+            <field name="name">gauging.measurement.quality.read</field>
+            <field name="model_id" ref="model_manufacturing_gauging_measurement"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_gauging_measurement_admin" model="ir.model.access">
+            <field name="name">gauging.measurement.admin</field>
+            <field name="model_id" ref="model_manufacturing_gauging_measurement"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Final Station Measurement -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_final_station_measurement_user_read" model="ir.model.access">
+            <field name="name">final.station.measurement.user.read</field>
+            <field name="model_id" ref="model_manufacturing_final_station_measurement"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_final_station_measurement_production_read" model="ir.model.access">
+            <field name="name">final.station.measurement.production.read</field>
+            <field name="model_id" ref="model_manufacturing_final_station_measurement"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_final_station_measurement_quality_read" model="ir.model.access">
+            <field name="name">final.station.measurement.quality.read</field>
+            <field name="model_id" ref="model_manufacturing_final_station_measurement"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_final_station_measurement_admin" model="ir.model.access">
+            <field name="name">final.station.measurement.admin</field>
+            <field name="model_id" ref="model_manufacturing_final_station_measurement"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Box Management -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_box_management_user_read" model="ir.model.access">
+            <field name="name">box.management.user.read</field>
+            <field name="model_id" ref="model_manufacturing_box_management"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_box_management_production_read" model="ir.model.access">
+            <field name="name">box.management.production.read</field>
+            <field name="model_id" ref="model_manufacturing_box_management"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_box_management_quality_read" model="ir.model.access">
+            <field name="name">box.management.quality.read</field>
+            <field name="model_id" ref="model_manufacturing_box_management"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_box_management_admin" model="ir.model.access">
+            <field name="name">box.management.admin</field>
+            <field name="model_id" ref="model_manufacturing_box_management"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - QE Override Wizard -->
+        <!-- ============================================ -->
+        
+        <!-- User: No Access -->
+        <record id="access_qe_override_wizard_user" model="ir.model.access">
+            <field name="name">qe.override.wizard.user</field>
+            <field name="model_id" ref="model_manufacturing_qe_override_wizard"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production: No Access -->
+        <record id="access_qe_override_wizard_production" model="ir.model.access">
+            <field name="name">qe.override.wizard.production</field>
+            <field name="model_id" ref="model_manufacturing_qe_override_wizard"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Quality: Full Access (for quality override function) -->
+        <record id="access_qe_override_wizard_quality" model="ir.model.access">
+            <field name="name">qe.override.wizard.quality</field>
+            <field name="model_id" ref="model_manufacturing_qe_override_wizard"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_qe_override_wizard_admin" model="ir.model.access">
+            <field name="name">qe.override.wizard.admin</field>
+            <field name="model_id" ref="model_manufacturing_qe_override_wizard"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Aumann Tolerance Line -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_aumann_tolerance_line_user_read" model="ir.model.access">
+            <field name="name">aumann.tolerance.line.user.read</field>
+            <field name="model_id" ref="model_aumann_tolerance_line"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_aumann_tolerance_line_production_read" model="ir.model.access">
+            <field name="name">aumann.tolerance.line.production.read</field>
+            <field name="model_id" ref="model_aumann_tolerance_line"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_aumann_tolerance_line_quality_read" model="ir.model.access">
+            <field name="name">aumann.tolerance.line.quality.read</field>
+            <field name="model_id" ref="model_aumann_tolerance_line"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_aumann_tolerance_line_admin" model="ir.model.access">
+            <field name="name">aumann.tolerance.line.admin</field>
+            <field name="model_id" ref="model_aumann_tolerance_line"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- ACCESS RIGHTS - Aumann Measurement SPC Link -->
+        <!-- ============================================ -->
+        
+        <!-- User: Read Only -->
+        <record id="access_aumann_measurement_spc_link_user_read" model="ir.model.access">
+            <field name="name">aumann.measurement.spc.link.user.read</field>
+            <field name="model_id" ref="model_aumann_measurement_spc_link"/>
+            <field name="group_id" ref="group_manufacturing_user"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Production & Quality: Read Only -->
+        <record id="access_aumann_measurement_spc_link_production_read" model="ir.model.access">
+            <field name="name">aumann.measurement.spc.link.production.read</field>
+            <field name="model_id" ref="model_aumann_measurement_spc_link"/>
+            <field name="group_id" ref="group_manufacturing_production"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="access_aumann_measurement_spc_link_quality_read" model="ir.model.access">
+            <field name="name">aumann.measurement.spc.link.quality.read</field>
+            <field name="model_id" ref="model_aumann_measurement_spc_link"/>
+            <field name="group_id" ref="group_manufacturing_quality"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Admin: Full Access -->
+        <record id="access_aumann_measurement_spc_link_admin" model="ir.model.access">
+            <field name="name">aumann.measurement.spc.link.admin</field>
+            <field name="model_id" ref="model_aumann_measurement_spc_link"/>
+            <field name="group_id" ref="group_manufacturing_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- MENU VISIBILITY RULES -->
+        <!-- ============================================ -->
+        
+        <!-- All menus are visible to all users -->
+        <!-- Access control is handled through model access rights, not menu visibility -->
+        <!-- Regular users can see all menus but have read-only access to data -->
+        <!-- Production, Quality, and Admin users have additional write/edit permissions -->
+
+        <!-- ============================================ -->
+        <!-- USER MANAGEMENT ACCESS (for Production) -->
+        <!-- ============================================ -->
+        
+        <!-- Production group already has base.group_erp_manager in implied_ids above -->
+        <!-- This gives them access to create users and change passwords (Access Rights group) -->
+        
+    </data>
+</odoo>
+

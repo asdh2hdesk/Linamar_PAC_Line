@@ -207,6 +207,12 @@ class BoxManagement(models.Model):
         part_description = "Exhaust Camshaft" if self.part_variant == 'exhaust' else "Intake Camshaft"
         part_number = "56823"  # Based on sample
         
+        # Format date - use complete_date if available, otherwise use current date
+        if self.complete_date:
+            date_str = self.complete_date.strftime('%d-%m-%Y %H:%M:%S')
+        else:
+            date_str = self.get_ist_now().strftime('%d-%m-%Y %H:%M:%S')
+        
         # ZPL template matching the sample label format
         zpl_template = f"""
 ^XA
@@ -214,7 +220,7 @@ class BoxManagement(models.Model):
 ^FO70,80^A0N,40,40^FDPSA-AVTEC^FS
 ^FO70,130^A0N,30,30^FDPart Number: {part_number}^FS
 ^FO70,160^A0N,30,30^FDPart Description: {part_description}^FS
-^FO70,190^A0N,30,30^FDDate: {self.complete_date.strftime('%d-%m-%Y %H:%M:%S')}^FS
+^FO70,190^A0N,30,30^FDDate: {date_str}^FS
 ^FO70,220^A0N,30,30^FDBox/Skid#: {self.box_number}^FS
 ^FO300,280^BY3
 ^BXN,10,200
@@ -229,24 +235,86 @@ class BoxManagement(models.Model):
         self.ensure_one()
         
         if not self.zebra_print_data:
-            raise ValueError("No barcode data available for printing")
+            from odoo.exceptions import UserError
+            raise UserError("No barcode data available for printing. Please ensure the box is full and barcode is generated.")
         
-        # Here you would implement the actual printer communication
-        # For now, we'll just log the ZPL commands
-        _logger.info(f"Printing barcode for box {self.box_number}")
-        _logger.info(f"ZPL Commands:\n{self.zebra_print_data}")
+        # Get printer configuration from system parameters
+        printer_ip = self.env['ir.config_parameter'].sudo().get_param('manufacturing.zebra_printer_ip', '192.168.1.100')
+        printer_port = int(self.env['ir.config_parameter'].sudo().get_param('manufacturing.zebra_printer_port', '9100'))
         
-        # Update status
-        self.write({'status': 'printed'})
+        # Send ZPL command to printer
+        success = self._send_to_printer(self.zebra_print_data, printer_ip, printer_port)
         
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Barcode Printed',
-                'message': f'Barcode for box {self.box_number} has been sent to printer',
-                'type': 'success',
+        if success:
+            # Update status and print date
+            self.write({
+                'status': 'printed',
+                'print_date': self.get_ist_now()
+            })
+            
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Barcode Printed',
+                    'message': f'Barcode for box {self.box_number} has been sent to printer at {printer_ip}:{printer_port}',
+                    'type': 'success',
+                    'sticky': False,
+                }
             }
+        else:
+            from odoo.exceptions import UserError
+            raise UserError(f"Failed to send print command to printer at {printer_ip}:{printer_port}. Please check printer connection and configuration.")
+    
+    def _send_to_printer(self, zpl_command, printer_ip, printer_port):
+        """Send ZPL command to Zebra printer via network socket"""
+        try:
+            import socket
+            
+            _logger.info(f"Sending ZPL command to printer {printer_ip}:{printer_port}")
+            
+            # Create socket connection
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(10)  # 10 second timeout
+            
+            # Connect to printer
+            sock.connect((printer_ip, printer_port))
+            
+            # Send ZPL command
+            zpl_bytes = zpl_command.encode('utf-8')
+            sock.sendall(zpl_bytes)
+            
+            # Close connection
+            sock.close()
+            
+            _logger.info(f"Successfully sent ZPL command to printer {printer_ip}:{printer_port}")
+            return True
+            
+        except socket.timeout:
+            _logger.error(f"Timeout connecting to printer {printer_ip}:{printer_port}")
+            return False
+        except socket.error as e:
+            _logger.error(f"Socket error connecting to printer {printer_ip}:{printer_port}: {str(e)}")
+            return False
+        except Exception as e:
+            _logger.error(f"Error sending to printer {printer_ip}:{printer_port}: {str(e)}")
+            return False
+    
+    @api.model
+    def set_printer_config(self, printer_ip, printer_port=9100):
+        """Set Zebra printer configuration"""
+        self.env['ir.config_parameter'].sudo().set_param('manufacturing.zebra_printer_ip', printer_ip)
+        self.env['ir.config_parameter'].sudo().set_param('manufacturing.zebra_printer_port', str(printer_port))
+        _logger.info(f"Printer configuration updated: {printer_ip}:{printer_port}")
+    
+    @api.model
+    def get_printer_config(self):
+        """Get Zebra printer configuration"""
+        printer_ip = self.env['ir.config_parameter'].sudo().get_param('manufacturing.zebra_printer_ip', '192.168.1.100')
+        printer_port = int(self.env['ir.config_parameter'].sudo().get_param('manufacturing.zebra_printer_port', '9100'))
+        return {
+            'printer_ip': printer_ip,
+            'printer_port': printer_port
         }
     
     @api.model

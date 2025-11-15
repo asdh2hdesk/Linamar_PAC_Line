@@ -15,7 +15,7 @@
                        decoration-danger="status=='error'"
                        decoration-warning="status=='maintenance'"/>
                 <field name="is_bypassed" widget="boolean_toggle" 
-                       string="Bypassed"/>
+                       string="Bypassed" readonly="1"/>
                 <field name="parts_processed_today"/>
                 <field name="rejection_rate" widget="percentage"/>
                 <field name="last_sync" widget="relative"/>
@@ -69,10 +69,12 @@
 
                     <button name="bypass_machine" type="object" string="Bypass Machine" class="btn-warning"
                             icon="fa-forward" invisible="is_bypassed == True"
+                            groups="manufacturing_dashboard.group_manufacturing_production,manufacturing_dashboard.group_manufacturing_quality,manufacturing_dashboard.group_manufacturing_admin"
                             confirm="Are you sure you want to bypass this machine? This machine will be skipped during sync operations."/>
 
                     <button name="unbypass_machine" type="object" string="Remove Bypass" class="btn-success"
                             icon="fa-backward" invisible="is_bypassed == False"
+                            groups="manufacturing_dashboard.group_manufacturing_production,manufacturing_dashboard.group_manufacturing_quality,manufacturing_dashboard.group_manufacturing_admin"
                             confirm="Are you sure you want to remove the bypass? Normal processing will resume."/>
 
                     <field name="status" widget="statusbar" statusbar_visible="stopped,running,error,maintenance"/>
@@ -120,15 +122,15 @@
                     <group>
                         <group name="basic_config" string="Basic Configuration">
                             <field name="csv_file_path" widget="char" placeholder="/path/to/csv/file.csv"/>
-                            <field name="sync_interval" widget="integer"/>
+                            <field name="sync_interval" widget="integer" readonly="1"/>
                             <field name="sync_mode" optional="hide"/>
                             <field name="timezone" optional="hide"/>
                             <field name="is_active"/>
-                            <field name="is_bypassed"/>
-                            <field name="bypass_reason" invisible="is_bypassed == False"/>
+                            <field name="is_bypassed" readonly="1" groups="!manufacturing_dashboard.group_manufacturing_production,!manufacturing_dashboard.group_manufacturing_quality,!manufacturing_dashboard.group_manufacturing_admin"/>
+                            <field name="bypass_reason" invisible="is_bypassed == False" readonly="1" groups="!manufacturing_dashboard.group_manufacturing_production,!manufacturing_dashboard.group_manufacturing_quality,!manufacturing_dashboard.group_manufacturing_admin"/>
                         </group>
                         <group name="status_info" string="Status Information">
-                            <field name="last_sync" widget="datetime"/>
+                            <field name="last_sync" widget="datetime" readonly="1"/>
                             <field name="parts_processed_today" readonly="1"/>
                             <field name="rejection_rate" widget="percentage" readonly="1"/>
                         </group>
@@ -176,7 +178,7 @@
                                     <field name="manual_cylinder_forward"/>
                                     <field name="manual_cylinder_reverse"/>
                                 </group>
-                                <group string="Bypass Controls">
+                                <group string="Bypass Controls" groups="manufacturing_dashboard.group_manufacturing_production,manufacturing_dashboard.group_manufacturing_quality,manufacturing_dashboard.group_manufacturing_admin">
                                     <field name="is_bypassed" widget="boolean_toggle"/>
                                     <field name="bypass_reason" placeholder="Enter reason for bypass (e.g., Maintenance, Calibration)"/>
                                 </group>

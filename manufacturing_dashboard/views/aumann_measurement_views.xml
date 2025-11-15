@@ -29,6 +29,10 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="action_override_result" type="object" string="Override Result"
+                            class="btn-warning" groups="base.group_system"
+                            invisible="result != 'reject'"
+                            title="Override Aumann Result - Pass Rejected Part"/>
                     <field name="result" widget="statusbar"/>
                 </header>
                 <sheet>

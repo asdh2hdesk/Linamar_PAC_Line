@@ -544,7 +544,40 @@ class AumannMeasurement(models.Model):
                 'test_date': record.test_date,
             })
 
-        part_quality.aumann_result = record.result
+        # Find the latest test_date among all Aumann records with the same serial_number
+        latest_aumann = self.env['manufacturing.aumann.measurement'].search([
+            ('serial_number', '=', record.serial_number)
+        ], order='test_date desc', limit=1)
+        
+        # Update test_date with the latest one if found
+        update_vals = {}
+        if latest_aumann and latest_aumann.test_date:
+            if not part_quality.test_date or latest_aumann.test_date > part_quality.test_date:
+                update_vals['test_date'] = latest_aumann.test_date
+
+        # Update aumann_result - use write with skip flag to prevent recursion
+        if part_quality.aumann_result != record.result:
+            update_vals['aumann_result'] = record.result
+        
+        if update_vals:
+            part_quality.with_context(skip_station_recalculate=True).write(update_vals)
+
+    def action_override_result(self):
+        """Open wizard to override Aumann result - updates station record first, then syncs to part_quality"""
+        self.ensure_one()
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Override Aumann Result',
+            'res_model': 'manufacturing.station.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_station_model': 'manufacturing.aumann.measurement',
+                'default_station_record_id': self.id,
+                'default_station_name': 'aumann'
+            }
+        }
 
     def _compute_tolerance_table(self):
         for record in self:
