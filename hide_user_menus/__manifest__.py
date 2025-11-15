@@ -17,7 +17,7 @@
         The main goal of this module is to streamline the user interface and make it less cluttered, particularly 
         for users who do not need these features in their daily use.
     """,
-    'website': 'https:asdsoftwares.com',
+    'website': 'www.asdsoftwares.com',
     'version': '1.0',
     'depends': ['base', 'web'],
     'assets': {

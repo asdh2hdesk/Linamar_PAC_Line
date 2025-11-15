@@ -182,5 +182,37 @@ class GaugingMeasurement(models.Model):
                 'test_date': record.test_date,
             })
         
-        # Update the gauging result
-        part_quality.gauging_result = record.result
+        # Find the latest test_date among all Gauging records with the same serial_number
+        latest_gauging = self.env['manufacturing.gauging.measurement'].search([
+            ('serial_number', '=', record.serial_number)
+        ], order='test_date desc', limit=1)
+        
+        # Update test_date with the latest one if found
+        update_vals = {}
+        if latest_gauging and latest_gauging.test_date:
+            if not part_quality.test_date or latest_gauging.test_date > part_quality.test_date:
+                update_vals['test_date'] = latest_gauging.test_date
+        
+        # Update the gauging result - use write with skip flag to prevent recursion
+        if part_quality.gauging_result != record.result:
+            update_vals['gauging_result'] = record.result
+        
+        if update_vals:
+            part_quality.with_context(skip_station_recalculate=True).write(update_vals)
+
+    def action_override_result(self):
+        """Open wizard to override Gauging result - updates station record first, then syncs to part_quality"""
+        self.ensure_one()
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Override Gauging Result',
+            'res_model': 'manufacturing.station.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_station_model': 'manufacturing.gauging.measurement',
+                'default_station_record_id': self.id,
+                'default_station_name': 'gauging'
+            }
+        }

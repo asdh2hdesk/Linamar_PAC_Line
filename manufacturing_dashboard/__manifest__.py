@@ -42,6 +42,7 @@ Features:
         'views/final_station_measurement_views.xml',
         'views/box_management_views.xml',
         'views/qe_override_wizard_views.xml',
+        'views/station_override_wizard_views.xml',
         'views/dashboard_views.xml',
         'views/menu_views.xml',
         'data/cron_data.xml',

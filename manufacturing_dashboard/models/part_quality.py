@@ -240,6 +240,7 @@ class PartQuality(models.Model):
         
         self.write({
             'final_result': new_result,
+            'test_date': self.get_ist_now(),  # Update test_date to current datetime
             'qe_override': True,
             'qe_comments': comments
         })
@@ -249,6 +250,268 @@ class PartQuality(models.Model):
         #     body=f"QE Override: Result changed to {new_result}. Comments: {comments}",
         #     message_type='notification'
         # )
+
+    def override_station_result(self, station_name, new_result, comments):
+        """Override a specific station result
+        
+        :param station_name: One of 'vici', 'ruhlamat', 'aumann', 'gauging'
+        :param new_result: New result value ('pending', 'pass', 'reject', 'bypass')
+        :param comments: Reason for override
+        """
+        self.ensure_one()
+        
+        station_map = {
+            'vici': 'vici_result',
+            'ruhlamat': 'ruhlamat_result',
+            'aumann': 'aumann_result',
+            'gauging': 'gauging_result'
+        }
+        
+        if station_name not in station_map:
+            raise ValueError(f"Invalid station name: {station_name}")
+        
+        field_name = station_map[station_name]
+        
+        # Update the station result and test_date to current datetime
+        # Note: final_result will be automatically recalculated since it depends on station results
+        self.with_context(skip_station_recalculate=True).write({
+            field_name: new_result,
+            'test_date': self.get_ist_now(),  # Update test_date to current datetime
+            'qe_override': True,
+            'qe_comments': f"[{station_name.upper()} Override] {comments}"
+        })
+        
+        _logger.info(f"Station override applied: {station_name} -> {new_result} for serial {self.serial_number}, test_date updated to {self.test_date}")
+
+    def action_override_vici_result(self):
+        """Open wizard to override VICI result"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Override VICI Result',
+            'res_model': 'manufacturing.station.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_part_quality_id': self.id,
+                'default_station_name': 'vici'
+            }
+        }
+
+    def action_override_ruhlamat_result(self):
+        """Open wizard to override Ruhlamat result"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Override Ruhlamat Result',
+            'res_model': 'manufacturing.station.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_part_quality_id': self.id,
+                'default_station_name': 'ruhlamat'
+            }
+        }
+
+    def action_override_aumann_result(self):
+        """Open wizard to override Aumann result"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Override Aumann Result',
+            'res_model': 'manufacturing.station.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_part_quality_id': self.id,
+                'default_station_name': 'aumann'
+            }
+        }
+
+    def action_override_gauging_result(self):
+        """Open wizard to override Gauging result"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Override Gauging Result',
+            'res_model': 'manufacturing.station.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_part_quality_id': self.id,
+                'default_station_name': 'gauging'
+            }
+        }
+
+    # def recalculate_station_result(self, station_name):
+    #     """Recalculate and update a specific station result from measurement records
+    #
+    #     :param station_name: One of 'vici', 'ruhlamat', 'aumann', 'gauging'
+    #     :return: True if successful, False otherwise
+    #     """
+    #     self.ensure_one()
+    #
+    #     if not self.serial_number:
+    #         _logger.warning(f"Cannot recalculate station result: serial_number is missing")
+    #         return False
+    #
+    #     try:
+    #         station_map = {
+    #             'vici': {
+    #                 'model': 'manufacturing.vici.vision',
+    #                 'field': 'vici_result',
+    #                 'result_field': 'result',
+    #                 'search_field': 'serial_number'
+    #             },
+    #             'ruhlamat': {
+    #                 'model': 'manufacturing.ruhlamat.press',
+    #                 'field': 'ruhlamat_result',
+    #                 'result_field': 'result',
+    #                 'search_field': 'part_id1'
+    #             },
+    #             'aumann': {
+    #                 'model': 'manufacturing.aumann.measurement',
+    #                 'field': 'aumann_result',
+    #                 'result_field': 'result',
+    #                 'search_field': 'serial_number'
+    #             },
+    #             'gauging': {
+    #                 'model': 'manufacturing.gauging.measurement',
+    #                 'field': 'gauging_result',
+    #                 'result_field': 'result',
+    #                 'search_field': 'serial_number'
+    #             }
+    #         }
+    #
+    #         if station_name not in station_map:
+    #             _logger.error(f"Invalid station name: {station_name}. Must be one of: {list(station_map.keys())}")
+    #             return False
+    #
+    #         station_info = station_map[station_name]
+    #         measurement_model = self.env[station_info['model']]
+    #
+    #         # Search for the latest measurement record
+    #         search_domain = [(station_info['search_field'], '=', self.serial_number)]
+    #
+    #         # For ruhlamat, we need to search by part_id1 and also check part_quality_id
+    #         if station_name == 'ruhlamat':
+    #             # Try to find by part_quality_id first (more reliable)
+    #             ruhlamat_records = measurement_model.search([
+    #                 ('part_quality_id', '=', self.id)
+    #             ], order='cycle_date desc', limit=1)
+    #
+    #             if not ruhlamat_records:
+    #                 # Fallback to part_id1 search
+    #                 ruhlamat_records = measurement_model.search([
+    #                     ('part_id1', '=', self.serial_number)
+    #                 ], order='cycle_date desc', limit=1)
+    #
+    #             latest_measurement = ruhlamat_records[0] if ruhlamat_records else None
+    #         else:
+    #             # For other stations, order by test_date
+    #             order_field = 'test_date' if hasattr(measurement_model, 'test_date') else 'id'
+    #             latest_measurement = measurement_model.search(
+    #                 search_domain,
+    #                 order=f'{order_field} desc',
+    #                 limit=1
+    #             )
+    #
+    #         if not latest_measurement:
+    #             _logger.info(f"No {station_name} measurement found for serial {self.serial_number}, setting to pending")
+    #             self.with_context(skip_station_recalculate=True).write({station_info['field']: 'pending'})
+    #             return True
+    #
+    #         # Get the result from the measurement record
+    #         measurement_result = getattr(latest_measurement, station_info['result_field'], None)
+    #
+    #         if measurement_result:
+    #             # Map 'pass'/'reject' to part_quality format (which also supports 'bypass')
+    #             if measurement_result in ('pass', 'reject'):
+    #                 self.with_context(skip_station_recalculate=True).write({station_info['field']: measurement_result})
+    #                 _logger.info(f"Recalculated {station_name} result for serial {self.serial_number}: {measurement_result}")
+    #                 return True
+    #             else:
+    #                 _logger.warning(f"Unexpected result value '{measurement_result}' for {station_name} measurement")
+    #                 return False
+    #         else:
+    #             _logger.warning(f"No result field found in {station_name} measurement for serial {self.serial_number}")
+    #             return False
+    #
+    #     except Exception as e:
+    #         _logger.error(f"Error recalculating {station_name} result for serial {self.serial_number}: {str(e)}")
+    #         return False
+    #
+    # def write(self, vals):
+    #     """Override write to recalculate station results when serial_number is present"""
+    #     # Skip recalculation if flag is set (prevents recursion)
+    #     if self.env.context.get('skip_station_recalculate'):
+    #         return super().write(vals)
+    #
+    #     # Only recalculate if serial_number is being set or changed
+    #     should_recalculate = False
+    #     serial_to_check = None
+    #
+    #     if 'serial_number' in vals:
+    #         # Serial number is being set/changed
+    #         should_recalculate = True
+    #         serial_to_check = vals['serial_number']
+    #     elif self and len(self) == 1 and self.serial_number:
+    #         # Check if we're updating station result fields - if so, don't recalculate
+    #         # (station results are synced from station records, not recalculated)
+    #         station_result_fields = {'vici_result', 'ruhlamat_result', 'aumann_result', 'gauging_result'}
+    #         if not any(field in vals for field in station_result_fields):
+    #             # Only recalculate if serial exists and we're not just updating station results
+    #             should_recalculate = True
+    #             serial_to_check = self.serial_number
+    #
+    #     # Call super write first
+    #     res = super().write(vals)
+    #
+    #     # After write, recalculate all station results only if serial_number was set/changed
+    #     if should_recalculate and serial_to_check:
+    #         for record in self:
+    #             # Get the current serial number (may have been updated in write)
+    #             current_serial = record.serial_number or serial_to_check
+    #
+    #             if not current_serial:
+    #                 continue
+    #
+    #             _logger.info(f"Recalculating station results for serial: {current_serial}")
+    #
+    #             # Recalculate all station results using the recalculate_station_result method
+    #             stations_to_recalculate = ['vici', 'ruhlamat', 'aumann', 'gauging']
+    #
+    #             for station_name in stations_to_recalculate:
+    #                 try:
+    #                     # Use recalculate_station_result which will update the field directly
+    #                     record.recalculate_station_result(station_name)
+    #                 except Exception as e:
+    #                     _logger.error(f"Error recalculating {station_name} for serial {current_serial}: {str(e)}")
+    #
+    #             # Special handling for aumann: update test_date if aumann record exists and part_quality shows pending
+    #             if record.aumann_result == 'pending':
+    #                 aumann_record = self.env['manufacturing.aumann.measurement'].search([
+    #                     ('serial_number', '=', current_serial)
+    #                 ], order='test_date desc', limit=1)
+    #
+    #                 if aumann_record:
+    #                     update_vals = {}
+    #
+    #                     # Update aumann_result if it's still pending
+    #                     if record.aumann_result == 'pending':
+    #                         update_vals['aumann_result'] = aumann_record.result
+    #
+    #                     # Update test_date from aumann's test_date
+    #                     if aumann_record.test_date and (not record.test_date or record.test_date != aumann_record.test_date):
+    #                         update_vals['test_date'] = aumann_record.test_date
+    #                         _logger.info(f"Updated test_date to {aumann_record.test_date} from aumann record for serial {current_serial}")
+    #
+    #                     # Apply updates if any
+    #                     if update_vals:
+    #                         record.with_context(skip_station_recalculate=True).write(update_vals)
+    #                         _logger.info(f"Updated aumann_result and test_date for serial {current_serial}: {update_vals}")
+    #
+    #     return res
 
     @api.model
     def cleanup_rejected_parts_from_boxes(self):

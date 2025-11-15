@@ -142,11 +142,43 @@ class RuhlamatPress(models.Model):
                 'test_date': record.cycle_date,
             })
 
+        # Find the latest cycle_date among all Ruhlamat records with the same part_id1
+        latest_ruhlamat = self.env['manufacturing.ruhlamat.press'].search([
+            ('part_id1', '=', record.part_id1)
+        ], order='cycle_date desc', limit=1)
+        
+        # Update test_date with the latest one if found
+        update_vals = {}
+        if latest_ruhlamat and latest_ruhlamat.cycle_date:
+            if not part_quality.test_date or latest_ruhlamat.cycle_date > part_quality.test_date:
+                update_vals['test_date'] = latest_ruhlamat.cycle_date
+
         # Update the relationship
         record.part_quality_id = part_quality.id
 
-        # Update the result
-        part_quality.ruhlamat_result = record.result
+        # Update the result - use write with skip flag to prevent recursion
+        if part_quality.ruhlamat_result != record.result:
+            update_vals['ruhlamat_result'] = record.result
+        
+        if update_vals:
+            part_quality.with_context(skip_station_recalculate=True).write(update_vals)
+
+    def action_override_result(self):
+        """Open wizard to override Ruhlamat result - updates station record first, then syncs to part_quality"""
+        self.ensure_one()
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Override Ruhlamat Result',
+            'res_model': 'manufacturing.station.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_station_model': 'manufacturing.ruhlamat.press',
+                'default_station_record_id': self.id,
+                'default_station_name': 'ruhlamat'
+            }
+        }
 
 
 class RuhlamatGauging(models.Model):

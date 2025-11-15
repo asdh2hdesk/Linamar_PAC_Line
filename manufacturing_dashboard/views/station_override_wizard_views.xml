@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Station Override Wizard Form View -->
+    <record id="view_station_override_wizard_form" model="ir.ui.view">
+        <field name="name">station.override.wizard.form</field>
+        <field name="model">manufacturing.station.override.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Station Result Override - Pass Rejected Part">
+                <group>
+                    <field name="station_name" readonly="1"/>
+                    <field name="station_label" readonly="1"/>
+                    <field name="current_result" readonly="1"/>
+                    <field name="new_result" required="1" default="pass"/>
+                    <field name="comments" required="1" placeholder="Enter reason for passing this rejected part..."/>
+                    <field name="station_model" invisible="1"/>
+                    <field name="station_record_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_override" type="object" string="Apply Override" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Station Override Wizard Action -->
+    <record id="action_station_override_wizard" model="ir.actions.act_window">
+        <field name="name">Station Result Override</field>
+        <field name="res_model">manufacturing.station.override.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_part_quality_id': active_id}</field>
+    </record>
+</odoo>
+
