@@ -452,7 +452,7 @@
                                     <h5 class="mb-0">
                                         <i class="fa fa-check-square-o"/>
                                         Station Results
-                                        <span t-if="state.station_results" class="badge badge-info ml-2"
+                                        <span t-if="state.station_results" class="badge serial-font"
                                               t-esc="state.station_results.serial_number"/>
                                     </h5>
                                     <div class="btn-group">
